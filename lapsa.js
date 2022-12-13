@@ -1,76 +1,100 @@
-Page.Presentation =
+class Lapsa
 {
-	callbacks: {},
+	callbacks = {};
 	
-	slides: [],
-	slide_container: null,
-	slide_shelf_container: null,
-	slide_shelf: null,
-	shelf_is_open: false,
-	shelf_is_animating: false,
+	slides = [];
+	slideContainer = null;
 	
-	current_slide: 0,
+	slideShelfContainer = null;
+	slideShelf = null;
+	shelfIsOpen = false;
+	shelfIsAnimating = false;
+	shelfMargin = 50;
+	shelfIconPaths = ["/icons/up-2.png", "/icons/up-1.png", "/icons/down-1.png", "/icons/down-2.png"];
 	
-	build_state: 0,
-	num_builds: 0,
+	currentSlide = 0;
 	
-	currently_animating: false,
+	buildState = 0;
+	numBuilds = 0;
+	
+	currentlyAnimating = false;
 	
 	
 	
-	init: function(callbacks)
+	/*
+		options =
+		{
+			callbacks: {}
+		};
+	*/
+	
+	constructor(options)
+	{
+		this.init(options.callbacks ?? {});
+	}
+	
+	
+	
+	init(callbacks)
 	{
 		this.callbacks = callbacks;
 		
-		this.slides = Page.element.querySelectorAll(".slide");
-		this.slide_container = Page.element.querySelector("#slide-container");
+		this.slides = document.body.querySelectorAll(".slide");
+		this.slideContainer = document.body.querySelector("#slide-container");
 		
 		
 		
-		this.slide_shelf_container = document.createElement("div");
-		this.slide_shelf_container.id = "slide-shelf-container";
+		this.slideShelfContainer = document.createElement("div");
+		this.slideShelfContainer.id = "slide-shelf-container";
 		
-		this.slide_shelf_container.innerHTML = `
-			<div id="slide-shelf" style="margin-left: ${Site.navigation_animation_distance_vertical}px; opacity: 0">
-				<input type="image" id="up-2-button" class="shelf-button" src="/graphics/presentation-icons/up-2.png" onclick="Page.Presentation.previous_slide(true)" tabindex="-1">
-				<input type="image" id="up-1-button" class="shelf-button" src="/graphics/presentation-icons/up-1.png" onclick="Page.Presentation.previous_slide()" tabindex="-1">
-				<input type="image" id="down-1-button" class="shelf-button" src="/graphics/presentation-icons/down-1.png" onclick="Page.Presentation.next_slide()" tabindex="-1">
-				<input type="image" id="down-2-button" class="shelf-button" src="/graphics/presentation-icons/down-2.png" onclick="Page.Presentation.next_slide(true)" tabindex="-1">
+		this.slideShelfContainer.innerHTML = `
+			<div id="slide-shelf" style="margin-left: ${this.shelfMargin}px; opacity: 0">
+				<input type="image" id="lapsa-up-2-button" class="shelf-button" src="${this.shelfIconPaths[0]}">
+				<input type="image" id="lapsa-up-1-button" class="shelf-button" src="${this.shelfIconPaths[1]}">
+				<input type="image" id="lapsa-down-1-button" class="shelf-button" src="${this.shelfIconPaths[0]}">
+				<input type="image" id="lapsa-down-2-button" class="shelf-button" src="${this.shelfIconPaths[0]}">
 			</div>
 		`;
 		
-		document.body.appendChild(this.slide_shelf_container);
+		console.log("hi!");
+		
+		document.body.appendChild(this.slideShelfContainer);
 		
 		setTimeout(() =>
 		{
-			this.slide_shelf = document.querySelector("#slide-shelf");
-			this.slide_shelf.style.display = "none";
-			Page.Animate.hide_slide_shelf(this.slide_shelf, 0);
+			this.slideShelf = document.querySelector("#slide-shelf");
+			this.slideShelf.style.display = "none";
+			Page.Animate.hideSlideShelf(this.slideShelf, 0);
 			
 			document.body.querySelectorAll(".shelf-button").forEach(element => Page.Load.HoverEvents.add(element));
 			
-			this.slide_shelf_container.addEventListener("mouseenter", () =>
+			this.slideShelfContainer.addEventListener("mouseenter", () =>
 			{
-				if (!this.shelf_is_open)
+				if (!this.shelfIsOpen)
 				{
-					this.show_shelf();
+					this.showShelf();
 				}
 			});
 			
-			this.slide_shelf_container.addEventListener("mouseleave", () =>
+			this.slideShelfContainer.addEventListener("mouseleave", () =>
 			{
-				if (this.shelf_is_open)
+				if (this.shelfIsOpen)
 				{
-					this.hide_shelf();
+					this.hideShelf();
 				}
 			});
+			
+			this.slideShelfContainer.children[0].addEventListener("click", () => this.previousSlide(true));
+			this.slideShelfContainer.children[1].addEventListener("click", () => this.previousSlide());
+			this.slideShelfContainer.children[2].addEventListener("click", () => this.nextSlide());
+			this.slideShelfContainer.children[3].addEventListener("click", () => this.nextSlide(true));
 		}, 50);
 		
 		
 		
 		this.slides.forEach(element => element.style.display = "none");
 		
-		Page.element.querySelectorAll("header, footer").forEach(element => element.style.display = "none");
+		document.body.querySelectorAll("header, footer").forEach(element => element.style.display = "none");
 		
 		Page.element.firstElementChild.style.display = "none";
 		
@@ -81,37 +105,37 @@ Page.Presentation =
 		
 		
 		
-		Page.Load.HoverEvents.add(Page.element.querySelector("#help-link"));
+		Page.Load.HoverEvents.add(document.body.querySelector("#help-link"));
 		
 		
 		
-		Page.element.querySelectorAll("h1, h2").forEach(element => element.parentNode.insertAdjacentHTML("afterend", "<br>"));
+		document.body.querySelectorAll("h1, h2").forEach(element => element.parentNode.insertAdjacentHTML("afterend", "<br>"));
 		
 		
 		
-		document.documentElement.addEventListener("keydown", this.handle_keydown_event);
-		Page.temporary_handlers["keydown"].push(this.handle_keydown_event);
+		document.documentElement.addEventListener("keydown", this.handleKeydownEvent);
+		Page.temporary_handlers["keydown"].push(this.handleKeydownEvent);
 		
-		document.documentElement.addEventListener("touchstart", this.handle_touchstart_event);
-		Page.temporary_handlers["touchstart"].push(this.handle_touchstart_event);
+		document.documentElement.addEventListener("touchstart", this.handleTouchstartEvent);
+		Page.temporary_handlers["touchstart"].push(this.handleTouchstartEvent);
 		
-		document.documentElement.addEventListener("touchend", this.handle_touchend_event);
-		Page.temporary_handlers["touchend"].push(this.handle_touchend_event);
+		document.documentElement.addEventListener("touchend", this.handleTouchendEvent);
+		Page.temporary_handlers["touchend"].push(this.handleTouchendEvent);
 		
 		
 		
-		this.next_slide();
-	},
+		this.nextSlide();
+	}
 	
 	
 	
-	exit: function()
+	exit()
 	{
-		this.slide_container.remove();
+		this.slideContainer.remove();
 		
 		this.slides.forEach(element => element.remove());
 		
-		Page.element.querySelectorAll("header, footer").forEach(element => element.style.display = "block");
+		document.body.querySelectorAll("header, footer").forEach(element => element.style.display = "block");
 	
 		Page.element.firstElementChild.style.display = "block";
 		
@@ -119,306 +143,336 @@ Page.Presentation =
 		document.body.style.overflowY = "visible";
 		document.body.style.userSelect = "auto";
 		document.body.style.WebkitUserSelect = "auto";
-	},
+	}
 	
 	
 	
-	next_slide: async function(skip_builds = false)
+	async nextSlide(skipBuilds = false)
 	{
-		if (this.currently_animating)
+		if (this.currentlyAnimating)
 		{
 			return;
 		}
 		
-		this.currently_animating = true;
+		this.currentlyAnimating = true;
 		
 		
 		
-		if (!skip_builds && this.num_builds !== 0 && this.build_state !== this.num_builds)
+		if (!skipBuilds && this.numBuilds !== 0 && this.buildState !== this.numBuilds)
 		{
 			let promises = [];
 			
 			//Gross code because animation durations are weird as hell -- see the corresponding previous_slide block for a better example.
-			this.slides[this.current_slide].querySelectorAll(`.build-${this.build_state}`).forEach(element =>
+			this.slides[this.currentSlide].querySelectorAll(`.build-${this.buildState}`).forEach(element =>
 			{
-				Page.Animate.fade_up_in(element, Site.page_animation_time * 2);
+				Page.Animate.fadeUpIn(element, Site.pageAnimationTime * 2);
 				
-				promises.push(new Promise((resolve, reject) => setTimeout(resolve, Site.page_animation_time)));
+				promises.push(new Promise((resolve, reject) => setTimeout(resolve, Site.pageAnimationTime)));
 			});
 			
-			try {promises.push(this.callbacks[this.slides[this.current_slide].id].builds[this.build_state](this.slides[this.current_slide], true))}
+			try {promises.push(this.callbacks[this.slides[this.currentSlide].id].builds[this.buildState](this.slides[this.currentSlide], true))}
 			catch(ex) {}
 			
 			await Promise.all(promises);
 			
-			this.build_state++;
+			this.buildState++;
 			
-			this.currently_animating = false;
-			
-			return;
-		}
-		
-		
-		
-		if (this.current_slide === this.slides.length)
-		{
-			this.currently_animating = false;
+			this.currentlyAnimating = false;
 			
 			return;
 		}
 		
-		await Page.Animate.fade_up_out(Page.element, Site.page_animation_time);
 		
-		if (this.current_slide !== -1)
+		
+		if (this.currentSlide === this.slides.length)
 		{
-			this.slides[this.current_slide].style.display = "none";
+			this.currentlyAnimating = false;
+			
+			return;
 		}
 		
-		this.current_slide++;
+		await Page.Animate.fadeUpOut(Page.element, Site.pageAnimationTime);
 		
-		if (this.current_slide === this.slides.length)
+		if (this.currentSlide !== -1)
+		{
+			this.slides[this.currentSlide].style.display = "none";
+		}
+		
+		this.currentSlide++;
+		
+		if (this.currentSlide === this.slides.length)
 		{
 			this.exit();
 		}
 		
 		else
 		{
-			this.slides[this.current_slide].style.display = "block";
+			this.slides[this.currentSlide].style.display = "block";
 			
-			this.build_state = 0;
+			this.buildState = 0;
 			
-			const builds = this.slides[this.current_slide].querySelectorAll(".build");
+			const builds = this.slides[this.currentSlide].querySelectorAll(".build");
 			
-			this.num_builds = Math.max(builds.length, this.callbacks?.[this.slides[this.current_slide].id]?.builds?.length ?? 0);
+			this.numBuilds = Math.max(builds.length, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
 			
 			builds.forEach(element => element.style.opacity = 0);
 		}
 		
-		try {await this.callbacks[this.slides[this.current_slide].id].callback(this.slides[this.current_slide], true)}
+		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
 		catch(ex) {}
 		
-		await Page.Animate.fade_up_in(Page.element, Site.page_animation_time * 2);
+		await Page.Animate.fadeUpIn(Page.element, Site.pageAnimationTime * 2);
 		
-		this.currently_animating = false;
-	},
+		this.currentlyAnimating = false;
+	}
 	
 	
 	
-	previous_slide: async function(skip_builds = false)
+	async previousSlide(skipBuilds = false)
 	{
-		if (this.currently_animating)
+		if (this.currentlyAnimating)
 		{
 			return;
 		}
 		
-		this.currently_animating = true;
+		this.currentlyAnimating = true;
 		
 		
 		
-		if (!skip_builds && this.num_builds !== 0 && this.build_state !== 0)
+		if (!skipBuilds && this.numBuilds !== 0 && this.buildState !== 0)
 		{
-			this.build_state--;
+			this.buildState--;
 			
 			let promises = [];
 			
-			this.slides[this.current_slide].querySelectorAll(`.build-${this.build_state}`).forEach(element => promises.push(Page.Animate.fade_down_out(element, Site.page_animation_time)));
+			this.slides[this.currentSlide].querySelectorAll(`.build-${this.buildState}`).forEach(element => promises.push(Page.Animate.fadeDownOut(element, Site.pageAnimationTime)));
 			
-			try {promises.push(this.callbacks[this.slides[this.current_slide].id].builds[this.build_state](this.slides[this.current_slide], false))}
+			try {promises.push(this.callbacks[this.slides[this.currentSlide].id].builds[this.buildState](this.slides[this.currentSlide], false))}
 			catch(ex) {}
 			
 			await Promise.all(promises);
 			
-			this.currently_animating = false;
+			this.currentlyAnimating = false;
 			
 			return;
 		}
 		
 		
 		
-		if (this.current_slide === 0 || this.current_slide === this.slides.length)
+		if (this.currentSlide === 0 || this.currentSlide === this.slides.length)
 		{
-			this.currently_animating = false;
+			this.currentlyAnimating = false;
 			
 			return;
 		}
 		
 		
 		
-		await Page.Animate.fade_down_out(Page.element, Site.page_animation_time);
+		await Page.Animate.fadeDownOut(Page.element, Site.pageAnimationTime);
 		
-		this.slides[this.current_slide].style.display = "none";
+		this.slides[this.currentSlide].style.display = "none";
 		
 		
 		
-		this.current_slide--;
+		this.currentSlide--;
 		
-		const builds = this.slides[this.current_slide].querySelectorAll(".build");
+		const builds = this.slides[this.currentSlide].querySelectorAll(".build");
 		
-		this.num_builds = Math.max(builds.length, this.callbacks?.[this.slides[this.current_slide].id]?.builds?.length ?? 0);
+		this.numBuilds = Math.max(builds.length, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
 		
-		this.build_state = this.num_builds;
+		this.buildState = this.numBuilds;
 		
 		builds.forEach(element => element.style.opacity = 1);
 		
 		
 		
-		this.slides[this.current_slide].style.display = "block";
+		this.slides[this.currentSlide].style.display = "block";
 		
-		try {await this.callbacks[this.slides[this.current_slide].id].callback(this.slides[this.current_slide], false)}
+		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], false)}
 		catch(ex) {}
 		
-		await Page.Animate.fade_down_in(Page.element, Site.page_animation_time * 2);
+		await Page.Animate.fadeDownIn(Page.element, Site.pageAnimationTime * 2);
 		
-		this.currently_animating = false;
-	},
+		this.currentlyAnimating = false;
+	}
 	
 	
 	
-	jump_to_slide: async function(index)
+	async jumpToSlide(index)
 	{
-		if (this.currently_animating)
+		if (this.currentlyAnimating)
 		{
 			return;
 		}
 		
-		this.currently_animating = true;
+		this.currentlyAnimating = true;
 		
 		
 		
-		if (index < 0 || index >= this.slides.length || index === this.current_slide)
+		if (index < 0 || index >= this.slides.length || index === this.currentSlide)
 		{
-			this.currently_animating = false;
+			this.currentlyAnimating = false;
 			
 			return;
 		}
 		
 		
 		
-		const forward_animation = index > this.current_slide;
+		const forwardAnimation = index > this.currentSlide;
 		
-		if (forward_animation)
+		if (forwardAnimation)
 		{
-			await Page.Animate.fade_up_out(Page.element, Site.page_animation_time);
+			await Page.Animate.fadeUpOut(Page.element, Site.pageAnimationTime);
 		}
 		
 		else
 		{
-			await Page.Animate.fade_down_out(Page.element, Site.page_animation_time);
+			await Page.Animate.fadeDownOut(Page.element, Site.pageAnimationTime);
 		}
 		
 		
 		
-		this.slides[this.current_slide].style.display = "none";
+		this.slides[this.currentSlide].style.display = "none";
 		
-		this.current_slide = index;
+		this.currentSlide = index;
 		
-		this.slides[this.current_slide].style.display = "block";
+		this.slides[this.currentSlide].style.display = "block";
 		
 		
 		
-		this.build_state = 0;
+		this.buildState = 0;
 		
-		const builds = this.slides[this.current_slide].querySelectorAll(".build");
+		const builds = this.slides[this.currentSlide].querySelectorAll(".build");
 		
-		this.num_builds = Math.max(builds.length, this.callbacks?.[this.slides[this.current_slide].id]?.builds?.length ?? 0);
+		this.numBuilds = Math.max(builds.length, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
 		
 		builds.forEach(element => element.style.opacity = 0);
 		
 		
 		
-		try {await this.callbacks[this.slides[this.current_slide].id].callback(this.slides[this.current_slide], true)}
+		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
 		catch(ex) {}
 		
 		
 		
-		if (forward_animation)
+		if (forwardAnimation)
 		{
-			await Page.Animate.fade_up_in(Page.element, Site.page_animation_time * 2);
+			await Page.Animate.fadeUpIn(Page.element, Site.pageAnimationTime * 2);
 		}
 		
 		else
 		{
-			await Page.Animate.fade_down_in(Page.element, Site.page_animation_time * 2);
+			await Page.Animate.fadeDownIn(Page.element, Site.pageAnimationTime * 2);
 		}
 		
-		this.currently_animating = false;
-	},
+		this.currentlyAnimating = false;
+	}
 	
 	
 	
-	show_shelf: async function()
+	async showShelf()
 	{
-		this.shelf_is_open = true;
-		this.shelf_is_animating = true;
+		this.shelfIsOpen = true;
+		this.shelfIsAnimating = true;
 		
-		this.slide_shelf.style.display = "";
+		this.slideShelf.style.display = "";
 		
-		await Page.Animate.show_slide_shelf(this.slide_shelf, 275);
+		await Page.Animate.showSlideShelf(this.slideShelf, 275);
 		
-		this.shelf_is_animating = false;
-	},
+		this.shelfIsAnimating = false;
+	}
 	
-	hide_shelf: async function()
+	async hideShelf()
 	{
-		this.shelf_is_open = false;
-		this.shelf_is_animating = true;
+		this.shelfIsOpen = false;
+		this.shelfIsAnimating = true;
 		
-		await Page.Animate.hide_slide_shelf(this.slide_shelf, 275);
+		await Page.Animate.hideSlideShelf(this.slideShelf, 275);
 		
-		this.shelf_is_animating = false;
-	},
+		this.shelfIsAnimating = false;
+	}
+	
+	hideSlideShelf(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			anime({
+				targets: element,
+				marginLeft: `${-this.shelfMargin}px`,
+				opacity: 0,
+				duration: duration,
+				easing: "cubicBezier(.4, 0.0, .4, 1.0)",
+				complete: resolve
+			});
+		});	
+	}
+	
+	showSlideShelf(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			anime({
+				targets: element,
+				marginLeft: "0px",
+				opacity: 1,
+				duration: duration,
+				easing: "cubicBezier(.4, 1.0, .7, 1.0)",
+				complete: resolve
+			});
+		});	
+	}
 	
 	
 	
-	handle_keydown_event: function(e)
+	handleKeydownEvent(e)
 	{
 		if (e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 32 || e.keyCode === 13)
 		{
-			Page.Presentation.next_slide();
+			Page.Presentation.nextSlide();
 		}
 		
 		else if (e.keyCode === 37 || e.keyCode === 38)
 		{
-			Page.Presentation.previous_slide();
+			Page.Presentation.previousSlide();
 		}
-	},
+	}
 	
 	
 	
-	max_touches: 0,
+	maxTouches = 0;
 	
-	handle_touchstart_event: function(e)
+	handleTouchstartEvent(e)
 	{
-		Page.Presentation.max_touches = Math.max(Page.Presentation.max_touches, e.touches.length);
-	},
+		Page.Presentation.maxTouches = Math.max(Page.Presentation.maxTouches, e.touches.length);
+	}
 	
-	handle_touchend_event: function(e)
+	handleTouchendEvent(e)
 	{
-		if (Page.Presentation.max_touches === 2)
+		if (Page.Presentation.maxTouches === 2)
 		{
-			Page.Presentation.next_slide();
+			Page.Presentation.nextSlide();
 		}
 		
-		else if (Page.Presentation.max_touches === 3 && !Page.Presentation.shelf_is_animating)
+		else if (Page.Presentation.maxTouches === 3 && !Page.Presentation.shelfIsAnimating)
 		{
-			if (!Page.Presentation.shelf_is_open)
+			if (!Page.Presentation.shelfIsOpen)
 			{
-				Page.Presentation.show_shelf();
+				Page.Presentation.showShelf();
 			}
 			
 			else
 			{
-				Page.Presentation.hide_shelf();
+				Page.Presentation.hideShelf();
 			}
 		}
 		
-		Page.Presentation.max_touches = 0;
-	},
+		Page.Presentation.maxTouches = 0;
+	}
 	
 	
 	
-	get_current_slide: function()
+	getCurrentSlide()
 	{
-		return this.slides[this.current_slide];
+		return this.slides[this.currentSlide];
 	}
 }
