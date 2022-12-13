@@ -12,7 +12,8 @@ class Lapsa
 	shelfMargin = 50;
 	shelfIconPaths = ["/icons/up-2.png", "/icons/up-1.png", "/icons/down-1.png", "/icons/down-2.png"];
 	
-	currentSlide = 0;
+	currentSlide = -1;
+	transitionAnimationTime = 150;
 	
 	buildState = 0;
 	numBuilds = 0;
@@ -56,17 +57,13 @@ class Lapsa
 			</div>
 		`;
 		
-		console.log("hi!");
-		
 		document.body.appendChild(this.slideShelfContainer);
 		
 		setTimeout(() =>
 		{
 			this.slideShelf = document.querySelector("#slide-shelf");
 			this.slideShelf.style.display = "none";
-			Page.Animate.hideSlideShelf(this.slideShelf, 0);
-			
-			document.body.querySelectorAll(".shelf-button").forEach(element => Page.Load.HoverEvents.add(element));
+			this.hideSlideShelf(this.slideShelf, 0);
 			
 			this.slideShelfContainer.addEventListener("mouseenter", () =>
 			{
@@ -94,35 +91,14 @@ class Lapsa
 		
 		this.slides.forEach(element => element.style.display = "none");
 		
-		document.body.querySelectorAll("header, footer").forEach(element => element.style.display = "none");
-		
-		Page.element.firstElementChild.style.display = "none";
-		
 		document.documentElement.style.overflowY = "hidden";
 		document.body.style.overflowY = "hidden";
 		document.body.style.userSelect = "none";
 		document.body.style.WebkitUserSelect = "none";
 		
-		
-		
-		Page.Load.HoverEvents.add(document.body.querySelector("#help-link"));
-		
-		
-		
-		document.body.querySelectorAll("h1, h2").forEach(element => element.parentNode.insertAdjacentHTML("afterend", "<br>"));
-		
-		
-		
 		document.documentElement.addEventListener("keydown", this.handleKeydownEvent);
-		Page.temporary_handlers["keydown"].push(this.handleKeydownEvent);
-		
 		document.documentElement.addEventListener("touchstart", this.handleTouchstartEvent);
-		Page.temporary_handlers["touchstart"].push(this.handleTouchstartEvent);
-		
 		document.documentElement.addEventListener("touchend", this.handleTouchendEvent);
-		Page.temporary_handlers["touchend"].push(this.handleTouchendEvent);
-		
-		
 		
 		this.nextSlide();
 	}
@@ -135,14 +111,14 @@ class Lapsa
 		
 		this.slides.forEach(element => element.remove());
 		
-		document.body.querySelectorAll("header, footer").forEach(element => element.style.display = "block");
-	
-		Page.element.firstElementChild.style.display = "block";
-		
 		document.documentElement.style.overflowY = "visible";
 		document.body.style.overflowY = "visible";
 		document.body.style.userSelect = "auto";
 		document.body.style.WebkitUserSelect = "auto";
+		
+		document.documentElement.removeEventListener("keydown", this.handleKeydownEvent);
+		document.documentElement.removeEventListener("touchstart", this.handleTouchstartEvent);
+		document.documentElement.removeEventListener("touchend", this.handleTouchendEvent);
 	}
 	
 	
@@ -156,8 +132,6 @@ class Lapsa
 		
 		this.currentlyAnimating = true;
 		
-		
-		
 		if (!skipBuilds && this.numBuilds !== 0 && this.buildState !== this.numBuilds)
 		{
 			let promises = [];
@@ -165,9 +139,9 @@ class Lapsa
 			//Gross code because animation durations are weird as hell -- see the corresponding previous_slide block for a better example.
 			this.slides[this.currentSlide].querySelectorAll(`.build-${this.buildState}`).forEach(element =>
 			{
-				Page.Animate.fadeUpIn(element, Site.pageAnimationTime * 2);
+				this.fadeUpIn(element, this.transitionAnimationTime * 2);
 				
-				promises.push(new Promise((resolve, reject) => setTimeout(resolve, Site.pageAnimationTime)));
+				promises.push(new Promise((resolve, reject) => setTimeout(resolve, this.transitionAnimationTime)));
 			});
 			
 			try {promises.push(this.callbacks[this.slides[this.currentSlide].id].builds[this.buildState](this.slides[this.currentSlide], true))}
@@ -182,8 +156,6 @@ class Lapsa
 			return;
 		}
 		
-		
-		
 		if (this.currentSlide === this.slides.length)
 		{
 			this.currentlyAnimating = false;
@@ -191,7 +163,7 @@ class Lapsa
 			return;
 		}
 		
-		await Page.Animate.fadeUpOut(Page.element, Site.pageAnimationTime);
+		await this.fadeUpOut(this.slideContainer, this.transitionAnimationTime);
 		
 		if (this.currentSlide !== -1)
 		{
@@ -221,7 +193,7 @@ class Lapsa
 		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
 		catch(ex) {}
 		
-		await Page.Animate.fadeUpIn(Page.element, Site.pageAnimationTime * 2);
+		await this.fadeUpIn(this.slideContainer, this.transitionAnimationTime * 2);
 		
 		this.currentlyAnimating = false;
 	}
@@ -245,7 +217,7 @@ class Lapsa
 			
 			let promises = [];
 			
-			this.slides[this.currentSlide].querySelectorAll(`.build-${this.buildState}`).forEach(element => promises.push(Page.Animate.fadeDownOut(element, Site.pageAnimationTime)));
+			this.slides[this.currentSlide].querySelectorAll(`.build-${this.buildState}`).forEach(element => promises.push(this.fadeDownOut(element, this.transitionAnimationTime)));
 			
 			try {promises.push(this.callbacks[this.slides[this.currentSlide].id].builds[this.buildState](this.slides[this.currentSlide], false))}
 			catch(ex) {}
@@ -268,7 +240,7 @@ class Lapsa
 		
 		
 		
-		await Page.Animate.fadeDownOut(Page.element, Site.pageAnimationTime);
+		await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
 		
 		this.slides[this.currentSlide].style.display = "none";
 		
@@ -291,7 +263,7 @@ class Lapsa
 		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], false)}
 		catch(ex) {}
 		
-		await Page.Animate.fadeDownIn(Page.element, Site.pageAnimationTime * 2);
+		await this.fadeDownIn(this.slideContainer, this.transitionAnimationTime * 2);
 		
 		this.currentlyAnimating = false;
 	}
@@ -322,12 +294,12 @@ class Lapsa
 		
 		if (forwardAnimation)
 		{
-			await Page.Animate.fadeUpOut(Page.element, Site.pageAnimationTime);
+			await this.fadeUpOut(this.slideContainer, this.transitionAnimationTime);
 		}
 		
 		else
 		{
-			await Page.Animate.fadeDownOut(Page.element, Site.pageAnimationTime);
+			await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
 		}
 		
 		
@@ -357,12 +329,12 @@ class Lapsa
 		
 		if (forwardAnimation)
 		{
-			await Page.Animate.fadeUpIn(Page.element, Site.pageAnimationTime * 2);
+			await this.fadeUpIn(this.slideContainer, this.transitionAnimationTime * 2);
 		}
 		
 		else
 		{
-			await Page.Animate.fadeDownIn(Page.element, Site.pageAnimationTime * 2);
+			await this.fadeDownIn(this.slideContainer, this.transitionAnimationTime * 2);
 		}
 		
 		this.currentlyAnimating = false;
@@ -474,5 +446,145 @@ class Lapsa
 	getCurrentSlide()
 	{
 		return this.slides[this.currentSlide];
+	}
+	
+	
+	
+	fadeUpIn(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			try {clearTimeout(element.getAttribute("data-fade-up-in-timeout-id"))}
+			catch(ex) {}
+			
+			element.style.transition = "";
+			
+			setTimeout(() =>
+			{
+				element.style.marginTop = `${window.innerHeight / 20}px`;
+				element.style.marginBottom = 0;
+				
+				void(element.offsetHeight);
+				
+				element.style.transition = `margin-top ${duration}ms cubic-bezier(.4, 1.0, .7, 1.0), opacity ${duration}ms cubic-bezier(.4, 1.0, .7, 1.0)`;
+				
+				setTimeout(() =>
+				{
+					element.style.marginTop = 0;
+					element.style.opacity = 1;
+					
+					const timeout_id = setTimeout(() =>
+					{
+						element.style.transition = "";
+						resolve();
+					}, duration);
+					
+					element.setAttribute("data-fade-up-in-timeout-id", timeout_id);
+				}, 10);
+			}, 10);	
+		});
+	}
+	
+	fadeUpOut(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			try {clearTimeout(element.getAttribute("data-fade-up-out-timeout-id"))}
+			catch(ex) {}
+			
+			element.style.transition = "";
+			
+			setTimeout(() =>
+			{
+				element.style.marginBottom = "20vmin";
+				
+				void(element.offsetHeight);
+				
+				element.style.transition = `margin-top ${duration}ms cubic-bezier(.1, 0.0, .2, 0.0), opacity ${duration}ms cubic-bezier(.1, 0.0, .2, 0.0)`;
+				
+				setTimeout(() =>
+				{
+					element.style.marginTop = `-${window.innerHeight / 20}px`;
+					element.style.opacity = 0;		
+					
+					const timeout_id = setTimeout(() =>
+					{
+						element.style.transition = "";
+						resolve();
+					}, duration);
+					
+					element.setAttribute("data-fade-up-out-timeout-id", timeout_id);
+				}, 10);
+			}, 10);	
+		});
+	}
+	
+	fadeDownIn(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			try {clearTimeout(element.getAttribute("data-fade-down-in-timeout-id"))}
+			catch(ex) {}
+			
+			element.style.transition = "";
+			
+			setTimeout(() =>
+			{
+				element.style.marginTop = `${-window.innerHeight / 20}px`;
+				element.style.marginBottom = 0;
+				
+				void(element.offsetHeight);
+				
+				element.style.transition = `margin-top ${duration}ms cubic-bezier(.4, 1.0, .7, 1.0), opacity ${duration}ms cubic-bezier(.4, 1.0, .7, 1.0)`;
+				
+				setTimeout(() =>
+				{
+					element.style.marginTop = 0;
+					element.style.opacity = 1;
+					
+					const timeout_id = setTimeout(() =>
+					{
+						element.style.transition = "";
+						resolve();
+					}, duration);
+					
+					element.setAttribute("data-fade-down-in-timeout-id", timeout_id);
+				}, 10);
+			}, 10);	
+		});
+	}
+	
+	fadeDownOut(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			try {clearTimeout(element.getAttribute("data-fade-down-out-timeout-id"))}
+			catch(ex) {}
+			
+			element.style.transition = "";
+			
+			setTimeout(() =>
+			{
+				element.style.marginBottom = "20vmin";
+				
+				void(element.offsetHeight);
+				
+				element.style.transition = `margin-top ${duration}ms cubic-bezier(.1, 0.0, .2, 0.0), opacity ${duration}ms cubic-bezier(.1, 0.0, .2, 0.0)`;
+				
+				setTimeout(() =>
+				{
+					element.style.marginTop = `${window.innerHeight / 20}px`;
+					element.style.opacity = 0;
+					
+					const timeout_id = setTimeout(() =>
+					{
+						element.style.transition = "";
+						resolve();
+					}, duration);
+					
+					element.setAttribute("data-fade-down-out-timeout-id", timeout_id);
+				}, 10);
+			}, 10);	
+		});
 	}
 }
