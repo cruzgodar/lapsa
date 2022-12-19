@@ -20,6 +20,8 @@ class Lapsa
 	
 	currentlyAnimating = false;
 	
+	boundFunctions = [null, null, null];
+	
 	
 	
 	/*
@@ -31,7 +33,7 @@ class Lapsa
 	
 	constructor(options)
 	{
-		this.init(options.callbacks ?? {});
+		this.init(options?.callbacks ?? {});
 	}
 	
 	
@@ -52,8 +54,8 @@ class Lapsa
 			<div id="slide-shelf" style="margin-left: ${this.shelfMargin}px; opacity: 0">
 				<input type="image" id="lapsa-up-2-button" class="shelf-button" src="${this.shelfIconPaths[0]}">
 				<input type="image" id="lapsa-up-1-button" class="shelf-button" src="${this.shelfIconPaths[1]}">
-				<input type="image" id="lapsa-down-1-button" class="shelf-button" src="${this.shelfIconPaths[0]}">
-				<input type="image" id="lapsa-down-2-button" class="shelf-button" src="${this.shelfIconPaths[0]}">
+				<input type="image" id="lapsa-down-1-button" class="shelf-button" src="${this.shelfIconPaths[2]}">
+				<input type="image" id="lapsa-down-2-button" class="shelf-button" src="${this.shelfIconPaths[3]}">
 			</div>
 		`;
 		
@@ -81,11 +83,11 @@ class Lapsa
 				}
 			});
 			
-			this.slideShelfContainer.children[0].addEventListener("click", () => this.previousSlide(true));
-			this.slideShelfContainer.children[1].addEventListener("click", () => this.previousSlide());
-			this.slideShelfContainer.children[2].addEventListener("click", () => this.nextSlide());
-			this.slideShelfContainer.children[3].addEventListener("click", () => this.nextSlide(true));
-		}, 50);
+			this.slideShelf.children[0].addEventListener("click", () => this.previousSlide(true));
+			this.slideShelf.children[1].addEventListener("click", () => this.previousSlide());
+			this.slideShelf.children[2].addEventListener("click", () => this.nextSlide());
+			this.slideShelf.children[3].addEventListener("click", () => this.nextSlide(true));
+		}, 100);
 		
 		
 		
@@ -96,9 +98,13 @@ class Lapsa
 		document.body.style.userSelect = "none";
 		document.body.style.WebkitUserSelect = "none";
 		
-		document.documentElement.addEventListener("keydown", this.handleKeydownEvent);
-		document.documentElement.addEventListener("touchstart", this.handleTouchstartEvent);
-		document.documentElement.addEventListener("touchend", this.handleTouchendEvent);
+		this.boundFunctions[0] = this.handleKeydownEvent.bind(this);
+		this.boundFunctions[1] = this.handleTouchstartEvent.bind(this);
+		this.boundFunctions[2] = this.handleTouchendEvent.bind(this);
+		
+		document.documentElement.addEventListener("keydown", this.boundFunctions[0]);
+		document.documentElement.addEventListener("touchstart", this.boundFunctions[1]);
+		document.documentElement.addEventListener("touchend", this.boundFunctions[2]);
 		
 		this.nextSlide();
 	}
@@ -116,9 +122,9 @@ class Lapsa
 		document.body.style.userSelect = "auto";
 		document.body.style.WebkitUserSelect = "auto";
 		
-		document.documentElement.removeEventListener("keydown", this.handleKeydownEvent);
-		document.documentElement.removeEventListener("touchstart", this.handleTouchstartEvent);
-		document.documentElement.removeEventListener("touchend", this.handleTouchendEvent);
+		document.documentElement.removeEventListener("keydown", this.boundFunctions[0]);
+		document.documentElement.removeEventListener("touchstart", this.boundFunctions[1]);
+		document.documentElement.removeEventListener("touchend", this.boundFunctions[2]);
 	}
 	
 	
@@ -349,7 +355,7 @@ class Lapsa
 		
 		this.slideShelf.style.display = "";
 		
-		await Page.Animate.showSlideShelf(this.slideShelf, 275);
+		await this.showSlideShelf(this.slideShelf, 275);
 		
 		this.shelfIsAnimating = false;
 	}
@@ -359,24 +365,9 @@ class Lapsa
 		this.shelfIsOpen = false;
 		this.shelfIsAnimating = true;
 		
-		await Page.Animate.hideSlideShelf(this.slideShelf, 275);
+		await this.hideSlideShelf(this.slideShelf, 275);
 		
 		this.shelfIsAnimating = false;
-	}
-	
-	hideSlideShelf(element, duration)
-	{
-		return new Promise((resolve, reject) =>
-		{
-			anime({
-				targets: element,
-				marginLeft: `${-this.shelfMargin}px`,
-				opacity: 0,
-				duration: duration,
-				easing: "cubicBezier(.4, 0.0, .4, 1.0)",
-				complete: resolve
-			});
-		});	
 	}
 	
 	showSlideShelf(element, duration)
@@ -394,18 +385,33 @@ class Lapsa
 		});	
 	}
 	
+	hideSlideShelf(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			anime({
+				targets: element,
+				marginLeft: `${-this.shelfMargin}px`,
+				opacity: 0,
+				duration: duration,
+				easing: "cubicBezier(.4, 0.0, .4, 1.0)",
+				complete: resolve
+			});
+		});	
+	}
+	
 	
 	
 	handleKeydownEvent(e)
 	{
 		if (e.keyCode === 39 || e.keyCode === 40 || e.keyCode === 32 || e.keyCode === 13)
 		{
-			Page.Presentation.nextSlide();
+			this.nextSlide();
 		}
 		
 		else if (e.keyCode === 37 || e.keyCode === 38)
 		{
-			Page.Presentation.previousSlide();
+			this.previousSlide();
 		}
 	}
 	
@@ -415,30 +421,30 @@ class Lapsa
 	
 	handleTouchstartEvent(e)
 	{
-		Page.Presentation.maxTouches = Math.max(Page.Presentation.maxTouches, e.touches.length);
+		this.maxTouches = Math.max(this.maxTouches, e.touches.length);
 	}
 	
 	handleTouchendEvent(e)
 	{
-		if (Page.Presentation.maxTouches === 2)
+		if (this.maxTouches === 2)
 		{
-			Page.Presentation.nextSlide();
+			this.nextSlide();
 		}
 		
-		else if (Page.Presentation.maxTouches === 3 && !Page.Presentation.shelfIsAnimating)
+		else if (this.maxTouches === 3 && !this.shelfIsAnimating)
 		{
-			if (!Page.Presentation.shelfIsOpen)
+			if (!this.shelfIsOpen)
 			{
-				Page.Presentation.showShelf();
+				this.showShelf();
 			}
 			
 			else
 			{
-				Page.Presentation.hideShelf();
+				this.hideShelf();
 			}
 		}
 		
-		Page.Presentation.maxTouches = 0;
+		this.maxTouches = 0;
 	}
 	
 	
@@ -450,6 +456,78 @@ class Lapsa
 	
 	
 	
+	fadeUpIn(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			element.style.marginTop = `${window.innerHeight / 30}px`;
+			element.style.marginBottom = 0;
+			
+			anime({
+				targets: element,
+				marginTop: "0px",
+				opacity: 1,
+				duration: duration,
+				easing: "cubicBezier(.4, 1.0, .7, 1.0)",
+				complete: resolve
+			});
+		});
+	}
+	
+	fadeUpOut(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			element.style.marginBottom = "20vmin";
+			
+			anime({
+				targets: element,
+				marginTop: `${-window.innerHeight / 30}px`,
+				opacity: 0,
+				duration: duration,
+				easing: "cubicBezier(.1, 0.0, .2, 0.0)",
+				complete: resolve
+			});
+		});
+	}
+	
+	fadeDownIn(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			element.style.marginTop = `${-window.innerHeight / 30}px`;
+			element.style.marginBottom = 0;
+			
+			anime({
+				targets: element,
+				marginTop: "0px",
+				opacity: 1,
+				duration: duration,
+				easing: "cubicBezier(.4, 1.0, .7, 1.0)",
+				complete: resolve
+			});
+		});
+	}
+	
+	fadeDownOut(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			element.style.marginBottom = "20vmin";
+			
+			anime({
+				targets: element,
+				marginTop: `${window.innerHeight / 30}px`,
+				opacity: 0,
+				duration: duration,
+				easing: "cubicBezier(.1, 0.0, .2, 0.0)",
+				complete: resolve
+			});
+		});
+	}
+	
+	
+	/*
 	fadeUpIn(element, duration)
 	{
 		return new Promise((resolve, reject) =>
@@ -587,4 +665,5 @@ class Lapsa
 			}, 10);	
 		});
 	}
+	*/
 }

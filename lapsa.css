@@ -1,3 +1,9 @@
+html, body
+{
+	overflow: hidden;
+	user-select: none;
+}
+
 #slide-container
 {
 	display: flex;
@@ -9,7 +15,7 @@
 	width: 100vw;
 	height: 100vh;
 	margin: 0 auto;
-	overflow-y: hidden;
+	overflow: hidden;
 }
 
 .slide
@@ -25,22 +31,25 @@
 	
 	box-shadow: 0px 0px 1vw 0px rgb(127, 127, 127);
 	
-	font-size: 2vw;
+	font-size: 3vw;
 	
 	line-height: 1.25;
 	
 	overflow: hidden;
 }
 
-.slide .heading-text, .slide .section-text, .slide .body-text
+.slide h1, .slide h2, .slide p
 {
 	width: 100%;
 	
 	text-align: left;
 	
-	margin-bottom: 1.5vw;
+	margin: 0;
+	padding-bottom: 1.5vw;
 	
 	line-height: 1.25;
+	
+	
 }
 
 .slide br
@@ -48,19 +57,19 @@
 	line-height: 1.25;
 }
 
-.slide .heading-text
+.slide h1
 {
-	font-size: 250%;
+	font-size: 200%;
 	
 	margin-top: -1vw;
 }
 
-.slide .section-text
+.slide h2
 {
 	font-size: 150%;
 }
 
-.slide .body-text
+.slide p
 {
 	font-size: 100%;
 }

@@ -1,9 +1,9 @@
 !function()
 {
-	let options =
+	const options =
 	{
 		callbacks: {}
 	};
 	
-    let lapsa = new Lapsa(options);
+    const lapsa = new Lapsa();
 }()
