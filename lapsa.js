@@ -43,15 +43,13 @@ class Lapsa
 		this.callbacks = callbacks;
 		
 		this.slides = document.body.querySelectorAll(".slide");
-		this.slideContainer = document.body.querySelector("#slide-container");
-		
-		
+		this.slideContainer = document.body.querySelector("#lapsa-slide-container");
 		
 		this.slideShelfContainer = document.createElement("div");
-		this.slideShelfContainer.id = "slide-shelf-container";
+		this.slideShelfContainer.id = "lapsa-slide-shelf-container";
 		
 		this.slideShelfContainer.innerHTML = `
-			<div id="slide-shelf" style="margin-left: ${this.shelfMargin}px; opacity: 0">
+			<div id="lapsa-slide-shelf" style="margin-left: ${this.shelfMargin}px; opacity: 0">
 				<input type="image" id="lapsa-up-2-button" class="shelf-button" src="${this.shelfIconPaths[0]}">
 				<input type="image" id="lapsa-up-1-button" class="shelf-button" src="${this.shelfIconPaths[1]}">
 				<input type="image" id="lapsa-down-1-button" class="shelf-button" src="${this.shelfIconPaths[2]}">
@@ -63,7 +61,7 @@ class Lapsa
 		
 		setTimeout(() =>
 		{
-			this.slideShelf = document.querySelector("#slide-shelf");
+			this.slideShelf = document.querySelector("#lapsa-slide-shelf");
 			this.slideShelf.style.display = "none";
 			this.hideSlideShelf(this.slideShelf, 0);
 			
@@ -143,7 +141,7 @@ class Lapsa
 			let promises = [];
 			
 			//Gross code because animation durations are weird as hell -- see the corresponding previous_slide block for a better example.
-			this.slides[this.currentSlide].querySelectorAll(`.build-${this.buildState}`).forEach(element =>
+			this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element =>
 			{
 				this.fadeUpIn(element, this.transitionAnimationTime * 2);
 				
@@ -180,7 +178,7 @@ class Lapsa
 		
 		if (this.currentSlide === this.slides.length)
 		{
-			this.exit();
+			//this.exit();
 		}
 		
 		else
@@ -193,7 +191,26 @@ class Lapsa
 			
 			this.numBuilds = Math.max(builds.length, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
 			
-			builds.forEach(element => element.style.opacity = 0);
+			let current_build = 0;
+			
+			builds.forEach(element =>
+			{
+				element.style.opacity = 0;
+				
+				let attr = element.getAttribute("data-build");
+				
+				if (attr === null)
+				{
+					element.setAttribute("data-build", current_build);
+					
+					current_build++;
+				}
+				
+				else
+				{
+					current_build = parseInt(attr) + 1;
+				}
+			});
 		}
 		
 		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
@@ -223,7 +240,7 @@ class Lapsa
 			
 			let promises = [];
 			
-			this.slides[this.currentSlide].querySelectorAll(`.build-${this.buildState}`).forEach(element => promises.push(this.fadeDownOut(element, this.transitionAnimationTime)));
+			this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element => promises.push(this.fadeDownOut(element, this.transitionAnimationTime)));
 			
 			try {promises.push(this.callbacks[this.slides[this.currentSlide].id].builds[this.buildState](this.slides[this.currentSlide], false))}
 			catch(ex) {}
@@ -260,7 +277,26 @@ class Lapsa
 		
 		this.buildState = this.numBuilds;
 		
-		builds.forEach(element => element.style.opacity = 1);
+		let current_build = 0;
+		
+		builds.forEach(element =>
+		{
+			element.style.opacity = 1;
+			
+			let attr = element.getAttribute("data-build");
+			
+			if (attr === null)
+			{
+				element.setAttribute("data-build", current_build);
+				
+				current_build++;
+			}
+			
+			else
+			{
+				current_build = parseInt(attr) + 1;
+			}
+		});
 		
 		
 		
@@ -324,7 +360,26 @@ class Lapsa
 		
 		this.numBuilds = Math.max(builds.length, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
 		
-		builds.forEach(element => element.style.opacity = 0);
+		let current_build = 0;
+		
+		builds.forEach(element =>
+		{
+			element.style.opacity = 0;
+			
+			let attr = element.getAttribute("data-build");
+			
+			if (attr === null)
+			{
+				element.setAttribute("data-build", current_build);
+				
+				current_build++;
+			}
+			
+			else
+			{
+				current_build = parseInt(attr) + 1;
+			}
+		});
 		
 		
 		
@@ -460,7 +515,7 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			element.style.marginTop = `${window.innerHeight / 30}px`;
+			element.style.marginTop = `${window.innerHeight / 40}px`;
 			element.style.marginBottom = 0;
 			
 			anime({
@@ -482,7 +537,7 @@ class Lapsa
 			
 			anime({
 				targets: element,
-				marginTop: `${-window.innerHeight / 30}px`,
+				marginTop: `${-window.innerHeight / 40}px`,
 				opacity: 0,
 				duration: duration,
 				easing: "cubicBezier(.1, 0.0, .2, 0.0)",
@@ -495,7 +550,7 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			element.style.marginTop = `${-window.innerHeight / 30}px`;
+			element.style.marginTop = `${-window.innerHeight / 40}px`;
 			element.style.marginBottom = 0;
 			
 			anime({
@@ -517,7 +572,7 @@ class Lapsa
 			
 			anime({
 				targets: element,
-				marginTop: `${window.innerHeight / 30}px`,
+				marginTop: `${window.innerHeight / 40}px`,
 				opacity: 0,
 				duration: duration,
 				easing: "cubicBezier(.1, 0.0, .2, 0.0)",
@@ -525,145 +580,4 @@ class Lapsa
 			});
 		});
 	}
-	
-	
-	/*
-	fadeUpIn(element, duration)
-	{
-		return new Promise((resolve, reject) =>
-		{
-			try {clearTimeout(element.getAttribute("data-fade-up-in-timeout-id"))}
-			catch(ex) {}
-			
-			element.style.transition = "";
-			
-			setTimeout(() =>
-			{
-				element.style.marginTop = `${window.innerHeight / 20}px`;
-				element.style.marginBottom = 0;
-				
-				void(element.offsetHeight);
-				
-				element.style.transition = `margin-top ${duration}ms cubic-bezier(.4, 1.0, .7, 1.0), opacity ${duration}ms cubic-bezier(.4, 1.0, .7, 1.0)`;
-				
-				setTimeout(() =>
-				{
-					element.style.marginTop = 0;
-					element.style.opacity = 1;
-					
-					const timeout_id = setTimeout(() =>
-					{
-						element.style.transition = "";
-						resolve();
-					}, duration);
-					
-					element.setAttribute("data-fade-up-in-timeout-id", timeout_id);
-				}, 10);
-			}, 10);	
-		});
-	}
-	
-	fadeUpOut(element, duration)
-	{
-		return new Promise((resolve, reject) =>
-		{
-			try {clearTimeout(element.getAttribute("data-fade-up-out-timeout-id"))}
-			catch(ex) {}
-			
-			element.style.transition = "";
-			
-			setTimeout(() =>
-			{
-				element.style.marginBottom = "20vmin";
-				
-				void(element.offsetHeight);
-				
-				element.style.transition = `margin-top ${duration}ms cubic-bezier(.1, 0.0, .2, 0.0), opacity ${duration}ms cubic-bezier(.1, 0.0, .2, 0.0)`;
-				
-				setTimeout(() =>
-				{
-					element.style.marginTop = `-${window.innerHeight / 20}px`;
-					element.style.opacity = 0;		
-					
-					const timeout_id = setTimeout(() =>
-					{
-						element.style.transition = "";
-						resolve();
-					}, duration);
-					
-					element.setAttribute("data-fade-up-out-timeout-id", timeout_id);
-				}, 10);
-			}, 10);	
-		});
-	}
-	
-	fadeDownIn(element, duration)
-	{
-		return new Promise((resolve, reject) =>
-		{
-			try {clearTimeout(element.getAttribute("data-fade-down-in-timeout-id"))}
-			catch(ex) {}
-			
-			element.style.transition = "";
-			
-			setTimeout(() =>
-			{
-				element.style.marginTop = `${-window.innerHeight / 20}px`;
-				element.style.marginBottom = 0;
-				
-				void(element.offsetHeight);
-				
-				element.style.transition = `margin-top ${duration}ms cubic-bezier(.4, 1.0, .7, 1.0), opacity ${duration}ms cubic-bezier(.4, 1.0, .7, 1.0)`;
-				
-				setTimeout(() =>
-				{
-					element.style.marginTop = 0;
-					element.style.opacity = 1;
-					
-					const timeout_id = setTimeout(() =>
-					{
-						element.style.transition = "";
-						resolve();
-					}, duration);
-					
-					element.setAttribute("data-fade-down-in-timeout-id", timeout_id);
-				}, 10);
-			}, 10);	
-		});
-	}
-	
-	fadeDownOut(element, duration)
-	{
-		return new Promise((resolve, reject) =>
-		{
-			try {clearTimeout(element.getAttribute("data-fade-down-out-timeout-id"))}
-			catch(ex) {}
-			
-			element.style.transition = "";
-			
-			setTimeout(() =>
-			{
-				element.style.marginBottom = "20vmin";
-				
-				void(element.offsetHeight);
-				
-				element.style.transition = `margin-top ${duration}ms cubic-bezier(.1, 0.0, .2, 0.0), opacity ${duration}ms cubic-bezier(.1, 0.0, .2, 0.0)`;
-				
-				setTimeout(() =>
-				{
-					element.style.marginTop = `${window.innerHeight / 20}px`;
-					element.style.opacity = 0;
-					
-					const timeout_id = setTimeout(() =>
-					{
-						element.style.transition = "";
-						resolve();
-					}, duration);
-					
-					element.setAttribute("data-fade-down-out-timeout-id", timeout_id);
-				}, 10);
-			}, 10);	
-		});
-	}
-	*/
 }

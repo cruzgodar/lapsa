@@ -2,9 +2,12 @@ html, body
 {
 	overflow: hidden;
 	user-select: none;
+	
+	margin: 0;
+	padding: 0;
 }
 
-#slide-container
+#lapsa-slide-container
 {
 	display: flex;
 	flex-direction: column;
@@ -18,7 +21,7 @@ html, body
 	overflow: hidden;
 }
 
-.slide
+#lapsa-slide-container .slide
 {
 	position: relative;
 	
@@ -38,40 +41,33 @@ html, body
 	overflow: hidden;
 }
 
-.slide h1, .slide h2, .slide p
+#lapsa-slide-container .slide h1, #lapsa-slide-container .slide h2, #lapsa-slide-container .slide p
 {
 	width: 100%;
 	
 	text-align: left;
 	
 	margin: 0;
-	padding-bottom: 1.5vw;
+	padding-bottom: 2vw;
 	
-	line-height: 1.25;
-	
-	
-}
-
-.slide br
-{
 	line-height: 1.25;
 }
 
-.slide h1
+#lapsa-slide-container .slide h1
 {
 	font-size: 200%;
 	
 	margin-top: -1vw;
 }
 
-.slide h2
+#lapsa-slide-container .slide h2
 {
 	font-size: 150%;
 }
 
-.slide p
+#lapsa-slide-container .slide p
 {
-	font-size: 100%;
+	color: rgb(64, 64, 64);
 }
 
 .centered p
@@ -99,24 +95,24 @@ html, body
 
 
 
-.slide .wilson-applet-canvas-container
+#lapsa-slide-container .slide .wilson-applet-canvas-container
 {
 	margin-top: 0 !important;
 	margin-bottom: 0 !important;
 }
 
-.slide canvas
+#lapsa-slide-container .slide canvas
 {
 	border-radius: 1.25vw;
 }
 
-.medium-canvas canvas
+#lapsa-slide-container .medium-canvas canvas
 {
 	width: 40.8vw;
 	height: 40.8vw;
 }
 
-.medium-canvas #canvas-bundle
+#lapsa-slide-container .medium-canvas #canvas-bundle
 {
 	position: absolute;
 	
@@ -124,13 +120,13 @@ html, body
 	bottom: 2.5vw;
 }
 
-.large-canvas canvas
+#lapsa-slide-container .large-canvas canvas
 {
 	width: 45vw;
 	height: 45vw;
 }
 
-.large-canvas #canvas-bundle
+#lapsa-slide-container .large-canvas #canvas-bundle
 {
 	position: absolute;
 	
@@ -138,18 +134,18 @@ html, body
 	bottom: 2.5vw;
 }
 
-.slide.full-canvas
+#lapsa-slide-container .slide.full-canvas
 {
 	background-color: rgb(0, 0, 0);
 }
 
-.full-canvas canvas
+#lapsa-slide-container .full-canvas canvas
 {
 	width: 55.625vw;
 	height: 55.625vw;
 }
 
-.full-canvas #canvas-bundle
+#lapsa-slide-container .full-canvas #canvas-bundle
 {
 	position: absolute;
 	
@@ -159,7 +155,7 @@ html, body
 
 
 
-#slide-shelf-container
+#lapsa-slide-shelf-container
 {
 	position: fixed;
 	
@@ -175,7 +171,7 @@ html, body
 	align-items: center;
 }
 
-#slide-shelf
+#lapsa-slide-shelf
 {
 	width: 50px;
 	margin-right: 0;
@@ -193,7 +189,7 @@ html, body
 	box-shadow: 0px 0px 5px 0px rgb(127, 127, 127);
 }
 
-.shelf-button
+#lapsa-slide-shelf .shelf-button
 {
 	width: 50px;
 	border-radius: 5px;
@@ -202,7 +198,7 @@ html, body
 	background-color: rgb(255, 255, 255);
 }
 
-.shelf-button:hover
+#lapsa-slide-shelf .shelf-button:hover
 {
 	background-color: rgb(192, 192, 192);
 }
@@ -212,7 +208,7 @@ html, body
 /* By default, the slide is 95vw wide due to the padding, and the height is 55.625vw. This aspect ratio is 152:89, so when we're larger than that, we switch to measuring in terms of vh instead. At the switching point, 1vw = 1vh * 152/89, which we use for our calculations. */
 @media (min-aspect-ratio: 152/89)
 {
-	.slide
+	#lapsa-slide-shelf .slide
 	{
 		height: calc(50.625vh * 152 / 89);
 		width: calc(90vh * 152 / 89);
@@ -226,7 +222,7 @@ html, body
 		font-size: calc(2vh * 152 / 89);	
 	}
 	
-	.slide .heading-text
+	#lapsa-slide-shelf .slide h1
 	{
 		font-size: calc(5vh * 152 / 89);
 		
@@ -235,39 +231,39 @@ html, body
 		margin-bottom: calc(1.5vh * 152 / 89);
 	}
 
-	.slide .section-text
+	#lapsa-slide-shelf .slide h2
 	{
 		font-size: calc(3vh * 152 / 89);
 		
 		margin-bottom: calc(1.5vh * 152 / 89);
 	}
 
-	.slide .body-text
+	#lapsa-slide-shelf .slide p
 	{
 		font-size: calc(2vh * 152 / 89);
 		
 		margin-bottom: calc(1.5vh * 152 / 89);
 	}
 	
-	.footer-text
+	#lapsa-slide-shelf .footer-text
 	{
 		bottom: calc(2vh * 152 / 89);
 	}
 	
 	
 	
-	.slide canvas
+	#lapsa-slide-shelf .slide canvas
 	{
 		border-radius: calc(1.25vh * 152 / 89);
 	}
 	
-	.medium-canvas canvas
+	#lapsa-slide-shelf .medium-canvas canvas
 	{	
 		width: calc(40.8vh * 152 / 89);
 		height: calc(40.8vh * 152 / 89);
 	}
 
-	.medium-canvas #canvas-bundle
+	#lapsa-slide-shelf .medium-canvas #canvas-bundle
 	{
 		position: absolute;
 		
@@ -275,13 +271,13 @@ html, body
 		bottom: calc(2.5vh * 152 / 89);
 	}
 
-	.large-canvas canvas
+	#lapsa-slide-shelf .large-canvas canvas
 	{
 		width: calc(45vh * 152 / 89);
 		height: calc(45vh * 152 / 89);
 	}
 
-	.large-canvas #canvas-bundle
+	#lapsa-slide-shelf .large-canvas #canvas-bundle
 	{
 		position: absolute;
 		
@@ -289,13 +285,13 @@ html, body
 		bottom: calc(2.5vh * 152 / 89);
 	}
 	
-	.full-canvas canvas
+	#lapsa-slide-shelf .full-canvas canvas
 	{
 		width: calc(55.625vh * 152 / 89);
 		height: calc(55.625vh * 152 / 89);
 	}
 
-	.full-canvas #canvas-bundle
+	#lapsa-slide-shelf .full-canvas #canvas-bundle
 	{
 		position: absolute;
 		
