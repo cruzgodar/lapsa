@@ -20,7 +20,7 @@ class Lapsa
 	
 	currentlyAnimating = false;
 	
-	boundFunctions = [null, null, null];
+	boundFunctions = [null, null, null, null];
 	
 	
 	
@@ -85,6 +85,8 @@ class Lapsa
 			this.slideShelf.children[1].addEventListener("click", () => this.previousSlide());
 			this.slideShelf.children[2].addEventListener("click", () => this.nextSlide());
 			this.slideShelf.children[3].addEventListener("click", () => this.nextSlide(true));
+			
+			
 		}, 100);
 		
 		
@@ -99,10 +101,12 @@ class Lapsa
 		this.boundFunctions[0] = this.handleKeydownEvent.bind(this);
 		this.boundFunctions[1] = this.handleTouchstartEvent.bind(this);
 		this.boundFunctions[2] = this.handleTouchendEvent.bind(this);
+		this.boundFunctions[3] = this.handleMousemoveEvent.bind(this);
 		
 		document.documentElement.addEventListener("keydown", this.boundFunctions[0]);
 		document.documentElement.addEventListener("touchstart", this.boundFunctions[1]);
 		document.documentElement.addEventListener("touchend", this.boundFunctions[2]);
+		document.documentElement.addEventListener("mousemove", this.boundFunctions[3]);
 		
 		this.nextSlide();
 	}
@@ -123,6 +127,7 @@ class Lapsa
 		document.documentElement.removeEventListener("keydown", this.boundFunctions[0]);
 		document.documentElement.removeEventListener("touchstart", this.boundFunctions[1]);
 		document.documentElement.removeEventListener("touchend", this.boundFunctions[2]);
+		document.documentElement.removeEventListener("mousemove", this.boundFunctions[3]);
 	}
 	
 	
@@ -473,10 +478,16 @@ class Lapsa
 	
 	
 	maxTouches = 0;
+	currentlyTouchDevice = ("ontouchstart" in window) ||
+    (navigator.maxTouchPoints > 0);
+    lastMousemoveEvent = 0;
 	
 	handleTouchstartEvent(e)
 	{
 		this.maxTouches = Math.max(this.maxTouches, e.touches.length);
+		
+		this.currentlyTouchDevice = true;
+		this.slideShelf.classList.remove("lapsa-hover");
 	}
 	
 	handleTouchendEvent(e)
@@ -500,6 +511,25 @@ class Lapsa
 		}
 		
 		this.maxTouches = 0;
+		
+		setTimeout(() => this.slideShelf.classList.remove("lapsa-hover"), 50);
+	}
+	
+	handleMousemoveEvent(e)
+	{
+		if (this.currentlyTouchDevice)
+		{
+			const timeBetweenMousemoves = Date.now() - this.lastMousemoveEvent;
+			
+			this.lastMousemoveEvent = Date.now();
+			
+			//Checking if it's >= 3 kinda sucks, but it seems like touch devices like to fire two mousemoves in quick succession sometimes. They also like to make that delay exactly 33. Look, I hate this too, but it needs to be here.
+			if (timeBetweenMousemoves >= 3 && timeBetweenMousemoves <= 50 && timeBetweenMousemoves !== 33)
+			{
+				this.currentlyTouchDevice = false;
+				this.slideShelf.classList.add("lapsa-hover");
+			}
+		}
 	}
 	
 	
