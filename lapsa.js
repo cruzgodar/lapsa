@@ -145,7 +145,7 @@ class Lapsa
 		{
 			let promises = [];
 			
-			//Gross code because animation durations are weird as hell -- see the corresponding previous_slide block for a better example.
+			//Gross code because animation durations are weird as hell -- see the corresponding previousSlide block for a better example.
 			this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element =>
 			{
 				this.fadeUpIn(element, this.transitionAnimationTime * 2);
@@ -192,11 +192,9 @@ class Lapsa
 			
 			this.buildState = 0;
 			
-			const builds = this.slides[this.currentSlide].querySelectorAll(".build");
+			const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
 			
-			this.numBuilds = Math.max(builds.length, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
-			
-			let current_build = 0;
+			let currentBuild = 0;
 			
 			builds.forEach(element =>
 			{
@@ -206,16 +204,18 @@ class Lapsa
 				
 				if (attr === null)
 				{
-					element.setAttribute("data-build", current_build);
+					element.setAttribute("data-build", currentBuild);
 					
-					current_build++;
+					currentBuild++;
 				}
 				
 				else
 				{
-					current_build = parseInt(attr) + 1;
+					currentBuild = parseInt(attr) + 1;
 				}
 			});
+			
+			this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
 		}
 		
 		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
@@ -276,13 +276,11 @@ class Lapsa
 		
 		this.currentSlide--;
 		
-		const builds = this.slides[this.currentSlide].querySelectorAll(".build");
-		
-		this.numBuilds = Math.max(builds.length, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
+		const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
 		
 		this.buildState = this.numBuilds;
 		
-		let current_build = 0;
+		let currentBuild = 0;
 		
 		builds.forEach(element =>
 		{
@@ -292,16 +290,18 @@ class Lapsa
 			
 			if (attr === null)
 			{
-				element.setAttribute("data-build", current_build);
+				element.setAttribute("data-build", currentBuild);
 				
-				current_build++;
+				currentBuild++;
 			}
 			
 			else
 			{
-				current_build = parseInt(attr) + 1;
+				currentBuild = parseInt(attr) + 1;
 			}
 		});
+		
+		this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
 		
 		
 		
@@ -361,11 +361,9 @@ class Lapsa
 		
 		this.buildState = 0;
 		
-		const builds = this.slides[this.currentSlide].querySelectorAll(".build");
+		const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
 		
-		this.numBuilds = Math.max(builds.length, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
-		
-		let current_build = 0;
+		let currentBuild = 0;
 		
 		builds.forEach(element =>
 		{
@@ -375,16 +373,18 @@ class Lapsa
 			
 			if (attr === null)
 			{
-				element.setAttribute("data-build", current_build);
+				element.setAttribute("data-build", currentBuild);
 				
-				current_build++;
+				currentBuild++;
 			}
 			
 			else
 			{
-				current_build = parseInt(attr) + 1;
+				currentBuild = parseInt(attr) + 1;
 			}
 		});
+		
+		this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
 		
 		
 		
@@ -552,7 +552,6 @@ class Lapsa
 		return new Promise((resolve, reject) =>
 		{
 			element.style.marginTop = `${window.innerHeight / 40}px`;
-			element.style.marginBottom = 0;
 			
 			anime({
 				targets: element,
@@ -569,8 +568,6 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			element.style.marginBottom = "20vmin";
-			
 			anime({
 				targets: element,
 				marginTop: `${-window.innerHeight / 40}px`,
@@ -587,7 +584,6 @@ class Lapsa
 		return new Promise((resolve, reject) =>
 		{
 			element.style.marginTop = `${-window.innerHeight / 40}px`;
-			element.style.marginBottom = 0;
 			
 			anime({
 				targets: element,
@@ -604,8 +600,6 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			element.style.marginBottom = "20vmin";
-			
 			anime({
 				targets: element,
 				marginTop: `${window.innerHeight / 40}px`,
