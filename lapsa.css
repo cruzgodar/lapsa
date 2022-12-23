@@ -208,7 +208,7 @@ html, body
 /* By default, the slide is 95vw wide due to the padding, and the height is 55.625vw. This aspect ratio is 152:89, so when we're larger than that, we switch to measuring in terms of vh instead. At the switching point, 1vw = 1vh * 152/89, which we use for our calculations. */
 @media (min-aspect-ratio: 152/89)
 {
-	#lapsa-slide-shelf .slide
+	#lapsa-slide-container .slide
 	{
 		height: calc(50.625vh * 152 / 89);
 		width: calc(90vh * 152 / 89);
@@ -219,51 +219,38 @@ html, body
 		
 		padding: calc(2.5vh * 152 / 89);
 		
-		font-size: calc(2vh * 152 / 89);	
+		font-size: calc(3vh * 152 / 89);	
 	}
 	
-	#lapsa-slide-shelf .slide h1
+	#lapsa-slide-container .slide h1, #lapsa-slide-container .slide h2, #lapsa-slide-container .slide p
 	{
-		font-size: calc(5vh * 152 / 89);
-		
+		padding-bottom: calc(2vh * 152 / 89);
+	}
+
+	#lapsa-slide-container .slide h1
+	{
 		margin-top: calc(-1vh * 152 / 89);
-		
-		margin-bottom: calc(1.5vh * 152 / 89);
-	}
-
-	#lapsa-slide-shelf .slide h2
-	{
-		font-size: calc(3vh * 152 / 89);
-		
-		margin-bottom: calc(1.5vh * 152 / 89);
-	}
-
-	#lapsa-slide-shelf .slide p
-	{
-		font-size: calc(2vh * 152 / 89);
-		
-		margin-bottom: calc(1.5vh * 152 / 89);
 	}
 	
-	#lapsa-slide-shelf .footer-text
+	#lapsa-slide-container .footer-text
 	{
 		bottom: calc(2vh * 152 / 89);
 	}
 	
 	
 	
-	#lapsa-slide-shelf .slide canvas
+	#lapsa-slide-container .slide canvas
 	{
 		border-radius: calc(1.25vh * 152 / 89);
 	}
 	
-	#lapsa-slide-shelf .medium-canvas canvas
+	#lapsa-slide-container .medium-canvas canvas
 	{	
 		width: calc(40.8vh * 152 / 89);
 		height: calc(40.8vh * 152 / 89);
 	}
 
-	#lapsa-slide-shelf .medium-canvas #canvas-bundle
+	#lapsa-slide-container .medium-canvas #canvas-bundle
 	{
 		position: absolute;
 		
@@ -271,13 +258,13 @@ html, body
 		bottom: calc(2.5vh * 152 / 89);
 	}
 
-	#lapsa-slide-shelf .large-canvas canvas
+	#lapsa-slide-container .large-canvas canvas
 	{
 		width: calc(45vh * 152 / 89);
 		height: calc(45vh * 152 / 89);
 	}
 
-	#lapsa-slide-shelf .large-canvas #canvas-bundle
+	#lapsa-slide-container .large-canvas #canvas-bundle
 	{
 		position: absolute;
 		
@@ -285,13 +272,13 @@ html, body
 		bottom: calc(2.5vh * 152 / 89);
 	}
 	
-	#lapsa-slide-shelf .full-canvas canvas
+	#lapsa-slide-container .full-canvas canvas
 	{
 		width: calc(55.625vh * 152 / 89);
 		height: calc(55.625vh * 152 / 89);
 	}
 
-	#lapsa-slide-shelf .full-canvas #canvas-bundle
+	#lapsa-slide-container .full-canvas #canvas-bundle
 	{
 		position: absolute;
 		

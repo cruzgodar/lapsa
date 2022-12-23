@@ -49,7 +49,7 @@ class Lapsa
 		this.slideShelfContainer.id = "lapsa-slide-shelf-container";
 		
 		this.slideShelfContainer.innerHTML = `
-			<div id="lapsa-slide-shelf" style="margin-left: ${this.shelfMargin}px; opacity: 0">
+			<div id="lapsa-slide-shelf" class="lapsa-hover" style="margin-left: ${this.shelfMargin}px; opacity: 0">
 				<input type="image" id="lapsa-up-2-button" class="shelf-button" src="${this.shelfIconPaths[0]}">
 				<input type="image" id="lapsa-up-1-button" class="shelf-button" src="${this.shelfIconPaths[1]}">
 				<input type="image" id="lapsa-down-1-button" class="shelf-button" src="${this.shelfIconPaths[2]}">
@@ -165,7 +165,7 @@ class Lapsa
 			return;
 		}
 		
-		if (this.currentSlide === this.slides.length)
+		if (this.currentSlide === this.slides.length - 1)
 		{
 			this.currentlyAnimating = false;
 			
@@ -408,6 +408,13 @@ class Lapsa
 	
 	
 	
+	async showTableView()
+	{
+		//this.slideContainer.style.display = "grid";
+	}
+	
+	
+	
 	async showShelf()
 	{
 		this.shelfIsOpen = true;
@@ -478,8 +485,7 @@ class Lapsa
 	
 	
 	maxTouches = 0;
-	currentlyTouchDevice = ("ontouchstart" in window) ||
-    (navigator.maxTouchPoints > 0);
+	currentlyTouchDevice = false;
     lastMousemoveEvent = 0;
 	
 	handleTouchstartEvent(e)
