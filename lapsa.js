@@ -278,8 +278,6 @@ class Lapsa
 		
 		const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
 		
-		this.buildState = this.numBuilds;
-		
 		let currentBuild = 0;
 		
 		builds.forEach(element =>
@@ -302,6 +300,8 @@ class Lapsa
 		});
 		
 		this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
+		
+		this.buildState = this.numBuilds;
 		
 		
 		
@@ -408,7 +408,7 @@ class Lapsa
 	
 	
 	
-	async showTableView()
+	async openTableView()
 	{
 		//this.slideContainer.style.display = "grid";
 	}
