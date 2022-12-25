@@ -6,4 +6,6 @@
 	};
 	
     const lapsa = new Lapsa();
+    
+    setTimeout(() => lapsa.openTableView(500), 3000);
 }()

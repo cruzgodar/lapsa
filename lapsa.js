@@ -59,6 +59,17 @@ class Lapsa
 		
 		document.body.appendChild(this.slideShelfContainer);
 		
+		
+		
+		if ("scrollRestoration" in history)
+		{
+			history.scrollRestoration = "manual";
+		}
+		
+		setTimeout(() => window.scrollTo(0, 0), 10);
+		
+		
+		
 		setTimeout(() =>
 		{
 			this.slideShelf = document.querySelector("#lapsa-slide-shelf");
@@ -85,13 +96,11 @@ class Lapsa
 			this.slideShelf.children[1].addEventListener("click", () => this.previousSlide());
 			this.slideShelf.children[2].addEventListener("click", () => this.nextSlide());
 			this.slideShelf.children[3].addEventListener("click", () => this.nextSlide(true));
-			
-			
 		}, 100);
 		
 		
 		
-		this.slides.forEach(element => element.style.display = "none");
+		//this.slides.forEach(element => element.style.display = "none");
 		
 		document.documentElement.style.overflowY = "hidden";
 		document.body.style.overflowY = "hidden";
@@ -121,6 +130,7 @@ class Lapsa
 		
 		document.documentElement.style.overflowY = "visible";
 		document.body.style.overflowY = "visible";
+		document.body.style.height = "fit-content";
 		document.body.style.userSelect = "auto";
 		document.body.style.WebkitUserSelect = "auto";
 		
@@ -176,10 +186,12 @@ class Lapsa
 		
 		if (this.currentSlide !== -1)
 		{
-			this.slides[this.currentSlide].style.display = "none";
+			//this.slides[this.currentSlide].style.display = "none";
 		}
 		
 		this.currentSlide++;
+		
+		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh)`;
 		
 		if (this.currentSlide === this.slides.length)
 		{
@@ -188,7 +200,7 @@ class Lapsa
 		
 		else
 		{
-			this.slides[this.currentSlide].style.display = "block";
+			//this.slides[this.currentSlide].style.display = "block";
 			
 			this.buildState = 0;
 			
@@ -270,11 +282,13 @@ class Lapsa
 		
 		await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
 		
-		this.slides[this.currentSlide].style.display = "none";
-		
-		
+		//this.slides[this.currentSlide].style.display = "none";
 		
 		this.currentSlide--;
+		
+		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh)`;
+		
+		
 		
 		const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
 		
@@ -305,7 +319,7 @@ class Lapsa
 		
 		
 		
-		this.slides[this.currentSlide].style.display = "block";
+		//this.slides[this.currentSlide].style.display = "block";
 		
 		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], false)}
 		catch(ex) {}
@@ -351,11 +365,13 @@ class Lapsa
 		
 		
 		
-		this.slides[this.currentSlide].style.display = "none";
+		//this.slides[this.currentSlide].style.display = "none";
 		
 		this.currentSlide = index;
 		
-		this.slides[this.currentSlide].style.display = "block";
+		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh)`;
+		
+		//this.slides[this.currentSlide].style.display = "block";
 		
 		
 		
@@ -408,9 +424,68 @@ class Lapsa
 	
 	
 	
-	async openTableView()
+	async openTableView(duration)
 	{
-		//this.slideContainer.style.display = "grid";
+		return new Promise((resolve, reject) =>
+		{
+			document.documentElement.style.overflowY = "visible";
+			document.body.style.overflowY = "visible";
+			this.slideContainer.style.overflowY = "visible";
+			
+			this.slideContainer.style.transformOrigin = `center ${100 * this.currentSlide + 50}vh`;
+			
+			//The goal is to have room to display just under 4 slides vertically, then center on one so that the others are clipped, indicating it's scrollable. In a horizontal orientation, exactly one slide fits per screen. In a vertical one, we take a ratio.
+			const slides_per_screen = window.innerWidth / window.innerHeight >= 152/89 ? 1 : window.innerHeight / (window.innerWidth * 89/152);
+			
+			const scale = Math.min(slides_per_screen / 3.5, 1);
+			
+			const margin = window.innerWidth / window.innerHeight >= 152/89 ? "calc(1.25vh * 152 / 89)" : "1.25vw";
+			
+			const total_height = window.innerWidth / window.innerHeight >= 152/89 ? `calc(58.125vh * 152 / 89 * ${this.slides.length})` : `calc(58.125vw * ${this.slides.length})`;
+			
+			//Once we've scaled down to the new amount, we can figure out where our slide is going to go and track it with the viewport.
+			//const target_scroll = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * .58125 * scale * 152/89 * (this.currentSlide - 1.25) : window.innerWidth * .58125 * scale * (this.currentSlide - 1.25);
+			
+			anime({
+				targets: this.slideContainer,
+				scale: scale,
+				translateY: 0,
+				marginTop: margin,
+				marginBottom: margin,
+				duration: duration,
+				easing: "easeOutCubic",
+				
+				complete: () =>
+				{
+					this.slideContainer.style.height = total_height;
+					resolve();
+				}
+			});
+			
+			anime({
+				targets: this.slides,
+				marginTop: margin,
+				marginBottom: margin,
+				duration: duration,
+				easing: "easeOutCubic"
+			});
+			
+			
+			/*
+			let dummy = {t: window.scrollY};
+			
+			anime({
+				targets: dummy,
+				t: target_scroll,
+				duration: duration,
+				easing: "easeOutCubic",
+				update: () =>
+				{
+					window.scrollTo(0, dummy.t);
+				}
+			});
+			*/
+		});
 	}
 	
 	
@@ -449,7 +524,7 @@ class Lapsa
 				easing: "cubicBezier(.4, 1.0, .7, 1.0)",
 				complete: resolve
 			});
-		});	
+		});
 	}
 	
 	hideSlideShelf(element, duration)

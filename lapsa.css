@@ -1,10 +1,16 @@
 html, body
 {
-	overflow: hidden;
+	overflow-y: hidden;
 	user-select: none;
 	
 	margin: 0;
 	padding: 0;
+}
+
+body
+{
+	/* Stupid */
+	height: 100vh;
 }
 
 #lapsa-slide-container
@@ -16,9 +22,10 @@ html, body
 	justify-content: center;
 	
 	width: 100vw;
-	height: 100vh;
 	margin: 0 auto;
-	overflow: hidden;
+	overflow-y: hidden;
+	
+	transform-origin: top center;
 }
 
 #lapsa-slide-container .slide
@@ -27,6 +34,9 @@ html, body
 	
 	width: 90vw;
 	height: 50.625vw;
+	
+	margin-top: calc((100vh - 55.625vw) / 2);
+	margin-bottom: calc((100vh - 55.625vw) / 2);
 	
 	border-radius: 2.5vw;
 	
