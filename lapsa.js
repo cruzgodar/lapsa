@@ -43,6 +43,12 @@ class Lapsa
 		this.callbacks = callbacks;
 		
 		this.slides = document.body.querySelectorAll(".slide");
+		
+		this.slides.forEach((element, index) =>
+		{
+			element.style.top = `${index * 100}vh`;
+		});
+		
 		this.slideContainer = document.body.querySelector("#lapsa-slide-container");
 		
 		this.slideShelfContainer = document.createElement("div");
@@ -432,7 +438,7 @@ class Lapsa
 			document.body.style.overflowY = "visible";
 			this.slideContainer.style.overflowY = "visible";
 			
-			this.slideContainer.style.transformOrigin = `center ${100 * this.currentSlide + 50}vh`;
+			this.slideContainer.style.transformOrigin = `center ${50}vh`;
 			
 			//The goal is to have room to display just under 4 slides vertically, then center on one so that the others are clipped, indicating it's scrollable. In a horizontal orientation, exactly one slide fits per screen. In a vertical one, we take a ratio.
 			const slides_per_screen = window.innerWidth / window.innerHeight >= 152/89 ? 1 : window.innerHeight / (window.innerWidth * 89/152);
@@ -449,11 +455,11 @@ class Lapsa
 			anime({
 				targets: this.slideContainer,
 				scale: scale,
-				translateY: 0,
+				//translateY: 0,
 				marginTop: margin,
 				marginBottom: margin,
 				duration: duration,
-				easing: "easeOutCubic",
+				easing: "cubicBezier(.4, 1.0, .7, 1.0)",
 				
 				complete: () =>
 				{
@@ -462,13 +468,22 @@ class Lapsa
 				}
 			});
 			
+			this.slides.forEach((element, index) =>
+			{
+				element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `${58.125 * 152 / 89 * index}vh` : `${58.125 * index}vw`;
+			});
+			/*
+			setTimeout(() =>
+			{
 			anime({
 				targets: this.slides,
-				marginTop: margin,
-				marginBottom: margin,
-				duration: duration,
-				easing: "easeOutCubic"
+				top: (element, index) => window.innerWidth / window.innerHeight >= 152/89 ? `${58.125 * 152 / 89 * index}vh` : `${58.125 * index}vw`,
+				duration: duration * 10,
+				easing: "easeOutQuart"
 			});
+			
+			}, 1000);
+			*/
 			
 			
 			/*
