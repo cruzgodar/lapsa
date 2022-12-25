@@ -106,8 +106,6 @@ class Lapsa
 		
 		
 		
-		//this.slides.forEach(element => element.style.display = "none");
-		
 		document.documentElement.style.overflowY = "hidden";
 		document.body.style.overflowY = "hidden";
 		document.body.style.userSelect = "none";
@@ -190,11 +188,6 @@ class Lapsa
 		
 		await this.fadeUpOut(this.slideContainer, this.transitionAnimationTime);
 		
-		if (this.currentSlide !== -1)
-		{
-			//this.slides[this.currentSlide].style.display = "none";
-		}
-		
 		this.currentSlide++;
 		
 		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh)`;
@@ -206,8 +199,6 @@ class Lapsa
 		
 		else
 		{
-			//this.slides[this.currentSlide].style.display = "block";
-			
 			this.buildState = 0;
 			
 			const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
@@ -288,8 +279,6 @@ class Lapsa
 		
 		await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
 		
-		//this.slides[this.currentSlide].style.display = "none";
-		
 		this.currentSlide--;
 		
 		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh)`;
@@ -324,8 +313,6 @@ class Lapsa
 		this.buildState = this.numBuilds;
 		
 		
-		
-		//this.slides[this.currentSlide].style.display = "block";
 		
 		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], false)}
 		catch(ex) {}
@@ -371,13 +358,9 @@ class Lapsa
 		
 		
 		
-		//this.slides[this.currentSlide].style.display = "none";
-		
 		this.currentSlide = index;
 		
 		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh)`;
-		
-		//this.slides[this.currentSlide].style.display = "block";
 		
 		
 		
@@ -438,7 +421,7 @@ class Lapsa
 			document.body.style.overflowY = "visible";
 			this.slideContainer.style.overflowY = "visible";
 			
-			this.slideContainer.style.transformOrigin = `center ${50}vh`;
+			this.slideContainer.style.transformOrigin = `center ${this.currentSlide * 100 + 50}vh`;
 			
 			//The goal is to have room to display just under 4 slides vertically, then center on one so that the others are clipped, indicating it's scrollable. In a horizontal orientation, exactly one slide fits per screen. In a vertical one, we take a ratio.
 			const slides_per_screen = window.innerWidth / window.innerHeight >= 152/89 ? 1 : window.innerHeight / (window.innerWidth * 89/152);
@@ -459,7 +442,7 @@ class Lapsa
 				marginTop: margin,
 				marginBottom: margin,
 				duration: duration,
-				easing: "cubicBezier(.4, 1.0, .7, 1.0)",
+				easing: "cubicBezier(.25, 1.0, .5, 1.0)",
 				
 				complete: () =>
 				{
@@ -470,8 +453,17 @@ class Lapsa
 			
 			this.slides.forEach((element, index) =>
 			{
-				element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `${58.125 * 152 / 89 * index}vh` : `${58.125 * index}vw`;
+				if (window.innerWidth / window.innerHeight >= 152/89)
+				{
+					element.style.top = `${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide}vh`;
+				}
+				
+				else
+				{
+					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh)`;
+				}
 			});
+			
 			/*
 			setTimeout(() =>
 			{

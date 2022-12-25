@@ -7,5 +7,5 @@
 	
     const lapsa = new Lapsa();
     
-    setTimeout(() => lapsa.openTableView(400), 3000);
+    setTimeout(() => lapsa.openTableView(600), 3000);
 }()

@@ -53,7 +53,7 @@ body
 	
 	overflow: hidden;
 	
-	transition: top .4s cubic-bezier(.4, 1.0, .7, 1.0);
+	transition: top .6s cubic-bezier(.25, 1.0, .5, 1.0);
 }
 
 #lapsa-slide-container .slide h1, #lapsa-slide-container .slide h2, #lapsa-slide-container .slide p
