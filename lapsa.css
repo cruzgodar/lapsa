@@ -27,18 +27,18 @@ body
 	
 	width: 100vw;
 	margin: 0 auto;
+	
+	transform: translateY(0) scale(1);
+	
 	/*overflow-y: hidden;*/
 }
 
 #lapsa-slide-container .slide
 {
-	position: fixed;
+	position: absolute;
 	
 	width: 90vw;
 	height: 50.625vw;
-	
-	margin-top: calc((100vh - 55.625vw) / 2);
-	margin-bottom: calc((100vh - 55.625vw) / 2);
 	
 	border-radius: 2.5vw;
 	
@@ -52,8 +52,6 @@ body
 	line-height: 1.25;
 	
 	overflow: hidden;
-	
-	transition: top .6s cubic-bezier(.25, 1.0, .5, 1.0);
 }
 
 #lapsa-slide-container .slide h1, #lapsa-slide-container .slide h2, #lapsa-slide-container .slide p
@@ -234,7 +232,7 @@ body
 		
 		padding: calc(2.5vh * 152 / 89);
 		
-		left: calc(2.5vh * 152 / 89);
+		left: calc((100vw - 95vh * 152 / 89) / 2);
 		
 		font-size: calc(3vh * 152 / 89);	
 	}

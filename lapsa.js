@@ -46,7 +46,7 @@ class Lapsa
 		
 		this.slides.forEach((element, index) =>
 		{
-			element.style.top = `${index * 100}vh`;
+			element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100}vh + (100vh - 55.625vh * 152 / 89) / 2)` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`;
 		});
 		
 		this.slideContainer = document.body.querySelector("#lapsa-slide-container");
@@ -190,7 +190,7 @@ class Lapsa
 		
 		this.currentSlide++;
 		
-		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh)`;
+		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
 		
 		if (this.currentSlide === this.slides.length)
 		{
@@ -281,7 +281,7 @@ class Lapsa
 		
 		this.currentSlide--;
 		
-		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh)`;
+		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
 		
 		
 		
@@ -360,7 +360,7 @@ class Lapsa
 		
 		this.currentSlide = index;
 		
-		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh)`;
+		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
 		
 		
 		
@@ -422,6 +422,7 @@ class Lapsa
 			this.slideContainer.style.overflowY = "visible";
 			
 			this.slideContainer.style.transformOrigin = `center ${this.currentSlide * 100 + 50}vh`;
+			this.slideContainer.style.transformOrigin = `center top`;
 			
 			//The goal is to have room to display just under 4 slides vertically, then center on one so that the others are clipped, indicating it's scrollable. In a horizontal orientation, exactly one slide fits per screen. In a vertical one, we take a ratio.
 			const slides_per_screen = window.innerWidth / window.innerHeight >= 152/89 ? 1 : window.innerHeight / (window.innerWidth * 89/152);
@@ -430,17 +431,19 @@ class Lapsa
 			
 			const margin = window.innerWidth / window.innerHeight >= 152/89 ? "calc(1.25vh * 152 / 89)" : "1.25vw";
 			
-			const total_height = window.innerWidth / window.innerHeight >= 152/89 ? `calc(58.125vh * 152 / 89 * ${this.slides.length})` : `calc(58.125vw * ${this.slides.length})`;
+			//Approximately 72vh per slide above?
+			//The goal at this point is to move the translation so that the top slide is aligned with the top of the viewport. If we do nothing, the current slide will be centered, so the top of the top slide is 50vh - (58.125vx * (currentSlide + 1/2)) * scale. I *think* this explains why the correction offset for slide 3 is almost exactly 250vh. Regardless, we want that expression to vanish, so we translate by the opposite of it.
+			const translation = window.innerWidth / window.innerHeight >= 152/89 ? `${(58.125 * 152/89 * this.currentSlide - 100 * this.currentSlide) * scale}vh` : `calc(${(58.125 * this.currentSlide) * scale}vw - ${100 * this.currentSlide * scale}vh)`;
+			
+			const total_height = window.innerWidth / window.innerHeight >= 152/89 ? `calc((58.125vh * ${this.slides.length} + 1.25vh) * 152 / 89)` : `calc(58.125vw * ${this.slides.length} + 1.25vw)`;
 			
 			//Once we've scaled down to the new amount, we can figure out where our slide is going to go and track it with the viewport.
 			//const target_scroll = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * .58125 * scale * 152/89 * (this.currentSlide - 1.25) : window.innerWidth * .58125 * scale * (this.currentSlide - 1.25);
-			
+			/*
 			anime({
 				targets: this.slideContainer,
 				scale: scale,
-				//translateY: 0,
-				marginTop: margin,
-				marginBottom: margin,
+				translateY: translation,
 				duration: duration,
 				easing: "cubicBezier(.25, 1.0, .5, 1.0)",
 				
@@ -450,48 +453,26 @@ class Lapsa
 					resolve();
 				}
 			});
+			*/
+			
+			this.slideContainer.style.transition = `transform ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
+			
+			this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
 			
 			this.slides.forEach((element, index) =>
 			{
+				element.style.transition = `top ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
+				
 				if (window.innerWidth / window.innerHeight >= 152/89)
 				{
-					element.style.top = `${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide}vh`;
+					element.style.top = `${2.5 + 58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide}vh`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh)`;
+					element.style.top = `calc(${2.5 + 58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh)`;
 				}
 			});
-			
-			/*
-			setTimeout(() =>
-			{
-			anime({
-				targets: this.slides,
-				top: (element, index) => window.innerWidth / window.innerHeight >= 152/89 ? `${58.125 * 152 / 89 * index}vh` : `${58.125 * index}vw`,
-				duration: duration * 10,
-				easing: "easeOutQuart"
-			});
-			
-			}, 1000);
-			*/
-			
-			
-			/*
-			let dummy = {t: window.scrollY};
-			
-			anime({
-				targets: dummy,
-				t: target_scroll,
-				duration: duration,
-				easing: "easeOutCubic",
-				update: () =>
-				{
-					window.scrollTo(0, dummy.t);
-				}
-			});
-			*/
 		});
 	}
 	
