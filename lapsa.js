@@ -422,38 +422,13 @@ class Lapsa
 			this.slideContainer.style.overflowY = "visible";
 			
 			this.slideContainer.style.transformOrigin = `center ${this.currentSlide * 100 + 50}vh`;
-			//this.slideContainer.style.transformOrigin = `center top`;
 			
 			//The goal is to have room to display just under 4 slides vertically, then center on one so that the others are clipped, indicating it's scrollable. In a horizontal orientation, exactly one slide fits per screen. In a vertical one, we take a ratio.
-			const slides_per_screen = window.innerWidth / window.innerHeight >= 152/89 ? 1 : window.innerHeight / (window.innerWidth * 89/152);
+			const slidesPerScreen = window.innerWidth / window.innerHeight >= 152/89 ? 1 : window.innerHeight / (window.innerWidth * 89/152);
 			
-			const scale = Math.min(slides_per_screen / 3.5, 1);
+			const scale = Math.min(slidesPerScreen / 3.5, 1);
 			
-			const margin = window.innerWidth / window.innerHeight >= 152/89 ? "calc(1.25vh * 152 / 89)" : "1.25vw";
-			
-			//Approximately 72vh per slide above?
-			//The goal at this point is to move the translation so that the top slide is aligned with the top of the viewport. If we do nothing, the current slide will be centered, so the top of the top slide is 50vh - (58.125vx * (currentSlide + 1/2)) * scale. I *think* this explains why the correction offset for slide 3 is almost exactly 250vh. Regardless, we want that expression to vanish, so we translate by the opposite of it.
 			const translation = window.innerWidth / window.innerHeight >= 152/89 ? `${(58.125 * 152/89 * this.currentSlide - 100 * this.currentSlide) * scale}vh` : `calc(${(58.125 * this.currentSlide) * scale}vw - ${100 * this.currentSlide * scale}vh)`;
-			
-			const total_height = window.innerWidth / window.innerHeight >= 152/89 ? `calc((58.125vh * ${this.slides.length} + 1.25vh) * 152 / 89)` : `calc(58.125vw * ${this.slides.length} + 1.25vw)`;
-			
-			//Once we've scaled down to the new amount, we can figure out where our slide is going to go and track it with the viewport.
-			
-			/*
-			anime({
-				targets: this.slideContainer,
-				scale: scale,
-				//translateY: translation,
-				duration: duration,
-				easing: "cubicBezier(.25, 1.0, .5, 1.0)",
-				
-				complete: () =>
-				{
-					this.slideContainer.style.height = total_height;
-					resolve();
-				}
-			});
-			*/
 			
 			this.slideContainer.style.transition = `transform ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
 			
@@ -463,8 +438,7 @@ class Lapsa
 			{
 				element.style.transition = `top ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
 				
-				//element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100}vh + (100vh - 55.625vh * 152 / 89) / 2)` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`;
-				
+				//On these, we include the top margin term to match with how things were before -- otherwise, the transformation center will be misaligned.
 				if (window.innerWidth / window.innerHeight >= 152/89)
 				{
 					element.style.top = `${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + (100 - 55.625 * 152 / 89) / 2}vh`;
@@ -476,20 +450,56 @@ class Lapsa
 				}
 			});
 			
+			
+			
 			//Only once this is done can we snap to the end. They'll never know the difference!
 			setTimeout(() =>
 			{
 				this.slideContainer.style.transition = "";
-				this.slides.forEach(element => element.style.transition = "");
+				
+				this.slides.forEach((element, index) =>
+				{
+					element.style.transition = "";
+					
+					//Here, we no longer include the margin, since we don't want the slides to have a gap at the top. It's accounted for in the translation amount on the container, so it's all fine.
+					if (window.innerWidth / window.innerHeight >= 152/89)
+					{
+						element.style.top = `calc(${2.5 + 58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide}vh)`;
+					}
+					
+					else
+					{
+						element.style.top = `calc(${2.5 + 58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh)`;
+					}
+				});
 				
 				this.slideContainer.style.transformOrigin = "center top";
 				
 				this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
 				
 				const scroll = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * .58125 * scale * 152/89 * (this.currentSlide - 1.25) : window.innerWidth * .58125 * scale * (this.currentSlide - 1.25);
-				console.log(scroll);
+				
 				window.scrollTo(0, scroll);
-			}, 80*duration);
+				
+				const rect = this.slides[this.currentSlide].getBoundingClientRect();
+				const correctionTerm = ((window.innerHeight - rect.height) / 2 - rect.top) / scale;
+				
+				//I'd like to never think about this again
+				this.slides.forEach((element, index) =>
+				{
+					element.style.transition = "";
+					
+					if (window.innerWidth / window.innerHeight >= 152/89)
+					{
+						element.style.top = `calc(${2.5 + 58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide}vh + ${correctionTerm}px)`;
+					}
+					
+					else
+					{
+						element.style.top = `calc(${2.5 + 58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh + ${correctionTerm}px)`;
+					}
+				});
+			}, duration);
 		});
 	}
 	
