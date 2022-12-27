@@ -216,6 +216,14 @@ body
 	background-color: rgb(192, 192, 192);
 }
 
+#lapsa-bottom-margin
+{
+	position: absolute;
+	
+	width: 1px;
+	height: 1px;
+}
+
 
 
 /* By default, the slide is 95vw wide due to the padding, and the height is 55.625vw. This aspect ratio is 152:89, so when we're larger than that, we switch to measuring in terms of vh instead. At the switching point, 1vw = 1vh * 152/89, which we use for our calculations. */

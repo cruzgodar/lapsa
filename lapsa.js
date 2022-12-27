@@ -4,6 +4,7 @@ class Lapsa
 	
 	slides = [];
 	slideContainer = null;
+	bottomMarginElement = null;
 	
 	slideShelfContainer = null;
 	slideShelf = null;
@@ -50,6 +51,12 @@ class Lapsa
 		});
 		
 		this.slideContainer = document.body.querySelector("#lapsa-slide-container");
+		
+		this.bottomMarginElement = document.createElement("div");
+		this.bottomMarginElement.id = "lapsa-bottom-margin";
+		this.slideContainer.appendChild(this.bottomMarginElement);
+		
+		
 		
 		this.slideShelfContainer = document.createElement("div");
 		this.slideShelfContainer.id = "lapsa-slide-shelf-container";
@@ -428,6 +435,8 @@ class Lapsa
 			
 			const scale = Math.min(slidesPerScreen / 3.5, 1);
 			
+			const totalHeight = window.innerWidth / window.innerHeight >= 152/89 ? `${2.5 + 58.125 * 152/89 * this.slides.length}vh` : `${2.5 + 58.125 * this.slides.length}vw`;
+			
 			const translation = window.innerWidth / window.innerHeight >= 152/89 ? `${(58.125 * 152/89 * this.currentSlide - 100 * this.currentSlide) * scale}vh` : `calc(${(58.125 * this.currentSlide) * scale}vw - ${100 * this.currentSlide * scale}vh)`;
 			
 			this.slideContainer.style.transition = `transform ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
@@ -500,6 +509,17 @@ class Lapsa
 						element.style.top = `calc(${2.5 + 58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh + ${correctionTerm}px)`;
 					}
 				});
+				
+				
+				if (window.innerWidth / window.innerHeight >= 152/89)
+				{
+					this.bottomMarginElement.style.top = `calc(${2.5 + 58.125 * 152/89 * (this.slides.length - this.currentSlide) + 100 * this.currentSlide}vh + ${correctionTerm}px)`;
+				}
+				
+				else
+				{
+					this.bottomMarginElement.style.top = `calc(${2.5 + 58.125 * (this.slides.length - this.currentSlide)}vw + ${100 * this.currentSlide}vh + ${correctionTerm}px)`;
+				}
 			}, duration);
 		});
 	}
