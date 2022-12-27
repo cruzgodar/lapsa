@@ -481,10 +481,11 @@ class Lapsa
 				
 				window.scrollTo(0, scroll);
 				
-				const rect = this.slides[this.currentSlide].getBoundingClientRect();
-				const correctionTerm = ((window.innerHeight - rect.height) / 2 - rect.top) / scale;
+				const slideRect = this.slides[this.currentSlide].getBoundingClientRect();
+				const bodyRect = document.body.getBoundingClientRect();
+				const correctionTerm = ((bodyRect.height - slideRect.height) / 2 - slideRect.top) / scale;
 				
-				//I'd like to never think about this again
+				//I'd like to never think about this again.
 				this.slides.forEach((element, index) =>
 				{
 					element.style.transition = "";
