@@ -424,38 +424,41 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			document.documentElement.style.overflowY = "visible";
 			document.body.style.overflowY = "visible";
 			this.slideContainer.style.overflowY = "visible";
 			
-			this.slideContainer.style.transformOrigin = `center ${this.currentSlide * 100 + 50}vh`;
+			const bodyRect = document.body.getBoundingClientRect();
 			
 			//The goal is to have room to display just under 4 slides vertically, then center on one so that the others are clipped, indicating it's scrollable. In a horizontal orientation, exactly one slide fits per screen. In a vertical one, we take a ratio.
-			const slidesPerScreen = window.innerWidth / window.innerHeight >= 152/89 ? 1 : window.innerHeight / (window.innerWidth * 89/152);
+			const slidesPerScreen = bodyRect.width / bodyRect.height >= 152/89 ? 1 : bodyRect.height / (bodyRect.width * 89/152);
 			
 			const scale = Math.min(slidesPerScreen / 3.5, 1);
 			
-			const totalHeight = window.innerWidth / window.innerHeight >= 152/89 ? `${2.5 + 58.125 * 152/89 * this.slides.length}vh` : `${2.5 + 58.125 * this.slides.length}vw`;
 			
-			const translation = window.innerWidth / window.innerHeight >= 152/89 ? `${(58.125 * 152/89 * this.currentSlide - 100 * this.currentSlide) * scale}vh` : `calc(${(58.125 * this.currentSlide) * scale}vw - ${100 * this.currentSlide * scale}vh)`;
+			//The first and last two slides have different animations since they can't be in the middle of the screen in the table view.
+			const centerSlide = Math.min(Math.max(1.25, this.currentSlide), this.slides.length - 2.25);
+			
+			this.slideContainer.style.transformOrigin = `center ${centerSlide * 100 + 50}vh`;
+			
+			const translation = bodyRect.width / bodyRect.height >= 152/89 ? `${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale}vh` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale}vh)`;
 			
 			this.slideContainer.style.transition = `transform ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
 			
-			this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(${scale})`;
+			this.slideContainer.style.transform = `translateY(${-100 * centerSlide}vh) scale(${scale})`;
 			
 			this.slides.forEach((element, index) =>
 			{
 				element.style.transition = `top ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
 				
 				//On these, we include the top margin term to match with how things were before -- otherwise, the transformation center will be misaligned.
-				if (window.innerWidth / window.innerHeight >= 152/89)
+				if (bodyRect.width / bodyRect.height >= 152/89)
 				{
-					element.style.top = `${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + (100 - 55.625 * 152 / 89) / 2}vh`;
+					element.style.top = `${58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide + 2.5}vh`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh + (100vh - 55.625vw) / 2)`;
+					element.style.top = `calc(${58.125 * (index - centerSlide)}vw + ${100 * centerSlide}vh + (100vh - 55.625vw) / 2)`;
 				}
 			});
 			
@@ -464,62 +467,51 @@ class Lapsa
 			//Only once this is done can we snap to the end. They'll never know the difference!
 			setTimeout(() =>
 			{
+				const correctTop = this.slides[this.currentSlide].getBoundingClientRect().top;
+				
 				this.slideContainer.style.transition = "";
 				
 				this.slides.forEach((element, index) =>
 				{
 					element.style.transition = "";
 					
-					//Here, we no longer include the margin, since we don't want the slides to have a gap at the top. It's accounted for in the translation amount on the container, so it's all fine.
-					if (window.innerWidth / window.innerHeight >= 152/89)
+					//Here, we no longer include the margin, since we don't want the slides to have a gap at the top. It's accounted for in the translation amount on the container, so it's all fine. The 5 is due to a somewhat strange effect that I don't quite understand.
+					if (bodyRect.width / bodyRect.height >= 152/89)
 					{
-						element.style.top = `calc(${2.5 + 58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide}vh)`;
+						element.style.top = `calc(${5 + 58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide}vh)`;
 					}
 					
 					else
 					{
-						element.style.top = `calc(${2.5 + 58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh)`;
+						element.style.top = `calc(${2.5 + 58.125 * (index - centerSlide)}vw + ${100 * centerSlide}vh)`;
 					}
 				});
+				
+				if (window.innerWidth / window.innerHeight >= 152/89)
+				{
+					this.bottomMarginElement.style.top = `calc(${5 + 58.125 * 152/89 * (this.slides.length - centerSlide) + 100 * centerSlide}vh)`;
+				}
+				
+				else
+				{
+					this.bottomMarginElement.style.top = `calc(${2.5 + 58.125 * (this.slides.length - centerSlide)}vw + ${100 * centerSlide}vh)`;
+				}
+				
+				
 				
 				this.slideContainer.style.transformOrigin = "center top";
 				
 				this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
 				
-				const scroll = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * .58125 * scale * 152/89 * (this.currentSlide - 1.25) : window.innerWidth * .58125 * scale * (this.currentSlide - 1.25);
+				const scroll = bodyRect.width / bodyRect.height >= 152/89 ? bodyRect.height * (.58125 * scale * 152/89 * (centerSlide - 1.25)) : bodyRect.width * (.58125 * scale * (centerSlide - 1.25));
 				
 				window.scrollTo(0, scroll);
 				
-				const slideRect = this.slides[this.currentSlide].getBoundingClientRect();
-				const bodyRect = document.body.getBoundingClientRect();
-				const correctionTerm = ((bodyRect.height - slideRect.height) / 2 - slideRect.top) / scale;
+				const newTop = this.slides[this.currentSlide].getBoundingClientRect().top;
 				
-				//I'd like to never think about this again.
-				this.slides.forEach((element, index) =>
-				{
-					element.style.transition = "";
-					
-					if (window.innerWidth / window.innerHeight >= 152/89)
-					{
-						element.style.top = `calc(${2.5 + 58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide}vh + ${correctionTerm}px)`;
-					}
-					
-					else
-					{
-						element.style.top = `calc(${2.5 + 58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh + ${correctionTerm}px)`;
-					}
-				});
+				window.scrollBy(0, newTop - correctTop);
 				
-				
-				if (window.innerWidth / window.innerHeight >= 152/89)
-				{
-					this.bottomMarginElement.style.top = `calc(${2.5 + 58.125 * 152/89 * (this.slides.length - this.currentSlide) + 100 * this.currentSlide}vh + ${correctionTerm}px)`;
-				}
-				
-				else
-				{
-					this.bottomMarginElement.style.top = `calc(${2.5 + 58.125 * (this.slides.length - this.currentSlide)}vw + ${100 * this.currentSlide}vh + ${correctionTerm}px)`;
-				}
+				document.documentElement.style.overflowY = "visible";
 			}, duration);
 		});
 	}
