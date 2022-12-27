@@ -422,7 +422,7 @@ class Lapsa
 			this.slideContainer.style.overflowY = "visible";
 			
 			this.slideContainer.style.transformOrigin = `center ${this.currentSlide * 100 + 50}vh`;
-			this.slideContainer.style.transformOrigin = `center top`;
+			//this.slideContainer.style.transformOrigin = `center top`;
 			
 			//The goal is to have room to display just under 4 slides vertically, then center on one so that the others are clipped, indicating it's scrollable. In a horizontal orientation, exactly one slide fits per screen. In a vertical one, we take a ratio.
 			const slides_per_screen = window.innerWidth / window.innerHeight >= 152/89 ? 1 : window.innerHeight / (window.innerWidth * 89/152);
@@ -438,12 +438,12 @@ class Lapsa
 			const total_height = window.innerWidth / window.innerHeight >= 152/89 ? `calc((58.125vh * ${this.slides.length} + 1.25vh) * 152 / 89)` : `calc(58.125vw * ${this.slides.length} + 1.25vw)`;
 			
 			//Once we've scaled down to the new amount, we can figure out where our slide is going to go and track it with the viewport.
-			//const target_scroll = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * .58125 * scale * 152/89 * (this.currentSlide - 1.25) : window.innerWidth * .58125 * scale * (this.currentSlide - 1.25);
+			
 			/*
 			anime({
 				targets: this.slideContainer,
 				scale: scale,
-				translateY: translation,
+				//translateY: translation,
 				duration: duration,
 				easing: "cubicBezier(.25, 1.0, .5, 1.0)",
 				
@@ -457,22 +457,39 @@ class Lapsa
 			
 			this.slideContainer.style.transition = `transform ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
 			
-			this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
+			this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(${scale})`;
 			
 			this.slides.forEach((element, index) =>
 			{
 				element.style.transition = `top ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
 				
+				//element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100}vh + (100vh - 55.625vh * 152 / 89) / 2)` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`;
+				
 				if (window.innerWidth / window.innerHeight >= 152/89)
 				{
-					element.style.top = `${2.5 + 58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide}vh`;
+					element.style.top = `${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + (100 - 55.625 * 152 / 89) / 2}vh`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${2.5 + 58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh)`;
+					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh + (100vh - 55.625vw) / 2)`;
 				}
 			});
+			
+			//Only once this is done can we snap to the end. They'll never know the difference!
+			setTimeout(() =>
+			{
+				this.slideContainer.style.transition = "";
+				this.slides.forEach(element => element.style.transition = "");
+				
+				this.slideContainer.style.transformOrigin = "center top";
+				
+				this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
+				
+				const scroll = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * .58125 * scale * 152/89 * (this.currentSlide - 1.25) : window.innerWidth * .58125 * scale * (this.currentSlide - 1.25);
+				console.log(scroll);
+				window.scrollTo(0, scroll);
+			}, 80*duration);
 		});
 	}
 	
