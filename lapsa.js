@@ -565,6 +565,8 @@ class Lapsa
 				this.currentlyAnimating = false;
 				this.inTableView = true;
 				this.slideContainer.classList.add("lapsa-table-view");
+				
+				resolve();
 			}, duration);
 		});
 	}
@@ -618,12 +620,12 @@ class Lapsa
 				//On these, we include the top margin term to match with how things were before -- otherwise, the transformation center will be misaligned.
 				if (bodyRect.width / bodyRect.height >= 152/89)
 				{
-					element.style.top = `${58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide + 2.5}vh`;
+					element.style.top = `${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + 2.5}vh`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${58.125 * (index - centerSlide)}vw + ${100 * centerSlide}vh + (100vh - 55.625vw) / 2)`;
+					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh + (100vh - 55.625vw) / 2)`;
 				}
 			});
 			
