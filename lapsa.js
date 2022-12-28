@@ -87,6 +87,9 @@ class Lapsa
 		
 		document.body.appendChild(this.slideShelfContainer);
 		
+		document.body.style.height = `${window.innerHeight}px`;
+		this.slideContainer.style.height = `${window.innerHeight}px`;
+		
 		
 		
 		if ("scrollRestoration" in history)
