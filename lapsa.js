@@ -11,7 +11,7 @@ class Lapsa
 	shelfIsOpen = false;
 	shelfIsAnimating = false;
 	shelfMargin = 50;
-	shelfIconPaths = ["/icons/up-2.png", "/icons/up-1.png", "/icons/down-1.png", "/icons/down-2.png"];
+	shelfIconPaths = ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
 	
 	currentSlide = -1;
 	transitionAnimationTime = 150;
@@ -20,6 +20,7 @@ class Lapsa
 	numBuilds = 0;
 	
 	currentlyAnimating = false;
+	inTableView = false;
 	
 	boundFunctions = [null, null, null, null];
 	
@@ -48,9 +49,20 @@ class Lapsa
 		this.slides.forEach((element, index) =>
 		{
 			element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100}vh + (100vh - 55.625vh * 152 / 89) / 2)` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`;
+			
+			element.addEventListener("click", () =>
+			{
+				if (!this.inTableView)
+				{
+					return;
+				}
+				
+				this.closeTableView(index);
+			});
 		});
 		
 		this.slideContainer = document.body.querySelector("#lapsa-slide-container");
+		this.slideContainer.classList.add("lapsa-hover");
 		
 		this.bottomMarginElement = document.createElement("div");
 		this.bottomMarginElement.id = "lapsa-bottom-margin";
@@ -65,8 +77,9 @@ class Lapsa
 			<div id="lapsa-slide-shelf" class="lapsa-hover" style="margin-left: ${this.shelfMargin}px; opacity: 0">
 				<input type="image" id="lapsa-up-2-button" class="shelf-button" src="${this.shelfIconPaths[0]}">
 				<input type="image" id="lapsa-up-1-button" class="shelf-button" src="${this.shelfIconPaths[1]}">
-				<input type="image" id="lapsa-down-1-button" class="shelf-button" src="${this.shelfIconPaths[2]}">
-				<input type="image" id="lapsa-down-2-button" class="shelf-button" src="${this.shelfIconPaths[3]}">
+				<input type="image" id="lapsa-table-button" class="shelf-button" src="${this.shelfIconPaths[2]}">
+				<input type="image" id="lapsa-down-1-button" class="shelf-button" src="${this.shelfIconPaths[3]}">
+				<input type="image" id="lapsa-down-2-button" class="shelf-button" src="${this.shelfIconPaths[4]}">
 			</div>
 		`;
 		
@@ -107,8 +120,9 @@ class Lapsa
 			
 			this.slideShelf.children[0].addEventListener("click", () => this.previousSlide(true));
 			this.slideShelf.children[1].addEventListener("click", () => this.previousSlide());
-			this.slideShelf.children[2].addEventListener("click", () => this.nextSlide());
-			this.slideShelf.children[3].addEventListener("click", () => this.nextSlide(true));
+			this.slideShelf.children[2].addEventListener("click", () => this.openTableView());
+			this.slideShelf.children[3].addEventListener("click", () => this.nextSlide());
+			this.slideShelf.children[4].addEventListener("click", () => this.nextSlide(true));
 		}, 100);
 		
 		
@@ -155,8 +169,9 @@ class Lapsa
 	
 	async nextSlide(skipBuilds = false)
 	{
-		if (this.currentlyAnimating)
+		if (this.currentlyAnimating || this.inTableView)
 		{
+			resolve();
 			return;
 		}
 		
@@ -199,40 +214,32 @@ class Lapsa
 		
 		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
 		
-		if (this.currentSlide === this.slides.length)
-		{
-			//this.exit();
-		}
+		this.buildState = 0;
 		
-		else
+		const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
+		
+		let currentBuild = 0;
+		
+		builds.forEach(element =>
 		{
-			this.buildState = 0;
+			element.style.opacity = 0;
 			
-			const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
+			let attr = element.getAttribute("data-build");
 			
-			let currentBuild = 0;
-			
-			builds.forEach(element =>
+			if (attr === null)
 			{
-				element.style.opacity = 0;
+				element.setAttribute("data-build", currentBuild);
 				
-				let attr = element.getAttribute("data-build");
-				
-				if (attr === null)
-				{
-					element.setAttribute("data-build", currentBuild);
-					
-					currentBuild++;
-				}
-				
-				else
-				{
-					currentBuild = parseInt(attr) + 1;
-				}
-			});
+				currentBuild++;
+			}
 			
-			this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
-		}
+			else
+			{
+				currentBuild = parseInt(attr) + 1;
+			}
+		});
+		
+		this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
 		
 		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
 		catch(ex) {}
@@ -246,8 +253,9 @@ class Lapsa
 	
 	async previousSlide(skipBuilds = false)
 	{
-		if (this.currentlyAnimating)
+		if (this.currentlyAnimating || this.inTableView)
 		{
+			resolve();
 			return;
 		}
 		
@@ -333,8 +341,9 @@ class Lapsa
 	
 	async jumpToSlide(index)
 	{
-		if (this.currentlyAnimating)
+		if (this.currentlyAnimating || this.inTableView)
 		{
+			resolve();
 			return;
 		}
 		
@@ -420,12 +429,22 @@ class Lapsa
 	
 	
 	
-	async openTableView(duration)
+	async openTableView(duration = 700)
 	{
 		return new Promise((resolve, reject) =>
 		{
+			if (this.inTableView)
+			{
+				resolve();
+				return;
+			}
+			
+			
+			
 			document.body.style.overflowY = "visible";
 			this.slideContainer.style.overflowY = "visible";
+			
+			this.currentlyAnimating = true;
 			
 			const bodyRect = document.body.getBoundingClientRect();
 			
@@ -512,8 +531,19 @@ class Lapsa
 				window.scrollBy(0, newTop - correctTop);
 				
 				document.documentElement.style.overflowY = "visible";
+				
+				this.currentlyAnimating = false;
+				this.inTableView = true;
+				this.slideContainer.classList.add("lapsa-table-view");
 			}, duration);
 		});
+	}
+	
+	
+	
+	async closeTableView(index, duration = 700)
+	{
+	
 	}
 	
 	
@@ -597,6 +627,7 @@ class Lapsa
 		
 		this.currentlyTouchDevice = true;
 		this.slideShelf.classList.remove("lapsa-hover");
+		this.slideContainer.classList.remove("lapsa-hover");
 	}
 	
 	handleTouchendEvent(e)
@@ -622,6 +653,7 @@ class Lapsa
 		this.maxTouches = 0;
 		
 		setTimeout(() => this.slideShelf.classList.remove("lapsa-hover"), 50);
+		setTimeout(() => this.slideContainer.classList.remove("lapsa-hover"), 50);
 	}
 	
 	handleMousemoveEvent(e)
@@ -637,6 +669,7 @@ class Lapsa
 			{
 				this.currentlyTouchDevice = false;
 				this.slideShelf.classList.add("lapsa-hover");
+				this.slideContainer.classList.add("lapsa-hover");
 			}
 		}
 	}
