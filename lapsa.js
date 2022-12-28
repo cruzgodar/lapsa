@@ -22,6 +22,8 @@ class Lapsa
 	currentlyAnimating = false;
 	inTableView = false;
 	
+	tableViewEasing = "cubic-bezier(.25, 1.0, .5, 1.0)";
+	
 	boundFunctions = [null, null, null, null];
 	
 	
@@ -461,7 +463,7 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			if (this.inTableView)
+			if (this.inTableView || this.currentlyAnimating)
 			{
 				resolve();
 				return;
@@ -485,27 +487,27 @@ class Lapsa
 			//The first and last two slides have different animations since they can't be in the middle of the screen in the table view.
 			const centerSlide = Math.min(Math.max(1.25, this.currentSlide), this.slides.length - 2.25);
 			
-			this.slideContainer.style.transformOrigin = `center ${centerSlide * 100 + 50}vh`;
+			this.slideContainer.style.transformOrigin = `center ${this.currentSlide * 100 + 50}vh`;
 			
 			const translation = bodyRect.width / bodyRect.height >= 152/89 ? `${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale}vh` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale}vh)`;
 			
-			this.slideContainer.style.transition = `transform ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
+			this.slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
 			
-			this.slideContainer.style.transform = `translateY(${-100 * centerSlide}vh) scale(${scale})`;
+			this.slideContainer.style.transform = bodyRect.width / bodyRect.height >= 152/89 ? `translateY(${(this.currentSlide - centerSlide) * 58.125 * 152/89 * scale - 100 * this.currentSlide}vh) scale(${scale})` : `translateY(calc(${(this.currentSlide - centerSlide) * 58.125 * scale}vw - ${100 * this.currentSlide}vh)) scale(${scale})`;
 			
 			this.slides.forEach((element, index) =>
 			{
-				element.style.transition = `top ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
+				element.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
 				
 				//On these, we include the top margin term to match with how things were before -- otherwise, the transformation center will be misaligned.
 				if (bodyRect.width / bodyRect.height >= 152/89)
 				{
-					element.style.top = `${58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide + 2.5}vh`;
+					element.style.top = `${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + 2.5}vh`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${58.125 * (index - centerSlide)}vw + ${100 * centerSlide}vh + (100vh - 55.625vw) / 2)`;
+					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh + (100vh - 55.625vw) / 2)`;
 				}
 			});
 			
@@ -573,7 +575,7 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			if (!this.inTableView)
+			if (!this.inTableView || this.currentlyAnimating)
 			{
 				resolve();
 				return;
@@ -649,17 +651,15 @@ class Lapsa
 			
 			setTimeout(() =>
 			{
-				this.slideContainer.style.transition = `transform ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
+				this.slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
 				this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
 			
 				
 				this.slides.forEach((element, index) =>
 				{
-					element.style.transition = `top ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
+					element.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
 					
-					console.log(element.style.top);
-					element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100}vh + (100vh - 55.625vh * 152 / 89) / 2)` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`;
-					console.log(element.style.top);
+					element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `${index * 100 + 2.5}vh` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`;
 				});
 				
 				
