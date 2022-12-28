@@ -120,7 +120,20 @@ class Lapsa
 			
 			this.slideShelf.children[0].addEventListener("click", () => this.previousSlide(true));
 			this.slideShelf.children[1].addEventListener("click", () => this.previousSlide());
-			this.slideShelf.children[2].addEventListener("click", () => this.openTableView());
+			
+			this.slideShelf.children[2].addEventListener("click", () =>
+			{
+				if (this.inTableView)
+				{
+					this.closeTableView(this.currentSlide);
+				}
+				
+				else
+				{
+					this.openTableView();
+				}
+			});
+			
 			this.slideShelf.children[3].addEventListener("click", () => this.nextSlide());
 			this.slideShelf.children[4].addEventListener("click", () => this.nextSlide(true));
 		}, 100);
@@ -167,269 +180,284 @@ class Lapsa
 	
 	
 	
-	async nextSlide(skipBuilds = false)
+	nextSlide(skipBuilds = false)
 	{
-		if (this.currentlyAnimating || this.inTableView)
+		return new Promise(async (resolve, reject) =>
 		{
-			resolve();
-			return;
-		}
-		
-		this.currentlyAnimating = true;
-		
-		if (!skipBuilds && this.numBuilds !== 0 && this.buildState !== this.numBuilds)
-		{
-			let promises = [];
-			
-			//Gross code because animation durations are weird as hell -- see the corresponding previousSlide block for a better example.
-			this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element =>
+			if (this.currentlyAnimating || this.inTableView)
 			{
-				this.fadeUpIn(element, this.transitionAnimationTime * 2);
+				resolve();
+				return;
+			}
+			
+			this.currentlyAnimating = true;
+			
+			if (!skipBuilds && this.numBuilds !== 0 && this.buildState !== this.numBuilds)
+			{
+				let promises = [];
 				
-				promises.push(new Promise((resolve, reject) => setTimeout(resolve, this.transitionAnimationTime)));
+				//Gross code because animation durations are weird as hell -- see the corresponding previousSlide block for a better example.
+				this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element =>
+				{
+					this.fadeUpIn(element, this.transitionAnimationTime * 2);
+					
+					promises.push(new Promise((resolve, reject) => setTimeout(resolve, this.transitionAnimationTime)));
+				});
+				
+				try {promises.push(this.callbacks[this.slides[this.currentSlide].id].builds[this.buildState](this.slides[this.currentSlide], true))}
+				catch(ex) {}
+				
+				await Promise.all(promises);
+				
+				this.buildState++;
+				
+				this.currentlyAnimating = false;
+				
+				return;
+			}
+			
+			if (this.currentSlide === this.slides.length - 1)
+			{
+				this.currentlyAnimating = false;
+				
+				return;
+			}
+			
+			await this.fadeUpOut(this.slideContainer, this.transitionAnimationTime);
+			
+			this.currentSlide++;
+			
+			this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
+			
+			this.buildState = 0;
+			
+			const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
+			
+			let currentBuild = 0;
+			
+			builds.forEach(element =>
+			{
+				element.style.opacity = 0;
+				
+				let attr = element.getAttribute("data-build");
+				
+				if (attr === null)
+				{
+					element.setAttribute("data-build", currentBuild);
+					
+					currentBuild++;
+				}
+				
+				else
+				{
+					currentBuild = parseInt(attr) + 1;
+				}
 			});
 			
-			try {promises.push(this.callbacks[this.slides[this.currentSlide].id].builds[this.buildState](this.slides[this.currentSlide], true))}
+			this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
+			
+			try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
 			catch(ex) {}
 			
-			await Promise.all(promises);
-			
-			this.buildState++;
-			
-			this.currentlyAnimating = false;
-			
-			return;
-		}
-		
-		if (this.currentSlide === this.slides.length - 1)
-		{
-			this.currentlyAnimating = false;
-			
-			return;
-		}
-		
-		await this.fadeUpOut(this.slideContainer, this.transitionAnimationTime);
-		
-		this.currentSlide++;
-		
-		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
-		
-		this.buildState = 0;
-		
-		const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
-		
-		let currentBuild = 0;
-		
-		builds.forEach(element =>
-		{
-			element.style.opacity = 0;
-			
-			let attr = element.getAttribute("data-build");
-			
-			if (attr === null)
-			{
-				element.setAttribute("data-build", currentBuild);
-				
-				currentBuild++;
-			}
-			
-			else
-			{
-				currentBuild = parseInt(attr) + 1;
-			}
-		});
-		
-		this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
-		
-		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
-		catch(ex) {}
-		
-		await this.fadeUpIn(this.slideContainer, this.transitionAnimationTime * 2);
-		
-		this.currentlyAnimating = false;
-	}
-	
-	
-	
-	async previousSlide(skipBuilds = false)
-	{
-		if (this.currentlyAnimating || this.inTableView)
-		{
-			resolve();
-			return;
-		}
-		
-		this.currentlyAnimating = true;
-		
-		
-		
-		if (!skipBuilds && this.numBuilds !== 0 && this.buildState !== 0)
-		{
-			this.buildState--;
-			
-			let promises = [];
-			
-			this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element => promises.push(this.fadeDownOut(element, this.transitionAnimationTime)));
-			
-			try {promises.push(this.callbacks[this.slides[this.currentSlide].id].builds[this.buildState](this.slides[this.currentSlide], false))}
-			catch(ex) {}
-			
-			await Promise.all(promises);
-			
-			this.currentlyAnimating = false;
-			
-			return;
-		}
-		
-		
-		
-		if (this.currentSlide === 0 || this.currentSlide === this.slides.length)
-		{
-			this.currentlyAnimating = false;
-			
-			return;
-		}
-		
-		
-		
-		await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
-		
-		this.currentSlide--;
-		
-		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
-		
-		
-		
-		const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
-		
-		let currentBuild = 0;
-		
-		builds.forEach(element =>
-		{
-			element.style.opacity = 1;
-			
-			let attr = element.getAttribute("data-build");
-			
-			if (attr === null)
-			{
-				element.setAttribute("data-build", currentBuild);
-				
-				currentBuild++;
-			}
-			
-			else
-			{
-				currentBuild = parseInt(attr) + 1;
-			}
-		});
-		
-		this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
-		
-		this.buildState = this.numBuilds;
-		
-		
-		
-		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], false)}
-		catch(ex) {}
-		
-		await this.fadeDownIn(this.slideContainer, this.transitionAnimationTime * 2);
-		
-		this.currentlyAnimating = false;
-	}
-	
-	
-	
-	async jumpToSlide(index)
-	{
-		if (this.currentlyAnimating || this.inTableView)
-		{
-			resolve();
-			return;
-		}
-		
-		this.currentlyAnimating = true;
-		
-		
-		
-		if (index < 0 || index >= this.slides.length || index === this.currentSlide)
-		{
-			this.currentlyAnimating = false;
-			
-			return;
-		}
-		
-		
-		
-		const forwardAnimation = index > this.currentSlide;
-		
-		if (forwardAnimation)
-		{
-			await this.fadeUpOut(this.slideContainer, this.transitionAnimationTime);
-		}
-		
-		else
-		{
-			await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
-		}
-		
-		
-		
-		this.currentSlide = index;
-		
-		this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
-		
-		
-		
-		this.buildState = 0;
-		
-		const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
-		
-		let currentBuild = 0;
-		
-		builds.forEach(element =>
-		{
-			element.style.opacity = 0;
-			
-			let attr = element.getAttribute("data-build");
-			
-			if (attr === null)
-			{
-				element.setAttribute("data-build", currentBuild);
-				
-				currentBuild++;
-			}
-			
-			else
-			{
-				currentBuild = parseInt(attr) + 1;
-			}
-		});
-		
-		this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
-		
-		
-		
-		try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
-		catch(ex) {}
-		
-		
-		
-		if (forwardAnimation)
-		{
 			await this.fadeUpIn(this.slideContainer, this.transitionAnimationTime * 2);
-		}
-		
-		else
-		{
-			await this.fadeDownIn(this.slideContainer, this.transitionAnimationTime * 2);
-		}
-		
-		this.currentlyAnimating = false;
+			
+			this.currentlyAnimating = false;
+			
+			resolve();
+		});
 	}
 	
 	
 	
-	async openTableView(duration = 700)
+	previousSlide(skipBuilds = false)
+	{
+		return new Promise(async (resolve, reject) =>
+		{
+			if (this.currentlyAnimating || this.inTableView)
+			{
+				resolve();
+				return;
+			}
+			
+			this.currentlyAnimating = true;
+			
+			
+			
+			if (!skipBuilds && this.numBuilds !== 0 && this.buildState !== 0)
+			{
+				this.buildState--;
+				
+				let promises = [];
+				
+				this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element => promises.push(this.fadeDownOut(element, this.transitionAnimationTime)));
+				
+				try {promises.push(this.callbacks[this.slides[this.currentSlide].id].builds[this.buildState](this.slides[this.currentSlide], false))}
+				catch(ex) {}
+				
+				await Promise.all(promises);
+				
+				this.currentlyAnimating = false;
+				
+				return;
+			}
+			
+			
+			
+			if (this.currentSlide === 0 || this.currentSlide === this.slides.length)
+			{
+				this.currentlyAnimating = false;
+				
+				return;
+			}
+			
+			
+			
+			await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
+			
+			this.currentSlide--;
+			
+			this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
+			
+			
+			
+			const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
+			
+			let currentBuild = 0;
+			
+			builds.forEach(element =>
+			{
+				element.style.opacity = 1;
+				
+				let attr = element.getAttribute("data-build");
+				
+				if (attr === null)
+				{
+					element.setAttribute("data-build", currentBuild);
+					
+					currentBuild++;
+				}
+				
+				else
+				{
+					currentBuild = parseInt(attr) + 1;
+				}
+			});
+			
+			this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
+			
+			this.buildState = this.numBuilds;
+			
+			
+			
+			try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], false)}
+			catch(ex) {}
+			
+			await this.fadeDownIn(this.slideContainer, this.transitionAnimationTime * 2);
+			
+			this.currentlyAnimating = false;
+			
+			resolve();
+		});
+	}
+	
+	
+	
+	jumpToSlide(index)
+	{
+		return new Promise(async (resolve, reject) =>
+		{
+			if (this.currentlyAnimating || this.inTableView)
+			{
+				resolve();
+				return;
+			}
+			
+			this.currentlyAnimating = true;
+			
+			
+			
+			if (index < 0 || index >= this.slides.length || index === this.currentSlide)
+			{
+				this.currentlyAnimating = false;
+				
+				return;
+			}
+			
+			
+			
+			const forwardAnimation = index > this.currentSlide;
+			
+			if (forwardAnimation)
+			{
+				await this.fadeUpOut(this.slideContainer, this.transitionAnimationTime);
+			}
+			
+			else
+			{
+				await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
+			}
+			
+			
+			
+			this.currentSlide = index;
+			
+			this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
+			
+			
+			
+			this.buildState = 0;
+			
+			const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
+			
+			let currentBuild = 0;
+			
+			builds.forEach(element =>
+			{
+				element.style.opacity = 0;
+				
+				let attr = element.getAttribute("data-build");
+				
+				if (attr === null)
+				{
+					element.setAttribute("data-build", currentBuild);
+					
+					currentBuild++;
+				}
+				
+				else
+				{
+					currentBuild = parseInt(attr) + 1;
+				}
+			});
+			
+			this.numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
+			
+			
+			
+			try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
+			catch(ex) {}
+			
+			
+			
+			if (forwardAnimation)
+			{
+				await this.fadeUpIn(this.slideContainer, this.transitionAnimationTime * 2);
+			}
+			
+			else
+			{
+				await this.fadeDownIn(this.slideContainer, this.transitionAnimationTime * 2);
+			}
+			
+			this.currentlyAnimating = false;
+			
+			resolve();
+		});
+	}
+	
+	
+	
+	openTableView(duration = 700)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -541,9 +569,87 @@ class Lapsa
 	
 	
 	
-	async closeTableView(index, duration = 700)
+	closeTableView(selection, duration = 700)
 	{
-	
+		return new Promise((resolve, reject) =>
+		{
+			if (!this.inTableView)
+			{
+				resolve();
+				return;
+			}
+			
+			this.currentlyAnimating = true;
+			
+			this.currentSlide = selection;
+			
+			//As with opening, this is a two-step process. First we snap back to a translated version, and then we return everything to its rightful place.
+			document.documentElement.style.overflowY = "hidden";
+			document.body.style.overflowY = "hidden";
+			
+			const bodyRect = document.body.getBoundingClientRect();
+			
+			//The goal is to have room to display just under 4 slides vertically, then center on one so that the others are clipped, indicating it's scrollable. In a horizontal orientation, exactly one slide fits per screen. In a vertical one, we take a ratio.
+			const slidesPerScreen = bodyRect.width / bodyRect.height >= 152/89 ? 1 : bodyRect.height / (bodyRect.width * 89/152);
+			
+			const scale = Math.min(slidesPerScreen / 3.5, 1);
+			
+			
+			//The first and last two slides have different animations since they can't be in the middle of the screen in the table view.
+			const centerSlide = Math.min(Math.max(1.25, this.currentSlide), this.slides.length - 2.25);
+			
+			this.slideContainer.style.transformOrigin = `center ${centerSlide * 100 + 50}vh`;
+			
+			
+			this.slideContainer.style.transform = `translateY(${-100 * centerSlide}vh) scale(${scale})`;
+			
+			this.slides.forEach((element, index) =>
+			{
+				//On these, we include the top margin term to match with how things were before -- otherwise, the transformation center will be misaligned.
+				if (bodyRect.width / bodyRect.height >= 152/89)
+				{
+					element.style.top = `${58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide + 2.5}vh`;
+				}
+				
+				else
+				{
+					element.style.top = `calc(${58.125 * (index - centerSlide)}vw + ${100 * centerSlide}vh + (100vh - 55.625vw) / 2)`;
+				}
+			});
+			
+			window.scrollTo(0, 0);
+			
+			
+			
+			//Now we can return all the slides to their proper places.
+			this.slideContainer.style.transition = `transform ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
+			
+			this.slideContainer.style.transformOrigin = "center top";
+			
+			this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
+			
+			this.slides.forEach((element, index) =>
+			{
+				element.style.transition = `top ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
+				
+				element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100}vh + (100vh - 55.625vh * 152 / 89) / 2)` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`;
+			});
+			
+			
+			
+			setTimeout(() =>
+			{
+				this.slideContainer.style.transition = "";
+				
+				this.slides.forEach(element => element.style.transition = "");
+				
+				this.currentlyAnimating = false;
+				this.inTableView = false;
+				this.slideContainer.classList.remove("lapsa-table-view");
+				
+				resolve();
+			}, duration);
+		});
 	}
 	
 	
