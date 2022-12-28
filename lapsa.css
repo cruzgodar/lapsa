@@ -54,7 +54,7 @@ body
 	overflow: hidden;
 }
 
-#lapsa-slide-container.lapsa-hover.lapsa-table-view .slide
+#lapsa-slide-container.lapsa-hover .slide
 {
 	transition: box-shadow .1s ease-out;
 }

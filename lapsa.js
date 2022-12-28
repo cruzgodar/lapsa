@@ -457,7 +457,7 @@ class Lapsa
 	
 	
 	
-	openTableView(duration = 700)
+	openTableView(duration = 600)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -569,7 +569,7 @@ class Lapsa
 	
 	
 	
-	closeTableView(selection, duration = 700)
+	closeTableView(selection, duration = 600)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -579,15 +579,15 @@ class Lapsa
 				return;
 			}
 			
-			const oldCurrentSlide = this.currentSlide;
-			
 			this.currentlyAnimating = true;
 			
 			this.currentSlide = selection;
 			
+			this.slideContainer.classList.remove("lapsa-table-view");
+			
+			
+			
 			//As with opening, this is a two-step process. First we snap back to a translated version, and then we return everything to its rightful place.
-			document.documentElement.style.overflowY = "hidden";
-			document.body.style.overflowY = "hidden";
 			
 			const bodyRect = document.body.getBoundingClientRect();
 			
@@ -599,38 +599,53 @@ class Lapsa
 			
 			//The first and last two slides have different animations since they can't be in the middle of the screen in the table view.
 			const centerSlide = Math.min(Math.max(1.25, this.currentSlide), this.slides.length - 2.25);
-			const oldCenterSlide = Math.min(Math.max(1.25, oldCurrentSlide), this.slides.length - 2.25);
 			
-			this.slideContainer.style.transformOrigin = `center ${oldCenterSlide * 100 + 50}vh`;
+			const correctTop = this.slides[0].getBoundingClientRect().top;
 			
 			
-			this.slideContainer.style.transform = `translateY(${-100 * oldCenterSlide}vh) scale(${scale})`;
+			
+			document.documentElement.style.overflowY = "hidden";
+			document.body.style.overflowY = "hidden";
+			
+			this.slideContainer.style.transformOrigin = `center ${centerSlide * 100 + 50}vh`;
+			
+			
 			
 			this.slides.forEach((element, index) =>
 			{
 				//On these, we include the top margin term to match with how things were before -- otherwise, the transformation center will be misaligned.
 				if (bodyRect.width / bodyRect.height >= 152/89)
 				{
-					element.style.top = `${58.125 * 152/89 * (index - oldCenterSlide) + 100 * oldCenterSlide + 2.5}vh`;
+					element.style.top = `${58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide + 2.5}vh`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${58.125 * (index - oldCenterSlide)}vw + ${100 * oldCenterSlide}vh + (100vh - 55.625vw) / 2)`;
+					element.style.top = `calc(${58.125 * (index - centerSlide)}vw + ${100 * centerSlide}vh + (100vh - 55.625vw) / 2)`;
 				}
 			});
 			
+			this.bottomMarginElement.style.top = 0;
+			
+			
+			
+			this.slideContainer.style.transform = `translateY(0) scale(${scale})`;
+			
 			window.scrollTo(0, 0);
+			
+			const newTop = this.slides[0].getBoundingClientRect().top;
+			
+			const scroll = correctTop - newTop;
+			
+			this.slideContainer.style.transform = `translateY(${scroll}px) scale(${scale})`;
 			
 			
 			
 			//Now we can return all the slides to their proper places.
 			
-			
-			
 			//Someday, I will understand why these four lines need to be the way they are. And then I will finally rest.
 			this.slideContainer.style.transition = "";
-			this.slideContainer.style.transform = `translateY(${-100 * oldCenterSlide}vh) scale(${scale})`;
+			this.slideContainer.style.transform = `translateY(${scroll}px) scale(${scale})`;
 			
 			setTimeout(() =>
 			{
@@ -642,7 +657,9 @@ class Lapsa
 				{
 					element.style.transition = `top ${duration}ms cubic-bezier(.25, 1.0, .5, 1.0)`;
 					
+					console.log(element.style.top);
 					element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100}vh + (100vh - 55.625vh * 152 / 89) / 2)` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`;
+					console.log(element.style.top);
 				});
 				
 				
@@ -655,7 +672,6 @@ class Lapsa
 					
 					this.currentlyAnimating = false;
 					this.inTableView = false;
-					this.slideContainer.classList.remove("lapsa-table-view");
 					
 					resolve();
 				}, duration);
