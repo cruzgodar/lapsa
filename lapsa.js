@@ -25,7 +25,7 @@ class Lapsa
 	_transitionAnimationDistance = 0;
 	
 	_buildState = 0;
-	_numBuilds = 0;
+	_numBuilds = [];
 	
 	_currentlyAnimating = false;
 	_inTableView = false;
@@ -46,16 +46,11 @@ class Lapsa
 	
 	constructor(options)
 	{
-		this._init(options?.callbacks ?? {});
-	}
-	
-	
-	
-	_init(callbacks)
-	{
-		this.callbacks = callbacks;
+		this.callbacks = options?.callbacks ?? {};
 		
 		this.slides = document.body.querySelectorAll(".slide");
+		
+		this._numBuilds = new Array(this.slides.length);
 		
 		this.slides.forEach((element, index) =>
 		{
@@ -70,6 +65,29 @@ class Lapsa
 				
 				this.closeTableView(index);
 			});
+			
+			const builds = element.querySelectorAll(".build, [data-build]");
+			
+			let currentBuild = 0;
+			
+			builds.forEach(buildElement =>
+			{
+				let attr = buildElement.getAttribute("data-build");
+				
+				if (attr === null)
+				{
+					buildElement.setAttribute("data-build", currentBuild);
+					
+					currentBuild++;
+				}
+				
+				else
+				{
+					currentBuild = parseInt(attr) + 1;
+				}
+			});
+			
+			this._numBuilds[index] = Math.max(currentBuild, this.callbacks?.[element.id]?.builds?.length ?? 0);
 		});
 		
 		this._slideContainer = document.body.querySelector("#lapsa-slide-container");
@@ -308,13 +326,15 @@ class Lapsa
 		{
 			if (this._currentlyAnimating || this._inTableView)
 			{
-				resolve();
+				reject();
 				return;
 			}
 			
 			this._currentlyAnimating = true;
 			
-			if (!skipBuilds && this._numBuilds !== 0 && this._buildState !== this._numBuilds)
+			
+			//If there's a build available, we do that instead of moving to the next slide.
+			if (this.currentSlide >= 0 && !skipBuilds && this._numBuilds[this.currentSlide] !== 0 && this._buildState !== this._numBuilds[this.currentSlide])
 			{
 				let promises = [];
 				
@@ -338,6 +358,8 @@ class Lapsa
 				return;
 			}
 			
+			
+			
 			if (this.currentSlide === this.slides.length - 1)
 			{
 				this._currentlyAnimating = false;
@@ -345,41 +367,34 @@ class Lapsa
 				return;
 			}
 			
+			
+			//Fade out the current slide, show all its builds (for the table view), then load in the next slide and hide all of its builds.
+			
 			await this.fadeUpOut(this._slideContainer, this.transitionAnimationTime);
+			
+			//Reset the slide if necessary.
+			if (this.currentSlide >= 0 && this._buildState !== this._numBuilds[this.currentSlide])
+			{
+				try {await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, 0)}
+				catch(ex) {}
+				
+				this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 1);
+			}
+			
+			
 			
 			this.currentSlide++;
 			
-			this._slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
-			
 			this._buildState = 0;
 			
-			const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
 			
-			let currentBuild = 0;
 			
-			builds.forEach(element =>
-			{
-				element.style.opacity = 0;
-				
-				let attr = element.getAttribute("data-build");
-				
-				if (attr === null)
-				{
-					element.setAttribute("data-build", currentBuild);
-					
-					currentBuild++;
-				}
-				
-				else
-				{
-					currentBuild = parseInt(attr) + 1;
-				}
-			});
-			
-			this._numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
-			
-			try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
+			try {await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true)}
 			catch(ex) {}
+			
+			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 0);
+			
+			this._slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
 			
 			await this.fadeUpIn(this._slideContainer, this.transitionAnimationTime * 2);
 			
@@ -397,7 +412,7 @@ class Lapsa
 		{
 			if (this._currentlyAnimating || this._inTableView)
 			{
-				resolve();
+				reject();
 				return;
 			}
 			
@@ -405,7 +420,8 @@ class Lapsa
 			
 			
 			
-			if (!skipBuilds && this._numBuilds !== 0 && this._buildState !== 0)
+			//If there's a build available, we do that instead of moving to the previous slide.
+			if (!skipBuilds && this._numBuilds[this.currentSlide] !== 0 && this._buildState !== 0)
 			{
 				this._buildState--;
 				
@@ -434,45 +450,33 @@ class Lapsa
 			
 			
 			
+			//Fade out the current slide, show all its builds (for the table view), then load in the previous slide and show all of its builds.
+			
 			await this.fadeDownOut(this._slideContainer, this.transitionAnimationTime);
+			
+			//Reset the slide if necessary.
+			if (this._buildState !== this._numBuilds[this.currentSlide])
+			{
+				try {await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0)}
+				catch(ex) {}
+				
+				this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 1);
+			}
+			
+			
 			
 			this.currentSlide--;
 			
-			this._slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
+			this._buildState = this._numBuilds[this.currentSlide];
 			
 			
 			
-			const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
-			
-			let currentBuild = 0;
-			
-			builds.forEach(element =>
-			{
-				element.style.opacity = 1;
-				
-				let attr = element.getAttribute("data-build");
-				
-				if (attr === null)
-				{
-					element.setAttribute("data-build", currentBuild);
-					
-					currentBuild++;
-				}
-				
-				else
-				{
-					currentBuild = parseInt(attr) + 1;
-				}
-			});
-			
-			this._numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
-			
-			this._buildState = this._numBuilds;
-			
-			
-			
-			try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], false)}
+			try {await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0)}
 			catch(ex) {}
+			
+			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 1);
+			
+			this._slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
 			
 			await this.fadeDownIn(this._slideContainer, this.transitionAnimationTime * 2);
 			
@@ -490,7 +494,7 @@ class Lapsa
 		{
 			if (this._currentlyAnimating || this._inTableView)
 			{
-				resolve();
+				reject();
 				return;
 			}
 			
@@ -502,6 +506,7 @@ class Lapsa
 			{
 				this._currentlyAnimating = false;
 				
+				reject();
 				return;
 			}
 			
@@ -521,45 +526,28 @@ class Lapsa
 			
 			
 			
+			//Reset the slide if necessary.
+			if (this._buildState !== this._numBuilds[this.currentSlide])
+			{
+				try {await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0)}
+				catch(ex) {}
+				
+				this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 1);
+			}
+			
+			
+			
 			this.currentSlide = index;
-			
-			this._slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
-			
-			
-			
 			this._buildState = 0;
 			
-			const builds = this.slides[this.currentSlide].querySelectorAll(".build, [data-build]");
-			
-			let currentBuild = 0;
-			
-			builds.forEach(element =>
-			{
-				element.style.opacity = 0;
-				
-				let attr = element.getAttribute("data-build");
-				
-				if (attr === null)
-				{
-					element.setAttribute("data-build", currentBuild);
-					
-					currentBuild++;
-				}
-				
-				else
-				{
-					currentBuild = parseInt(attr) + 1;
-				}
-			});
-			
-			this._numBuilds = Math.max(currentBuild, this.callbacks?.[this.slides[this.currentSlide].id]?.builds?.length ?? 0);
 			
 			
-			
-			try {await this.callbacks[this.slides[this.currentSlide].id].callback(this.slides[this.currentSlide], true)}
+			try {await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, 0)}
 			catch(ex) {}
 			
+			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 0);
 			
+			this._slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
 			
 			if (forwardAnimation)
 			{
@@ -585,7 +573,7 @@ class Lapsa
 		{
 			if (this._inTableView || this._currentlyAnimating)
 			{
-				resolve();
+				reject();
 				return;
 			}
 			
@@ -701,7 +689,7 @@ class Lapsa
 		{
 			if (!this._inTableView || this._currentlyAnimating)
 			{
-				resolve();
+				reject();
 				return;
 			}
 			
