@@ -19,6 +19,7 @@ body
 	
 	width: 100vw;
 	margin: 0 auto;
+	opacity: 0;
 	
 	transform: translateY(0) scale(1);
 }

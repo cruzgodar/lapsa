@@ -4,7 +4,6 @@ class Lapsa
 	slides = [];
 	currentSlide = -1;
 	
-	shelfMargin = 50;
 	shelfIconPaths = ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
 	
 	transitionAnimationTime = 150;
@@ -19,6 +18,7 @@ class Lapsa
 	
 	_shelfContainer = null;
 	_slideShelf = null;
+	_shelfMargin = 50;
 	_shelfIsOpen = false;
 	_shelfIsAnimating = false;
 	
@@ -40,13 +40,29 @@ class Lapsa
 	/*
 		options =
 		{
-			callbacks: {}
+			callbacks: {},
+			
+			transitionAnimationTime: 150,
+			transitionAnimationDistanceFactor: .015,
+			
+			shelfIconPaths: ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"],
+			
+			tableViewEasing: "cubic-bezier(.25, 1.0, .5, 1.0)"
 		};
 	*/
 	
 	constructor(options)
 	{
 		this.callbacks = options?.callbacks ?? {};
+		
+		this.transitionAnimationTime = options?.transitionAnimationTime ?? 150;
+		this.transitionAnimationDistanceFactor = options?.transitionAnimationDistanceFactor ?? .015;
+		
+		this.shelfIconPaths = options?.shelfIconPaths ?? ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
+		
+		this.tableViewEasing = options?.tableViewEasing ?? "cubic-bezier(.25, 1.0, .5, 1.0)";
+		
+		
 		
 		this.slides = document.body.querySelectorAll(".slide");
 		
@@ -107,7 +123,7 @@ class Lapsa
 		this._shelfContainer.id = "lapsa-slide-shelf-container";
 		
 		this._shelfContainer.innerHTML = `
-			<div id="lapsa-slide-shelf" class="lapsa-hover" style="margin-left: ${this.shelfMargin}px; opacity: 0">
+			<div id="lapsa-slide-shelf" class="lapsa-hover" style="margin-left: ${this._shelfMargin}px; opacity: 0">
 				<input type="image" id="lapsa-up-2-button" class="shelf-button" src="${this.shelfIconPaths[0]}">
 				<input type="image" id="lapsa-up-1-button" class="shelf-button" src="${this.shelfIconPaths[1]}">
 				<input type="image" id="lapsa-table-button" class="shelf-button" src="${this.shelfIconPaths[2]}">
@@ -836,7 +852,7 @@ class Lapsa
 		{
 			anime({
 				targets: element,
-				marginLeft: `${-this.shelfMargin}px`,
+				marginLeft: `${-this._shelfMargin}px`,
 				opacity: 0,
 				duration: duration,
 				easing: "cubicBezier(.4, 0.0, .4, 1.0)",

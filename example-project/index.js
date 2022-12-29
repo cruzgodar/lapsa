@@ -5,5 +5,5 @@
 		callbacks: {}
 	};
 	
-    const lapsa = new Lapsa();
+    const lapsa = new Lapsa(options);
 }()
