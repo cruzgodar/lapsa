@@ -87,8 +87,8 @@ class Lapsa
 		
 		document.body.appendChild(this.slideShelfContainer);
 		
-		document.body.style.height = `${window.innerHeight}px`;
-		this.slideContainer.style.height = `${window.innerHeight}px`;
+		//document.body.style.height = `${window.innerHeight}px`;
+		//this.slideContainer.style.height = `${window.innerHeight}px`;
 		
 		
 		
@@ -123,24 +123,53 @@ class Lapsa
 				}
 			});
 			
-			this.slideShelf.children[0].addEventListener("click", () => this.previousSlide(true));
-			this.slideShelf.children[1].addEventListener("click", () => this.previousSlide());
-			
-			this.slideShelf.children[2].addEventListener("click", () =>
+			this.slideShelf.children[0].addEventListener("click", () =>
 			{
-				if (this.inTableView)
+				if (this.shelfIsOpen && !this.shelfIsAnimating)
 				{
-					this.closeTableView(this.currentSlide);
-				}
-				
-				else
-				{
-					this.openTableView();
+					this.previousSlide(true);
 				}
 			});
 			
-			this.slideShelf.children[3].addEventListener("click", () => this.nextSlide());
-			this.slideShelf.children[4].addEventListener("click", () => this.nextSlide(true));
+			this.slideShelf.children[1].addEventListener("click", () =>
+			{
+				if (this.shelfIsOpen && !this.shelfIsAnimating)
+				{
+					this.previousSlide();
+				}
+			});
+			
+			this.slideShelf.children[2].addEventListener("click", () =>
+			{
+				if (this.shelfIsOpen && !this.shelfIsAnimating)
+				{
+					if (this.inTableView)
+					{
+						this.closeTableView(this.currentSlide);
+					}
+					
+					else
+					{
+						this.openTableView();
+					}
+				}
+			});
+			
+			this.slideShelf.children[3].addEventListener("click", () =>
+			{
+				if (this.shelfIsOpen && !this.shelfIsAnimating)
+				{
+					this.nextSlide();
+				}
+			});
+			
+			this.slideShelf.children[4].addEventListener("click", () =>
+			{
+				if (this.shelfIsOpen && !this.shelfIsAnimating)
+				{
+					this.nextSlide(true);
+				}
+			});
 		}, 100);
 		
 		
@@ -486,9 +515,12 @@ class Lapsa
 			
 			const scale = Math.min(slidesPerScreen / 3.5, 1);
 			
+			const scaledSlidesPerScreen = slidesPerScreen / scale;
+			
+			
 			
 			//The first and last two slides have different animations since they can't be in the middle of the screen in the table view.
-			const centerSlide = Math.min(Math.max(1.25, this.currentSlide), this.slides.length - 2.25);
+			const centerSlide = Math.min(Math.max((scaledSlidesPerScreen - 1) / 2, this.currentSlide), this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2);
 			
 			this.slideContainer.style.transformOrigin = `center ${this.currentSlide * 100 + 50}vh`;
 			
@@ -555,13 +587,12 @@ class Lapsa
 				
 				this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
 				
-				const scroll = bodyRect.width / bodyRect.height >= 152/89 ? bodyRect.height * (.58125 * scale * 152/89 * (centerSlide - 1.25)) : bodyRect.width * (.58125 * scale * (centerSlide - 1.25));
-				
-				window.scrollTo(0, scroll);
+				window.scrollTo(0, 0);
 				
 				const newTop = this.slides[this.currentSlide].getBoundingClientRect().top;
+				const scroll = newTop - correctTop;
 				
-				window.scrollBy(0, newTop - correctTop);
+				window.scrollTo(0, scroll);
 				
 				document.documentElement.style.overflowY = "visible";
 				
