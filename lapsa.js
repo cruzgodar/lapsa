@@ -24,7 +24,7 @@ class Lapsa
 	
 	tableViewEasing = "cubic-bezier(.25, 1.0, .5, 1.0)";
 	
-	boundFunctions = [null, null, null, null];
+	boundFunctions = [null, null, null, null, null];
 	
 	
 	
@@ -183,11 +183,13 @@ class Lapsa
 		this.boundFunctions[1] = this.handleTouchstartEvent.bind(this);
 		this.boundFunctions[2] = this.handleTouchendEvent.bind(this);
 		this.boundFunctions[3] = this.handleMousemoveEvent.bind(this);
+		this.boundFunctions[4] = this.onResize.bind(this);
 		
 		document.documentElement.addEventListener("keydown", this.boundFunctions[0]);
 		document.documentElement.addEventListener("touchstart", this.boundFunctions[1]);
 		document.documentElement.addEventListener("touchend", this.boundFunctions[2]);
 		document.documentElement.addEventListener("mousemove", this.boundFunctions[3]);
+		window.addEventListener("resize", this.boundFunctions[4]);
 		
 		this.nextSlide();
 	}
@@ -210,6 +212,77 @@ class Lapsa
 		document.documentElement.removeEventListener("touchstart", this.boundFunctions[1]);
 		document.documentElement.removeEventListener("touchend", this.boundFunctions[2]);
 		document.documentElement.removeEventListener("mousemove", this.boundFunctions[3]);
+		window.removeEventListener("resize", this.boundFunctions[4]);
+	}
+	
+	
+	
+	onResize()
+	{
+		if (this.currentlyAnimating)
+		{
+			return;
+		}
+		
+		
+		
+		if (this.inTableView)
+		{
+			const bodyRect = document.body.getBoundingClientRect();
+			
+			const slidesPerScreen = bodyRect.width / bodyRect.height >= 152/89 ? 1 : bodyRect.height / (bodyRect.width * 89/152);
+			
+			const scale = Math.min(slidesPerScreen / 3.5, 1);
+			
+			const scaledSlidesPerScreen = slidesPerScreen / scale;
+			
+			
+			
+			//The first and last two slides have different animations since they can't be in the middle of the screen in the table view.
+			const centerSlide = Math.min(Math.max((scaledSlidesPerScreen - 1) / 2, this.currentSlide), this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2);
+			
+			const translation = bodyRect.width / bodyRect.height >= 152/89 ? `${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale}vh` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale}vh)`;
+			
+			
+			
+			this.slides.forEach((element, index) =>
+			{
+				if (window.innerWidth / window.innerHeight >= 152/89)
+				{
+					element.style.top = `calc(${5 + 58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide}vh)`;
+				}
+				
+				else
+				{
+					element.style.top = `calc(${2.5 + 58.125 * (index - centerSlide)}vw + ${100 * centerSlide}vh)`;
+				}
+			});
+			
+			if (window.innerWidth / window.innerHeight >= 152/89)
+			{
+				this.bottomMarginElement.style.top = `calc(${5 + 58.125 * 152/89 * (this.slides.length - centerSlide) + 100 * centerSlide}vh)`;
+			}
+			
+			else
+			{
+				this.bottomMarginElement.style.top = `calc(${2.5 + 58.125 * (this.slides.length - centerSlide)}vw + ${100 * centerSlide}vh)`;
+			}
+			
+			
+			
+			this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
+			
+			window.scrollTo(0, 0);
+		}
+		
+		
+		
+		else
+		{
+			this.slides.forEach((element, index) => element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100}vh + (100vh - 55.625vh * 152 / 89) / 2)` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`);
+			
+			this.slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
+		}
 	}
 	
 	
