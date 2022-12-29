@@ -174,10 +174,10 @@ body
 {
 	position: fixed;
 	
-	width: 100px;
-	height: 600px;
+	width: 125px;
+	height: 800px;
 	
-	top: calc((100vh - 600px) / 2);
+	top: calc((100vh - 800px) / 2);
 	left: 0;
 	
 	display: flex;
