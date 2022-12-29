@@ -15,6 +15,7 @@ class Lapsa
 	
 	currentSlide = -1;
 	transitionAnimationTime = 150;
+	transitionAnimationDistance = 0;
 	
 	buildState = 0;
 	numBuilds = 0;
@@ -69,6 +70,10 @@ class Lapsa
 		this.bottomMarginElement = document.createElement("div");
 		this.bottomMarginElement.id = "lapsa-bottom-margin";
 		this.slideContainer.appendChild(this.bottomMarginElement);
+		
+		
+		
+		this.transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * .015 * 159/82 : window.innerWidth * .015;
 		
 		
 		
@@ -223,6 +228,8 @@ class Lapsa
 		{
 			return;
 		}
+		
+		this.transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * .015 * 159/82 : window.innerWidth * .015;
 		
 		
 		
@@ -929,7 +936,7 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			element.style.marginTop = `${window.innerHeight / 40}px`;
+			element.style.marginTop = `${this.transitionAnimationDistance}px`;
 			
 			anime({
 				targets: element,
@@ -948,7 +955,7 @@ class Lapsa
 		{
 			anime({
 				targets: element,
-				marginTop: `${-window.innerHeight / 40}px`,
+				marginTop: `${-this.transitionAnimationDistance}px`,
 				opacity: 0,
 				duration: duration,
 				easing: "cubicBezier(.1, 0.0, .2, 0.0)",
@@ -961,7 +968,7 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			element.style.marginTop = `${-window.innerHeight / 40}px`;
+			element.style.marginTop = `${-this.transitionAnimationDistance}px`;
 			
 			anime({
 				targets: element,
@@ -980,7 +987,7 @@ class Lapsa
 		{
 			anime({
 				targets: element,
-				marginTop: `${window.innerHeight / 40}px`,
+				marginTop: `${this.transitionAnimationDistance}px`,
 				opacity: 0,
 				duration: duration,
 				easing: "cubicBezier(.1, 0.0, .2, 0.0)",
