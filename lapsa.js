@@ -18,6 +18,7 @@ class Lapsa
 	
 	
 	
+	_root = null;
 	_slideContainer = null;
 	_bottomMarginElement = null;
 	
@@ -79,13 +80,15 @@ class Lapsa
 		
 		
 		
+		this._root = document.querySelector(":root");
+		
 		this.slides = document.body.querySelectorAll(".slide");
 		
 		this._numBuilds = new Array(this.slides.length);
 		
 		this.slides.forEach((element, index) =>
 		{
-			element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100}vh + (100vh - 55.625vh * 152 / 89) / 2)` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`;
+			element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 			
 			element.addEventListener("click", () =>
 			{
@@ -134,6 +137,8 @@ class Lapsa
 		
 		this._transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * this.transitionAnimationDistanceFactor * 159/82 : window.innerWidth * this.transitionAnimationDistanceFactor;
 		
+		this._root.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
+		
 		
 		
 		this._shelfContainer = document.createElement("div");
@@ -153,8 +158,7 @@ class Lapsa
 		
 		
 		
-		//document.body.style.height = `${window.innerHeight}px`;
-		//this._slideContainer.style.height = `${window.innerHeight}px`;
+		
 		
 		
 		
@@ -306,6 +310,8 @@ class Lapsa
 		
 		this._transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * this.transitionAnimationDistanceFactor * 159/82 : window.innerWidth * this.transitionAnimationDistanceFactor;
 		
+		this._root.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
+		
 		
 		
 		if (this._inTableView)
@@ -323,7 +329,7 @@ class Lapsa
 			//The first and last two slides have different animations since they can't be in the middle of the screen in the table view.
 			const centerSlide = Math.min(Math.max((scaledSlidesPerScreen - 1) / 2, this.currentSlide), this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2);
 			
-			const translation = bodyRect.width / bodyRect.height >= 152/89 ? `${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale}vh` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale}vh)`;
+			const translation = bodyRect.width / bodyRect.height >= 152/89 ? `calc(${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale} * var(--safe-vh))` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale} * var(--safe-vh))`;
 			
 			
 			
@@ -331,23 +337,23 @@ class Lapsa
 			{
 				if (window.innerWidth / window.innerHeight >= 152/89)
 				{
-					element.style.top = `calc(${5 + 58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide}vh)`;
+					element.style.top = `calc(${5 + 58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${2.5 + 58.125 * (index - centerSlide)}vw + ${100 * centerSlide}vh)`;
+					element.style.top = `calc(${2.5 + 58.125 * (index - centerSlide)}vw + ${100 * centerSlide} * var(--safe-vh))`;
 				}
 			});
 			
 			if (window.innerWidth / window.innerHeight >= 152/89)
 			{
-				this._bottomMarginElement.style.top = `calc(${5 + 58.125 * 152/89 * (this.slides.length - centerSlide) + 100 * centerSlide}vh)`;
+				this._bottomMarginElement.style.top = `calc(${5 + 58.125 * 152/89 * (this.slides.length - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
 			}
 			
 			else
 			{
-				this._bottomMarginElement.style.top = `calc(${2.5 + 58.125 * (this.slides.length - centerSlide)}vw + ${100 * centerSlide}vh)`;
+				this._bottomMarginElement.style.top = `calc(${2.5 + 58.125 * (this.slides.length - centerSlide)}vw + ${100 * centerSlide} * var(--safe-vh))`;
 			}
 			
 			
@@ -359,9 +365,9 @@ class Lapsa
 		
 		else
 		{
-			this.slides.forEach((element, index) => element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100}vh + (100vh - 55.625vh * 152 / 89) / 2)` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`);
+			this.slides.forEach((element, index) => element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`);
 			
-			this._slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
+			this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
 		}
 	}
 	
@@ -441,7 +447,7 @@ class Lapsa
 			
 			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 0);
 			
-			this._slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
+			this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
 			
 			await this.fadeUpIn(this._slideContainer, this.transitionAnimationTime * 2);
 			
@@ -523,7 +529,7 @@ class Lapsa
 			
 			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 1);
 			
-			this._slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
+			this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
 			
 			await this.fadeDownIn(this._slideContainer, this.transitionAnimationTime * 2);
 			
@@ -594,7 +600,7 @@ class Lapsa
 			
 			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 0);
 			
-			this._slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
+			this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
 			
 			if (forwardAnimation)
 			{
@@ -645,13 +651,13 @@ class Lapsa
 			//The first and last two slides have different animations since they can't be in the middle of the screen in the table view.
 			const centerSlide = Math.min(Math.max((scaledSlidesPerScreen - 1) / 2, this.currentSlide), this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2);
 			
-			this._slideContainer.style.transformOrigin = `center ${this.currentSlide * 100 + 50}vh`;
+			this._slideContainer.style.transformOrigin = `center calc(${this.currentSlide * 100 + 50} * var(--safe-vh))`;
 			
-			const translation = bodyRect.width / bodyRect.height >= 152/89 ? `${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale}vh` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale}vh)`;
+			const translation = bodyRect.width / bodyRect.height >= 152/89 ? `calc(${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale} * var(--safe-vh))` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale} * var(--safe-vh))`;
 			
 			this._slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
 			
-			this._slideContainer.style.transform = bodyRect.width / bodyRect.height >= 152/89 ? `translateY(${(this.currentSlide - centerSlide) * 58.125 * 152/89 * scale - 100 * this.currentSlide}vh) scale(${scale})` : `translateY(calc(${(this.currentSlide - centerSlide) * 58.125 * scale}vw - ${100 * this.currentSlide}vh)) scale(${scale})`;
+			this._slideContainer.style.transform = bodyRect.width / bodyRect.height >= 152/89 ? `translateY(calc(${(this.currentSlide - centerSlide) * 58.125 * 152/89 * scale - 100 * this.currentSlide} * var(--safe-vh))) scale(${scale})` : `translateY(calc(${(this.currentSlide - centerSlide) * 58.125 * scale}vw - ${100 * this.currentSlide} * var(--safe-vh))) scale(${scale})`;
 			
 			this.slides.forEach((element, index) =>
 			{
@@ -660,12 +666,12 @@ class Lapsa
 				//On these, we include the top margin term to match with how things were before -- otherwise, the transformation center will be misaligned.
 				if (bodyRect.width / bodyRect.height >= 152/89)
 				{
-					element.style.top = `${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + 2.5}vh`;
+					element.style.top = `calc(${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + 2.5} * var(--safe-vh))`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh + (100vh - 55.625vw) / 2)`;
+					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 				}
 			});
 			
@@ -711,23 +717,23 @@ class Lapsa
 					//Here, we no longer include the margin, since we don't want the slides to have a gap at the top. It's accounted for in the translation amount on the container, so it's all fine. The 5 is due to a somewhat strange effect that I don't quite understand.
 					if (bodyRect.width / bodyRect.height >= 152/89)
 					{
-						element.style.top = `calc(${5 + 58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide}vh)`;
+						element.style.top = `calc(${5 + 58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
 					}
 					
 					else
 					{
-						element.style.top = `calc(${2.5 + 58.125 * (index - centerSlide)}vw + ${100 * centerSlide}vh)`;
+						element.style.top = `calc(${2.5 + 58.125 * (index - centerSlide)}vw + ${100 * centerSlide} * var(--safe-vh))`;
 					}
 				});
 				
 				if (window.innerWidth / window.innerHeight >= 152/89)
 				{
-					this._bottomMarginElement.style.top = `calc(${5 + 58.125 * 152/89 * (this.slides.length - centerSlide) + 100 * centerSlide}vh)`;
+					this._bottomMarginElement.style.top = `calc(${5 + 58.125 * 152/89 * (this.slides.length - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
 				}
 				
 				else
 				{
-					this._bottomMarginElement.style.top = `calc(${2.5 + 58.125 * (this.slides.length - centerSlide)}vw + ${100 * centerSlide}vh)`;
+					this._bottomMarginElement.style.top = `calc(${2.5 + 58.125 * (this.slides.length - centerSlide)}vw + ${100 * centerSlide} * var(--safe-vh))`;
 				}
 				
 				
@@ -794,7 +800,7 @@ class Lapsa
 			document.documentElement.style.overflowY = "hidden";
 			document.body.style.overflowY = "hidden";
 			
-			this._slideContainer.style.transformOrigin = `center ${centerSlide * 100 + 50}vh`;
+			this._slideContainer.style.transformOrigin = `center calc(${centerSlide * 100 + 50} * var(--safe-vh))`;
 			
 			
 			
@@ -803,12 +809,12 @@ class Lapsa
 				//On these, we include the top margin term to match with how things were before -- otherwise, the transformation center will be misaligned.
 				if (bodyRect.width / bodyRect.height >= 152/89)
 				{
-					element.style.top = `${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + 2.5}vh`;
+					element.style.top = `calc(${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + 2.5} * var(--safe-vh))`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide}vh + (100vh - 55.625vw) / 2)`;
+					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 				}
 			});
 			
@@ -860,14 +866,14 @@ class Lapsa
 			setTimeout(() =>
 			{
 				this._slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
-				this._slideContainer.style.transform = `translateY(${-100 * this.currentSlide}vh) scale(1)`;
+				this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
 			
 				
 				this.slides.forEach((element, index) =>
 				{
 					element.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
 					
-					element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `${index * 100 + 2.5}vh` : `calc(${index * 100}vh + (100vh - 55.625vw) / 2)`;
+					element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 				});
 				
 				
