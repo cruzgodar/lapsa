@@ -16,6 +16,8 @@ class Lapsa
 	shelfAnimateInEasing = "cubic-bezier(.4, 1.0, .7, 1.0)";
 	shelfAnimateOutEasing = "cubic-bezier(.4, 0.0, .4, 1.0)";
 	
+	windowHeightAnimationFrames = 5;
+	
 	
 	
 	_rootSelector = null;
@@ -39,7 +41,13 @@ class Lapsa
 	_boundFunctions = [null, null, null, null, null];
 	_maxTouches = 0;
 	_currentlyTouchDevice = false;
-    _lastMousemoveEvent = 0;
+	_lastMousemoveEvent = 0;
+	
+	_lastWindowHeight = window.innerHeight;
+	_startWindowHeight = window.innerHeight;
+	_windowHeightAnimationFrame = 0;
+	_windowHeightAnimationLastTimestamp = -1;
+	_resizeAnimationBound = null;
 	
 	
 	
@@ -50,6 +58,7 @@ class Lapsa
 			
 			transitionAnimationTime: 150,
 			transitionAnimationDistanceFactor: .015,
+			windowHeightAnimationFrames: 5,
 			
 			permanentShelf: false,
 			shelfIconPaths: ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"],
@@ -81,6 +90,8 @@ class Lapsa
 		
 		
 		this._rootSelector = document.querySelector(":root");
+		
+		this._resizeAnimationBound = this._resizeAnimation.bind(this);
 		
 		
 		
@@ -311,7 +322,9 @@ class Lapsa
 		
 		this._transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * this.transitionAnimationDistanceFactor * 159/82 : window.innerWidth * this.transitionAnimationDistanceFactor;
 		
-		this._rootSelector.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
+		this._startWindowHeight = this._lastWindowHeight;
+		this._windowHeightAnimationFrame = 1;
+		window.requestAnimationFrame(this._resizeAnimationBound);
 		
 		
 		
@@ -369,6 +382,54 @@ class Lapsa
 			this.slides.forEach((element, index) => element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`);
 			
 			this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
+		}
+	}
+	
+	
+	
+	_resizeAnimation(timestamp)
+	{
+		const timeElapsed = timestamp = this._windowHeightAnimationLastTimestamp;
+		
+		this._windowHeightAnimationLastTimestamp = timestamp;
+		
+		if (timeElapsed === 0)
+		{
+			return;
+		}
+		
+		const t = this._windowHeightAnimationFrame / this.windowHeightAnimationFrames;
+		
+		const newHeight = this._startWindowHeight * (1 - t) + window.innerHeight * t;
+		
+		this._lastWindowHeight = newHeight;
+		
+		
+		
+		this._rootSelector.style.setProperty("--safe-vh", `${newHeight / 100}px`);
+		
+		if (this._inTableView)
+		{
+			const slidesPerScreen = window.innerWidth / newHeight >= 152/89 ? 1 : newHeight / (window.innerWidth * 89/152);
+			
+			const scale = Math.min(slidesPerScreen / 3.5, 1);
+			
+			const scaledSlidesPerScreen = slidesPerScreen / scale;
+			
+			const centerSlide = Math.min(Math.max((scaledSlidesPerScreen - 1) / 2, this.currentSlide), this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2);
+			
+			const translation = window.innerWidth / newHeight >= 152/89 ? `calc(${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale} * var(--safe-vh))` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale} * var(--safe-vh))`;
+			
+			this._slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
+		}
+		
+		
+		
+		this._windowHeightAnimationFrame++;
+		
+		if (this._windowHeightAnimationFrame <= this.windowHeightAnimationFrames)
+		{
+			window.requestAnimationFrame(this._resizeAnimationBound);
 		}
 	}
 	
