@@ -18,7 +18,7 @@ class Lapsa
 	
 	
 	
-	_root = null;
+	_rootSelector = null;
 	_slideContainer = null;
 	_bottomMarginElement = null;
 	
@@ -80,7 +80,9 @@ class Lapsa
 		
 		
 		
-		this._root = document.querySelector(":root");
+		this._rootSelector = document.querySelector(":root");
+		
+		
 		
 		this.slides = document.body.querySelectorAll(".slide");
 		
@@ -137,7 +139,7 @@ class Lapsa
 		
 		this._transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * this.transitionAnimationDistanceFactor * 159/82 : window.innerWidth * this.transitionAnimationDistanceFactor;
 		
-		this._root.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
+		this._rootSelector.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
 		
 		
 		
@@ -185,7 +187,6 @@ class Lapsa
 			
 			else
 			{
-				this._slideShelf.style.display = "none";
 				this.hideSlideShelf(this._slideShelf, 0);
 			}
 			
@@ -275,7 +276,7 @@ class Lapsa
 		document.documentElement.addEventListener("mousemove", this._boundFunctions[3]);
 		window.addEventListener("resize", this._boundFunctions[4]);
 		
-		this.nextSlide();
+		setTimeout(() => this.nextSlide(), 500);
 	}
 	
 	
@@ -310,7 +311,7 @@ class Lapsa
 		
 		this._transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * this.transitionAnimationDistanceFactor * 159/82 : window.innerWidth * this.transitionAnimationDistanceFactor;
 		
-		this._root.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
+		this._rootSelector.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
 		
 		
 		
@@ -326,7 +327,7 @@ class Lapsa
 			
 			
 			
-			//The first and last two slides have different animations since they can't be in the middle of the screen in the table view.
+			//The first and last several slides have different animations since they can't be in the middle of the screen in the table view.
 			const centerSlide = Math.min(Math.max((scaledSlidesPerScreen - 1) / 2, this.currentSlide), this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2);
 			
 			const translation = bodyRect.width / bodyRect.height >= 152/89 ? `calc(${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale} * var(--safe-vh))` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale} * var(--safe-vh))`;
@@ -924,14 +925,17 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			anime({
-				targets: element,
-				marginLeft: "0px",
-				opacity: 1,
-				duration: duration,
-				easing: "cubicBezier(.4, 1.0, .7, 1.0)",
-				complete: resolve
-			});
+			const oldTransitionStyle = element.style.transition;
+			element.style.transition = `margin-left ${duration}ms ${this.shelfAnimateInEasing}, opacity ${duration}ms ${this.shelfAnimateInEasing}`;
+			
+			element.style.marginLeft = 0;
+			element.style.opacity = 1;
+			
+			setTimeout(() =>
+			{
+				element.style.transition = oldTransitionStyle;
+				resolve();
+			}, duration);
 		});
 	}
 	
@@ -939,14 +943,17 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			anime({
-				targets: element,
-				marginLeft: `${-this._shelfMargin}px`,
-				opacity: 0,
-				duration: duration,
-				easing: "cubicBezier(.4, 0.0, .4, 1.0)",
-				complete: resolve
-			});
+			const oldTransitionStyle = element.style.transition;
+			element.style.transition = `margin-left ${duration}ms ${this.shelfAnimateOutEasing}, opacity ${duration}ms ${this.shelfAnimateOutEasing}`;
+			
+			element.style.marginLeft = `${-this._shelfMargin}px`;
+			element.style.opacity = 0;
+			
+			setTimeout(() =>
+			{
+				element.style.transition = oldTransitionStyle;
+				resolve();
+			}, duration);
 		});	
 	}
 	
@@ -1026,14 +1033,20 @@ class Lapsa
 		{
 			element.style.marginTop = `${this._transitionAnimationDistance}px`;
 			
-			anime({
-				targets: element,
-				marginTop: "0px",
-				opacity: 1,
-				duration: duration,
-				easing: "cubicBezier(.4, 1.0, .7, 1.0)",
-				complete: resolve
-			});
+			setTimeout(() =>
+			{
+				const oldTransitionStyle = element.style.transition;
+				element.style.transition = `margin-top ${duration}ms ${this.slideAnimateInEasing}, opacity ${duration}ms ${this.slideAnimateInEasing}`;
+				
+				element.style.marginTop = 0;
+				element.style.opacity = 1;
+				
+				setTimeout(() =>
+				{
+					element.style.transition = oldTransitionStyle;
+					resolve();
+				}, duration);
+			}, 16);
 		});
 	}
 	
@@ -1041,14 +1054,17 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			anime({
-				targets: element,
-				marginTop: `${-this._transitionAnimationDistance}px`,
-				opacity: 0,
-				duration: duration,
-				easing: "cubicBezier(.1, 0.0, .2, 0.0)",
-				complete: resolve
-			});
+			const oldTransitionStyle = element.style.transition;
+			element.style.transition = `margin-top ${duration}ms ${this.slideAnimateOutEasing}, opacity ${duration}ms ${this.slideAnimateOutEasing}`;
+			
+			element.style.marginTop = `${-this._transitionAnimationDistance}px`;
+			element.style.opacity = 0;
+			
+			setTimeout(() =>
+			{
+				element.style.transition = oldTransitionStyle;
+				resolve();
+			}, duration);
 		});
 	}
 	
@@ -1058,14 +1074,20 @@ class Lapsa
 		{
 			element.style.marginTop = `${-this._transitionAnimationDistance}px`;
 			
-			anime({
-				targets: element,
-				marginTop: "0px",
-				opacity: 1,
-				duration: duration,
-				easing: "cubicBezier(.4, 1.0, .7, 1.0)",
-				complete: resolve
-			});
+			setTimeout(() =>
+			{
+				const oldTransitionStyle = element.style.transition;
+				element.style.transition = `margin-top ${duration}ms ${this.slideAnimateInEasing}, opacity ${duration}ms ${this.slideAnimateInEasing}`;
+				
+				element.style.marginTop = 0;
+				element.style.opacity = 1;
+				
+				setTimeout(() =>
+				{
+					element.style.transition = oldTransitionStyle;
+					resolve();
+				}, duration);
+			}, 16);
 		});
 	}
 	
@@ -1073,14 +1095,17 @@ class Lapsa
 	{
 		return new Promise((resolve, reject) =>
 		{
-			anime({
-				targets: element,
-				marginTop: `${this._transitionAnimationDistance}px`,
-				opacity: 0,
-				duration: duration,
-				easing: "cubicBezier(.1, 0.0, .2, 0.0)",
-				complete: resolve
-			});
+			const oldTransitionStyle = element.style.transition;
+			element.style.transition = `margin-top ${duration}ms ${this.slideAnimateOutEasing}, opacity ${duration}ms ${this.slideAnimateOutEasing}`;
+			
+			element.style.marginTop = `${this._transitionAnimationDistance}px`;
+			element.style.opacity = 0;
+			
+			setTimeout(() =>
+			{
+				element.style.transition = oldTransitionStyle;
+				resolve();
+			}, duration);
 		});
 	}
 }
