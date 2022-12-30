@@ -175,15 +175,24 @@ body
 	position: fixed;
 	
 	width: 125px;
-	height: 800px;
+	height: 100vh;
 	
-	top: calc((100vh - 800px) / 2);
+	bottom: 0;
 	left: 0;
 	
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+}
+
+#lapsa-slide-shelf-container.permanent-shelf
+{
+	justify-content: flex-end;
+	width: 50px;
+	align-items: end;
+	bottom: 15px;
+	left: 25px;
 }
 
 #lapsa-slide-shelf

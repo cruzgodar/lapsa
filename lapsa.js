@@ -5,6 +5,7 @@ class Lapsa
 	currentSlide = -1;
 	
 	shelfIconPaths = ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
+	permanentShelf = false;
 	
 	transitionAnimationTime = 150;
 	transitionAnimationDistanceFactor = .015;
@@ -49,6 +50,7 @@ class Lapsa
 			transitionAnimationTime: 150,
 			transitionAnimationDistanceFactor: .015,
 			
+			permanentShelf: false,
 			shelfIconPaths: ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"],
 			
 			slideAnimateInEasing: "cubic-bezier(.4, 1.0, .7, 1.0)",
@@ -67,6 +69,7 @@ class Lapsa
 		this.transitionAnimationDistanceFactor = options?.transitionAnimationDistanceFactor ?? .015;
 		
 		this.shelfIconPaths = options?.shelfIconPaths ?? ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
+		this.permanentShelf = options?.permanentShelf ?? false;
 		
 		this.slideAnimateInEasing = options?.slideAnimateInEasing ?? "cubic-bezier(.4, 1.0, .7, 1.0)";
 		this.slideAnimateOutEasing = options?.slideAnimateOutEasing ?? "cubic-bezier(.1, 0.0, .2, 0.0)";
@@ -148,6 +151,8 @@ class Lapsa
 		
 		document.body.appendChild(this._shelfContainer);
 		
+		
+		
 		//document.body.style.height = `${window.innerHeight}px`;
 		//this._slideContainer.style.height = `${window.innerHeight}px`;
 		
@@ -165,12 +170,26 @@ class Lapsa
 		setTimeout(() =>
 		{
 			this._slideShelf = document.querySelector("#lapsa-slide-shelf");
-			this._slideShelf.style.display = "none";
-			this.hideSlideShelf(this._slideShelf, 0);
+			
+			if (this.permanentShelf)
+			{
+				this._shelfContainer.classList.add("permanent-shelf");
+				this.showSlideShelf(this._slideShelf);
+				this._shelfIsAnimating = false;
+				this._shelfIsOpen = true;
+			}
+			
+			else
+			{
+				this._slideShelf.style.display = "none";
+				this.hideSlideShelf(this._slideShelf, 0);
+			}
+			
+			
 			
 			this._shelfContainer.addEventListener("mouseenter", () =>
 			{
-				if (!this._shelfIsOpen)
+				if (!this._shelfIsOpen && !this.permanentShelf)
 				{
 					this.showShelf();
 				}
@@ -178,7 +197,7 @@ class Lapsa
 			
 			this._shelfContainer.addEventListener("mouseleave", () =>
 			{
-				if (this._shelfIsOpen)
+				if (this._shelfIsOpen && !this.permanentShelf)
 				{
 					this.hideShelf();
 				}
@@ -662,18 +681,18 @@ class Lapsa
 				{
 					oldTransitionStyles[index] = element.style.transition;
 					
-					element.style.transition = `opacity ${duration / 3}ms ${this.slideAnimateOutEasing}`;
+					element.style.transition = `opacity ${duration / 2}ms ${this.slideAnimateOutEasing}`;
 					
 					element.style.opacity = 1;
 				});
 				
-				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, duration / 3)}
+				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, duration / 2)}
 				catch(ex) {}
 				
 				setTimeout(() =>
 				{
 					builds.forEach((element, index) => element.style.transition = oldTransitionStyles[index]);
-				}, duration / 3);
+				}, duration / 2);
 			}
 			
 			
@@ -880,7 +899,7 @@ class Lapsa
 		
 		this._slideShelf.style.display = "";
 		
-		await this.showSlideShelf(this._slideShelf, 275);
+		await this.showSlideShelf(this._slideShelf);
 		
 		this._shelfIsAnimating = false;
 	}
@@ -890,12 +909,12 @@ class Lapsa
 		this._shelfIsOpen = false;
 		this._shelfIsAnimating = true;
 		
-		await this.hideSlideShelf(this._slideShelf, 275);
+		await this.hideSlideShelf(this._slideShelf);
 		
 		this._shelfIsAnimating = false;
 	}
 	
-	showSlideShelf(element, duration)
+	showSlideShelf(element, duration = 275)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -910,7 +929,7 @@ class Lapsa
 		});
 	}
 	
-	hideSlideShelf(element, duration)
+	hideSlideShelf(element, duration = 275)
 	{
 		return new Promise((resolve, reject) =>
 		{
