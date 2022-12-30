@@ -10,6 +10,10 @@ class Lapsa
 	transitionAnimationDistanceFactor = .015;
 	
 	tableViewEasing = "cubic-bezier(.25, 1.0, .5, 1.0)";
+	slideAnimateInEasing = "cubic-bezier(.4, 1.0, .7, 1.0)";
+	slideAnimateOutEasing = "cubic-bezier(.1, 0.0, .2, 0.0)";
+	shelfAnimateInEasing = "cubic-bezier(.4, 1.0, .7, 1.0)";
+	shelfAnimateOutEasing = "cubic-bezier(.4, 0.0, .4, 1.0)";
 	
 	
 	
@@ -47,6 +51,10 @@ class Lapsa
 			
 			shelfIconPaths: ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"],
 			
+			slideAnimateInEasing: "cubic-bezier(.4, 1.0, .7, 1.0)",
+			slideAnimateOutEasing: "cubic-bezier(.1, 0.0, .2, 0.0)",
+			shelfAnimateInEasing: "cubic-bezier(.4, 1.0, .7, 1.0)",
+			shelfAnimateOutEasing: "cubic-bezier(.4, 0.0, .4, 1.0)",
 			tableViewEasing: "cubic-bezier(.25, 1.0, .5, 1.0)"
 		};
 	*/
@@ -60,6 +68,10 @@ class Lapsa
 		
 		this.shelfIconPaths = options?.shelfIconPaths ?? ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
 		
+		this.slideAnimateInEasing = options?.slideAnimateInEasing ?? "cubic-bezier(.4, 1.0, .7, 1.0)";
+		this.slideAnimateOutEasing = options?.slideAnimateOutEasing ?? "cubic-bezier(.1, 0.0, .2, 0.0)";
+		this.shelfAnimateInEasing = options?.shelfAnimateInEasing ?? "cubic-bezier(.4, 1.0, .7, 1.0)";
+		this.shelfAnimateOutEasing = options?.shelfAnimateOutEasing ?? "cubic-bezier(.4, 0.0, .4, 1.0)";
 		this.tableViewEasing = options?.tableViewEasing ?? "cubic-bezier(.25, 1.0, .5, 1.0)";
 		
 		
@@ -322,8 +334,6 @@ class Lapsa
 			
 			
 			this._slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
-			
-			window.scrollTo(0, 0);
 		}
 		
 		
@@ -643,22 +653,27 @@ class Lapsa
 			
 			
 			//While all the slides are moving, we also show all builds that are currently hidden and request that the slide be reset to its final state.
-			const builds = this.slides[this.currentSlide].querySelectorAll("[data-build]");
-			const oldTransitionStyles = new Array(builds.length);
-			
-			builds.forEach((element, index) => oldTransitionStyles[index] = element.style.transition);
-			
 			if (this._buildState !== this._numBuilds[this.currentSlide])
 			{
-				builds.forEach(element =>
+				const builds = this.slides[this.currentSlide].querySelectorAll("[data-build]");
+				const oldTransitionStyles = new Array(builds.length);
+				
+				builds.forEach((element, index) =>
 				{
-					element.style.transition = `opacity ${duration * 2/3}ms ${this.tableViewEasing}`;
+					oldTransitionStyles[index] = element.style.transition;
+					
+					element.style.transition = `opacity ${duration / 3}ms ${this.slideAnimateOutEasing}`;
 					
 					element.style.opacity = 1;
 				});
 				
-				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, duration * 2/3)}
+				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, duration / 3)}
 				catch(ex) {}
+				
+				setTimeout(() =>
+				{
+					builds.forEach((element, index) => element.style.transition = oldTransitionStyles[index]);
+				}, duration / 3);
 			}
 			
 			
@@ -666,13 +681,6 @@ class Lapsa
 			//Only once this is done can we snap to the end. They'll never know the difference!
 			setTimeout(() =>
 			{
-				if (this._buildState !== this._numBuilds[this.currentSlide])
-				{
-					builds.forEach((element, index) => element.style.transition = oldTransitionStyles[index]);
-				}
-				
-				
-				
 				const correctTop = this.slides[this.currentSlide].getBoundingClientRect().top;
 				
 				this._slideContainer.style.transition = "";
@@ -801,21 +809,26 @@ class Lapsa
 			
 			
 			
-			//While all the slides are moving, we also hide all builds that are currently shown and request that the slide be reset to its initial state.
+			//While all the slides are moving, we also show all builds that are currently hidden and request that the slide be reset to its final state.
 			const builds = this.slides[this.currentSlide].querySelectorAll("[data-build]");
 			const oldTransitionStyles = new Array(builds.length);
 			
-			builds.forEach((element, index) => oldTransitionStyles[index] = element.style.transition);
-			
-			builds.forEach(element =>
+			builds.forEach((element, index) =>
 			{
-				element.style.transition = `opacity ${duration / 3}ms ${this.tableViewEasing}`;
+				oldTransitionStyles[index] = element.style.transition;
+				
+				element.style.transition = `opacity ${duration / 3}ms ${this.slideAnimateInEasing}`;
 				
 				element.style.opacity = 0;
 			});
 			
 			try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, duration / 3)}
 			catch(ex) {}
+			
+			setTimeout(() =>
+			{
+				builds.forEach((element, index) => element.style.transition = oldTransitionStyles[index]);
+			}, duration / 3);
 			
 			
 			
