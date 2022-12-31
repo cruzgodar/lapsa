@@ -713,6 +713,7 @@ class Lapsa
 			
 			
 			document.body.style.overflowY = "visible";
+			document.body.style.position = "relative";
 			this._slideContainer.style.overflowY = "visible";
 			
 			this._currentlyAnimating = true;
@@ -969,12 +970,13 @@ class Lapsa
 					this._currentlyAnimating = false;
 					this._inTableView = false;
 					
+					document.body.style.position = "fixed";
+					
 					if (this._missedResizeAnimation)
 					{
 						this._startWindowHeight = this._lastWindowHeight;
 						this._windowHeightAnimationFrame = 1;
 						window.requestAnimationFrame(this._resizeAnimationBound);
-						this._rootSelector.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
 					}
 					
 					resolve();
