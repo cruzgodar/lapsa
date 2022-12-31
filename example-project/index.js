@@ -2,7 +2,7 @@
 {
 	const options =
 	{
-		callbacks: {}
+		builds: {}
 	};
 	
     const lapsa = new Lapsa(options);

@@ -56,7 +56,7 @@ class Lapsa
 	/*
 		options =
 		{
-			callbacks: {},
+			builds: {},
 			
 			transitionAnimationTime: 150,
 			transitionAnimationDistanceFactor: .015,
@@ -77,7 +77,7 @@ class Lapsa
 	
 	constructor(options)
 	{
-		this.callbacks = options?.callbacks ?? {};
+		this.callbacks = options?.builds ?? {};
 		
 		this.transitionAnimationTime = options?.transitionAnimationTime ?? 150;
 		this.transitionAnimationDistanceFactor = options?.transitionAnimationDistanceFactor ?? .015;
@@ -710,13 +710,18 @@ class Lapsa
 				return;
 			}
 			
+			this._currentlyAnimating = true;
 			
+			
+			
+			if (this._currentlyTouchDevice)
+			{
+				this.hideShelf();
+			}
 			
 			document.body.style.overflowY = "visible";
 			document.body.style.position = "relative";
 			this._slideContainer.style.overflowY = "visible";
-			
-			this._currentlyAnimating = true;
 			
 			const bodyRect = document.body.getBoundingClientRect();
 			
@@ -989,6 +994,13 @@ class Lapsa
 	
 	async showShelf()
 	{
+		if (this.permanentShelf)
+		{
+			return;
+		}
+		
+		
+		
 		this._shelfIsOpen = true;
 		this._shelfIsAnimating = true;
 		
@@ -1001,6 +1013,13 @@ class Lapsa
 	
 	async hideShelf()
 	{
+		if (this.permanentShelf)
+		{
+			return;
+		}
+		
+		
+		
 		this._shelfIsOpen = false;
 		this._shelfIsAnimating = true;
 		
