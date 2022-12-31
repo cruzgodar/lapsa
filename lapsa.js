@@ -16,7 +16,8 @@ class Lapsa
 	shelfAnimateInEasing = "cubic-bezier(.4, 1.0, .7, 1.0)";
 	shelfAnimateOutEasing = "cubic-bezier(.4, 0.0, .4, 1.0)";
 	
-	windowHeightAnimationFrames = 5;
+	windowHeightAnimationFrames = 8;
+	resizeOnTableView = false;
 	
 	
 	
@@ -48,6 +49,7 @@ class Lapsa
 	_windowHeightAnimationFrame = 0;
 	_windowHeightAnimationLastTimestamp = -1;
 	_resizeAnimationBound = null;
+	_missedResizeAnimation = false;
 	
 	
 	
@@ -58,7 +60,9 @@ class Lapsa
 			
 			transitionAnimationTime: 150,
 			transitionAnimationDistanceFactor: .015,
-			windowHeightAnimationFrames: 5,
+			
+			resizeOnTableView: false,
+			windowHeightAnimationFrames: 8,
 			
 			permanentShelf: false,
 			shelfIconPaths: ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"],
@@ -77,6 +81,9 @@ class Lapsa
 		
 		this.transitionAnimationTime = options?.transitionAnimationTime ?? 150;
 		this.transitionAnimationDistanceFactor = options?.transitionAnimationDistanceFactor ?? .015;
+		
+		this.resizeOnTableView = options?.resizeOnTableView ?? false;
+		this.windowHeightAnimationFrames = options?.windowHeightAnimationFrames ?? 8;
 		
 		this.shelfIconPaths = options?.shelfIconPaths ?? ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
 		this.permanentShelf = options?.permanentShelf ?? false;
@@ -279,7 +286,7 @@ class Lapsa
 		this._boundFunctions[1] = this._handleTouchstartEvent.bind(this);
 		this._boundFunctions[2] = this._handleTouchendEvent.bind(this);
 		this._boundFunctions[3] = this._handleMousemoveEvent.bind(this);
-		this._boundFunctions[4] = this.onResize.bind(this);
+		this._boundFunctions[4] = this._onResize.bind(this);
 		
 		document.documentElement.addEventListener("keydown", this._boundFunctions[0]);
 		document.documentElement.addEventListener("touchstart", this._boundFunctions[1]);
@@ -313,7 +320,7 @@ class Lapsa
 	
 	
 	
-	onResize()
+	_onResize()
 	{
 		if (this._currentlyAnimating)
 		{
@@ -321,10 +328,6 @@ class Lapsa
 		}
 		
 		this._transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * this.transitionAnimationDistanceFactor * 159/82 : window.innerWidth * this.transitionAnimationDistanceFactor;
-		
-		this._startWindowHeight = this._lastWindowHeight;
-		this._windowHeightAnimationFrame = 1;
-		window.requestAnimationFrame(this._resizeAnimationBound);
 		
 		
 		
@@ -373,12 +376,27 @@ class Lapsa
 			
 			
 			this._slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
+			
+			
+			if (this.resizeOnTableView)
+			{
+				this._startWindowHeight = this._lastWindowHeight;
+				this._windowHeightAnimationFrame = 1;
+				window.requestAnimationFrame(this._resizeAnimationBound);
+			}
+			
+			else
+			{
+				this._missedResizeAnimation = true;
+			}
 		}
 		
 		
 		
 		else
 		{
+			this._rootSelector.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
+			
 			this.slides.forEach((element, index) => element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`);
 			
 			this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
@@ -398,7 +416,7 @@ class Lapsa
 			return;
 		}
 		
-		const t = this._windowHeightAnimationFrame / this.windowHeightAnimationFrames;
+		const t = .5 * (1 + Math.cos(Math.PI * (this._windowHeightAnimationFrame / this.windowHeightAnimationFrames + 1)));
 		
 		const newHeight = this._startWindowHeight * (1 - t) + window.innerHeight * t;
 		
@@ -815,6 +833,7 @@ class Lapsa
 				
 				this._currentlyAnimating = false;
 				this._inTableView = true;
+				this._missedResizeAnimation = false;
 				this._slideContainer.classList.add("lapsa-table-view");
 				
 				resolve();
@@ -938,8 +957,6 @@ class Lapsa
 					element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 				});
 				
-				
-				
 				setTimeout(() =>
 				{
 					builds.forEach((element, index) => element.style.transition = oldTransitionStyles[index]);
@@ -951,6 +968,14 @@ class Lapsa
 					
 					this._currentlyAnimating = false;
 					this._inTableView = false;
+					
+					if (this._missedResizeAnimation)
+					{
+						this._startWindowHeight = this._lastWindowHeight;
+						this._windowHeightAnimationFrame = 1;
+						window.requestAnimationFrame(this._resizeAnimationBound);
+						this._rootSelector.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
+					}
 					
 					resolve();
 				}, duration);
