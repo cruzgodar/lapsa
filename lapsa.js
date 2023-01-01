@@ -102,13 +102,30 @@ class Lapsa
 		
 		
 		
+		this.slideContainer = document.body.querySelector("#lapsa-slide-container");
+		this.slideContainer.classList.add("lapsa-hover");
+		
+		this._bottomMarginElement = document.createElement("div");
+		this._bottomMarginElement.id = "lapsa-bottom-margin";
+		this.slideContainer.appendChild(this._bottomMarginElement);
+		
+		
+		
 		this.slides = document.body.querySelectorAll(".slide");
 		
 		this._numBuilds = new Array(this.slides.length);
 		
 		this.slides.forEach((element, index) =>
 		{
-			element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
+			const wrapper = document.createElement("div");
+			wrapper.classList.add("lapsa-slide-wrapper");
+			
+			wrapper.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
+			
+			this.slideContainer.insertBefore(wrapper, element);
+			wrapper.appendChild(element);
+			
+			
 			
 			element.addEventListener("click", () =>
 			{
@@ -155,13 +172,6 @@ class Lapsa
 			
 			this._numBuilds[index] = Math.max(currentBuild, maxFunctionalBuild + 1);
 		});
-		
-		this.slideContainer = document.body.querySelector("#lapsa-slide-container");
-		this.slideContainer.classList.add("lapsa-hover");
-		
-		this._bottomMarginElement = document.createElement("div");
-		this._bottomMarginElement.id = "lapsa-bottom-margin";
-		this.slideContainer.appendChild(this._bottomMarginElement);
 		
 		
 		
@@ -364,12 +374,12 @@ class Lapsa
 			{
 				if (window.innerWidth / window.innerHeight >= 152/89)
 				{
-					element.style.top = `calc(${5 + 58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
+					element.parentNode.style.top = `calc(${5 + 58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${2.5 + 58.125 * (index - centerSlide)}vw + ${100 * centerSlide} * var(--safe-vh))`;
+					element.parentNode.style.top = `calc(${2.5 + 58.125 * (index - centerSlide)}vw + ${100 * centerSlide} * var(--safe-vh))`;
 				}
 			});
 			
@@ -407,7 +417,7 @@ class Lapsa
 		{
 			this._rootSelector.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
 			
-			this.slides.forEach((element, index) => element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`);
+			this.slides.forEach((element, index) => element.parentNode.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`);
 			
 			this.slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
 		}
@@ -757,17 +767,17 @@ class Lapsa
 			
 			this.slides.forEach((element, index) =>
 			{
-				element.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
+				element.parentNode.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
 				
 				//On these, we include the top margin term to match with how things were before -- otherwise, the transformation center will be misaligned.
 				if (bodyRect.width / bodyRect.height >= 152/89)
 				{
-					element.style.top = `calc(${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + 2.5} * var(--safe-vh))`;
+					element.parentNode.style.top = `calc(${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + 2.5} * var(--safe-vh))`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
+					element.parentNode.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 				}
 			});
 			
@@ -808,17 +818,17 @@ class Lapsa
 				
 				this.slides.forEach((element, index) =>
 				{
-					element.style.transition = "";
+					element.parentNode.style.transition = "";
 					
 					//Here, we no longer include the margin, since we don't want the slides to have a gap at the top. It's accounted for in the translation amount on the container, so it's all fine. The 5 is due to a somewhat strange effect that I don't quite understand.
 					if (bodyRect.width / bodyRect.height >= 152/89)
 					{
-						element.style.top = `calc(${5 + 58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
+						element.parentNode.style.top = `calc(${5 + 58.125 * 152/89 * (index - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
 					}
 					
 					else
 					{
-						element.style.top = `calc(${2.5 + 58.125 * (index - centerSlide)}vw + ${100 * centerSlide} * var(--safe-vh))`;
+						element.parentNode.style.top = `calc(${2.5 + 58.125 * (index - centerSlide)}vw + ${100 * centerSlide} * var(--safe-vh))`;
 					}
 				});
 				
@@ -906,12 +916,12 @@ class Lapsa
 				//On these, we include the top margin term to match with how things were before -- otherwise, the transformation center will be misaligned.
 				if (bodyRect.width / bodyRect.height >= 152/89)
 				{
-					element.style.top = `calc(${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + 2.5} * var(--safe-vh))`;
+					element.parentNode.style.top = `calc(${58.125 * 152/89 * (index - this.currentSlide) + 100 * this.currentSlide + 2.5} * var(--safe-vh))`;
 				}
 				
 				else
 				{
-					element.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
+					element.parentNode.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 				}
 			});
 			
@@ -968,9 +978,9 @@ class Lapsa
 				
 				this.slides.forEach((element, index) =>
 				{
-					element.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
+					element.parentNode.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
 					
-					element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
+					element.parentNode.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 				});
 				
 				setTimeout(() =>
@@ -980,7 +990,7 @@ class Lapsa
 					
 					this.slideContainer.style.transition = "";
 					
-					this.slides.forEach(element => element.style.transition = "");
+					this.slides.forEach(element => element.parentNode.style.transition = "");
 					
 					this._currentlyAnimating = false;
 					this._inTableView = false;

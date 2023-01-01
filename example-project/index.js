@@ -34,15 +34,18 @@
 					{
 						document.querySelector(":root").style.setProperty("--theme-transition-time", `${duration}ms`);
 						
-						document.body.classList.add("theme-transition");
+						document.documentElement.classList.add("theme-transition");
 						lapsa.slideContainer.classList.add("theme-transition");
-						
-						document.body.classList.remove("dark-industrial-theme");
-						lapsa.slideContainer.classList.remove("dark-industrial-theme");
 						
 						setTimeout(() =>
 						{
-							document.body.classList.remove("theme-transition");
+							document.documentElement.classList.remove("dark-industrial-theme");
+							lapsa.slideContainer.classList.remove("dark-industrial-theme");
+						}, 0);
+						
+						setTimeout(() =>
+						{
+							document.documentElement.classList.remove("theme-transition");
 							lapsa.slideContainer.classList.remove("theme-transition");
 							
 							resolve();
@@ -52,30 +55,33 @@
 				
 				
 				
-				2: (slide, forward, duration = 500) =>
+				2: (slide, forward, duration = 300) =>
 				{
 					return new Promise((resolve, reject) =>
 					{
 						document.querySelector(":root").style.setProperty("--theme-transition-time", `${duration}ms`);
 						
-						document.body.classList.add("theme-transition");
+						document.documentElement.classList.add("theme-transition");
 						lapsa.slideContainer.classList.add("theme-transition");
-						
-						if (forward)
-						{
-							document.body.classList.add("dark-industrial-theme");
-							lapsa.slideContainer.classList.add("dark-industrial-theme");
-						}
-						
-						else
-						{
-							document.body.classList.remove("dark-industrial-theme");
-							lapsa.slideContainer.classList.remove("dark-industrial-theme");
-						}
 						
 						setTimeout(() =>
 						{
-							document.body.classList.remove("theme-transition");
+							if (forward)
+							{
+								document.documentElement.classList.add("dark-industrial-theme");
+								lapsa.slideContainer.classList.add("dark-industrial-theme");
+							}
+							
+							else
+							{
+								document.documentElement.classList.remove("dark-industrial-theme");
+								lapsa.slideContainer.classList.remove("dark-industrial-theme");
+							}
+						}, 0);
+						
+						setTimeout(() =>
+						{
+							document.documentElement.classList.remove("theme-transition");
 							lapsa.slideContainer.classList.remove("theme-transition");
 							
 							resolve();

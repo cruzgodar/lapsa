@@ -16,7 +16,7 @@ body
 
 
 
-body.theme-transition
+html.theme-transition
 {
 	transition: background-color var(--theme-transition-time) ease-in-out;
 }
@@ -38,7 +38,7 @@ body.theme-transition
 
 
 
-body.dark-industrial-theme
+html.dark-industrial-theme
 {
 	background-color: rgb(0, 0, 0);
 }
