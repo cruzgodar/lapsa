@@ -1,6 +1,7 @@
 class Lapsa
 {
 	callbacks = {};
+	slideContainer = null;
 	slides = [];
 	currentSlide = -1;
 	
@@ -22,7 +23,6 @@ class Lapsa
 	
 	
 	_rootSelector = null;
-	_slideContainer = null;
 	_bottomMarginElement = null;
 	
 	_shelfContainer = null;
@@ -120,6 +120,8 @@ class Lapsa
 				this.closeTableView(index);
 			});
 			
+			
+			
 			const builds = element.querySelectorAll(".build, [data-build]");
 			
 			let currentBuild = 0;
@@ -143,15 +145,23 @@ class Lapsa
 				buildElement.classList.remove("build");
 			});
 			
-			this._numBuilds[index] = Math.max(currentBuild, this.callbacks?.[element.id]?.builds?.length ?? 0);
+			
+			
+			const functionalBuildKeys = Object.keys(this.callbacks?.[element.id] ?? {});
+			
+			let maxFunctionalBuild = -1;
+			
+			functionalBuildKeys.forEach(key => maxFunctionalBuild = Math.max(maxFunctionalBuild, parseInt(key) ?? -1));
+			
+			this._numBuilds[index] = Math.max(currentBuild, maxFunctionalBuild + 1);
 		});
 		
-		this._slideContainer = document.body.querySelector("#lapsa-slide-container");
-		this._slideContainer.classList.add("lapsa-hover");
+		this.slideContainer = document.body.querySelector("#lapsa-slide-container");
+		this.slideContainer.classList.add("lapsa-hover");
 		
 		this._bottomMarginElement = document.createElement("div");
 		this._bottomMarginElement.id = "lapsa-bottom-margin";
-		this._slideContainer.appendChild(this._bottomMarginElement);
+		this.slideContainer.appendChild(this._bottomMarginElement);
 		
 		
 		
@@ -301,7 +311,7 @@ class Lapsa
 	
 	exit()
 	{
-		this._slideContainer.remove();
+		this.slideContainer.remove();
 		
 		this.slides.forEach(element => element.remove());
 		
@@ -375,7 +385,7 @@ class Lapsa
 			
 			
 			
-			this._slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
+			this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
 			
 			
 			if (this.resizeOnTableView)
@@ -399,7 +409,7 @@ class Lapsa
 			
 			this.slides.forEach((element, index) => element.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`);
 			
-			this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
+			this.slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
 		}
 	}
 	
@@ -438,7 +448,7 @@ class Lapsa
 			
 			const translation = window.innerWidth / newHeight >= 152/89 ? `calc(${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale} * var(--safe-vh))` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale} * var(--safe-vh))`;
 			
-			this._slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
+			this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
 		}
 		
 		
@@ -503,7 +513,7 @@ class Lapsa
 			
 			//Fade out the current slide, show all its builds (for the table view), then load in the next slide and hide all of its builds.
 			
-			await this.fadeUpOut(this._slideContainer, this.transitionAnimationTime);
+			await this.fadeUpOut(this.slideContainer, this.transitionAnimationTime);
 			
 			//Reset the slide if necessary.
 			if (this.currentSlide >= 0 && this._buildState !== this._numBuilds[this.currentSlide])
@@ -522,14 +532,14 @@ class Lapsa
 			
 			
 			
-			try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true)}
+			try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, 0)}
 			catch(ex) {}
 			
 			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 0);
 			
-			this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
+			this.slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
 			
-			await this.fadeUpIn(this._slideContainer, this.transitionAnimationTime * 2);
+			await this.fadeUpIn(this.slideContainer, this.transitionAnimationTime * 2);
 			
 			this._currentlyAnimating = false;
 			
@@ -585,7 +595,7 @@ class Lapsa
 			
 			//Fade out the current slide, show all its builds (for the table view), then load in the previous slide and show all of its builds.
 			
-			await this.fadeDownOut(this._slideContainer, this.transitionAnimationTime);
+			await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
 			
 			//Reset the slide if necessary.
 			if (this._buildState !== this._numBuilds[this.currentSlide])
@@ -609,9 +619,9 @@ class Lapsa
 			
 			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 1);
 			
-			this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
+			this.slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
 			
-			await this.fadeDownIn(this._slideContainer, this.transitionAnimationTime * 2);
+			await this.fadeDownIn(this.slideContainer, this.transitionAnimationTime * 2);
 			
 			this._currentlyAnimating = false;
 			
@@ -649,12 +659,12 @@ class Lapsa
 			
 			if (forwardAnimation)
 			{
-				await this.fadeUpOut(this._slideContainer, this.transitionAnimationTime);
+				await this.fadeUpOut(this.slideContainer, this.transitionAnimationTime);
 			}
 			
 			else
 			{
-				await this.fadeDownOut(this._slideContainer, this.transitionAnimationTime);
+				await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
 			}
 			
 			
@@ -680,16 +690,16 @@ class Lapsa
 			
 			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 0);
 			
-			this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
+			this.slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
 			
 			if (forwardAnimation)
 			{
-				await this.fadeUpIn(this._slideContainer, this.transitionAnimationTime * 2);
+				await this.fadeUpIn(this.slideContainer, this.transitionAnimationTime * 2);
 			}
 			
 			else
 			{
-				await this.fadeDownIn(this._slideContainer, this.transitionAnimationTime * 2);
+				await this.fadeDownIn(this.slideContainer, this.transitionAnimationTime * 2);
 			}
 			
 			this._currentlyAnimating = false;
@@ -721,7 +731,7 @@ class Lapsa
 			
 			document.body.style.overflowY = "visible";
 			document.body.style.position = "relative";
-			this._slideContainer.style.overflowY = "visible";
+			this.slideContainer.style.overflowY = "visible";
 			
 			const bodyRect = document.body.getBoundingClientRect();
 			
@@ -737,13 +747,13 @@ class Lapsa
 			//The first and last two slides have different animations since they can't be in the middle of the screen in the table view.
 			const centerSlide = Math.min(Math.max((scaledSlidesPerScreen - 1) / 2, this.currentSlide), this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2);
 			
-			this._slideContainer.style.transformOrigin = `center calc(${this.currentSlide * 100 + 50} * var(--safe-vh))`;
+			this.slideContainer.style.transformOrigin = `center calc(${this.currentSlide * 100 + 50} * var(--safe-vh))`;
 			
 			const translation = bodyRect.width / bodyRect.height >= 152/89 ? `calc(${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale} * var(--safe-vh))` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale} * var(--safe-vh))`;
 			
-			this._slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
+			this.slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
 			
-			this._slideContainer.style.transform = bodyRect.width / bodyRect.height >= 152/89 ? `translateY(calc(${(this.currentSlide - centerSlide) * 58.125 * 152/89 * scale - 100 * this.currentSlide} * var(--safe-vh))) scale(${scale})` : `translateY(calc(${(this.currentSlide - centerSlide) * 58.125 * scale}vw - ${100 * this.currentSlide} * var(--safe-vh))) scale(${scale})`;
+			this.slideContainer.style.transform = bodyRect.width / bodyRect.height >= 152/89 ? `translateY(calc(${(this.currentSlide - centerSlide) * 58.125 * 152/89 * scale - 100 * this.currentSlide} * var(--safe-vh))) scale(${scale})` : `translateY(calc(${(this.currentSlide - centerSlide) * 58.125 * scale}vw - ${100 * this.currentSlide} * var(--safe-vh))) scale(${scale})`;
 			
 			this.slides.forEach((element, index) =>
 			{
@@ -794,7 +804,7 @@ class Lapsa
 			{
 				const correctTop = this.slides[this.currentSlide].getBoundingClientRect().top;
 				
-				this._slideContainer.style.transition = "";
+				this.slideContainer.style.transition = "";
 				
 				this.slides.forEach((element, index) =>
 				{
@@ -824,9 +834,9 @@ class Lapsa
 				
 				
 				
-				this._slideContainer.style.transformOrigin = "center top";
+				this.slideContainer.style.transformOrigin = "center top";
 				
-				this._slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
+				this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
 				
 				window.scrollTo(0, 0);
 				
@@ -840,7 +850,7 @@ class Lapsa
 				this._currentlyAnimating = false;
 				this._inTableView = true;
 				this._missedResizeAnimation = false;
-				this._slideContainer.classList.add("lapsa-table-view");
+				this.slideContainer.classList.add("lapsa-table-view");
 				
 				resolve();
 			}, duration);
@@ -863,7 +873,7 @@ class Lapsa
 			
 			this.currentSlide = selection;
 			
-			this._slideContainer.classList.remove("lapsa-table-view");
+			this.slideContainer.classList.remove("lapsa-table-view");
 			
 			
 			
@@ -887,7 +897,7 @@ class Lapsa
 			document.documentElement.style.overflowY = "hidden";
 			document.body.style.overflowY = "hidden";
 			
-			this._slideContainer.style.transformOrigin = `center calc(${centerSlide * 100 + 50} * var(--safe-vh))`;
+			this.slideContainer.style.transformOrigin = `center calc(${centerSlide * 100 + 50} * var(--safe-vh))`;
 			
 			
 			
@@ -909,7 +919,7 @@ class Lapsa
 			
 			
 			
-			this._slideContainer.style.transform = `translateY(0) scale(${scale})`;
+			this.slideContainer.style.transform = `translateY(0) scale(${scale})`;
 			
 			window.scrollTo(0, 0);
 			
@@ -917,7 +927,7 @@ class Lapsa
 			
 			const scroll = correctTop - newTop;
 			
-			this._slideContainer.style.transform = `translateY(${scroll}px) scale(${scale})`;
+			this.slideContainer.style.transform = `translateY(${scroll}px) scale(${scale})`;
 			
 			
 			
@@ -947,13 +957,13 @@ class Lapsa
 			//Now we can return all the slides to their proper places.
 			
 			//Someday, I will understand why these four lines need to be the way they are. And then I will finally rest.
-			this._slideContainer.style.transition = "";
-			this._slideContainer.style.transform = `translateY(${scroll}px) scale(${scale})`;
+			this.slideContainer.style.transition = "";
+			this.slideContainer.style.transform = `translateY(${scroll}px) scale(${scale})`;
 			
 			setTimeout(() =>
 			{
-				this._slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
-				this._slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
+				this.slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
+				this.slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
 			
 				
 				this.slides.forEach((element, index) =>
@@ -968,7 +978,7 @@ class Lapsa
 					builds.forEach((element, index) => element.style.transition = oldTransitionStyles[index]);
 					this._buildState = 0;
 					
-					this._slideContainer.style.transition = "";
+					this.slideContainer.style.transition = "";
 					
 					this.slides.forEach(element => element.style.transition = "");
 					
@@ -1085,7 +1095,7 @@ class Lapsa
 		
 		this._currentlyTouchDevice = true;
 		this._slideShelf.classList.remove("lapsa-hover");
-		this._slideContainer.classList.remove("lapsa-hover");
+		this.slideContainer.classList.remove("lapsa-hover");
 	}
 	
 	_handleTouchendEvent(e)
@@ -1111,7 +1121,7 @@ class Lapsa
 		this._maxTouches = 0;
 		
 		setTimeout(() => this._slideShelf.classList.remove("lapsa-hover"), 50);
-		setTimeout(() => this._slideContainer.classList.remove("lapsa-hover"), 50);
+		setTimeout(() => this.slideContainer.classList.remove("lapsa-hover"), 50);
 	}
 	
 	_handleMousemoveEvent(e)
@@ -1127,7 +1137,7 @@ class Lapsa
 			{
 				this._currentlyTouchDevice = false;
 				this._slideShelf.classList.add("lapsa-hover");
-				this._slideContainer.classList.add("lapsa-hover");
+				this.slideContainer.classList.add("lapsa-hover");
 			}
 		}
 	}
@@ -1215,4 +1225,4 @@ class Lapsa
 			}, duration);
 		});
 	}
-}
+	}

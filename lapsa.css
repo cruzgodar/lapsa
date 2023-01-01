@@ -37,6 +37,7 @@ body
 	width: 90vw;
 	height: 50.625vw;
 	
+	border: 0px solid rgb(127, 127, 127);
 	border-radius: 2.5vw;
 	
 	padding: 2.5vw;
@@ -161,6 +162,23 @@ body
 
 
 
+.lapsa-center-content
+{
+	display: flex;
+	justify-content: center;
+	
+	width: 90vw;
+}
+
+.lapsa-align-bottom
+{
+	position: absolute;
+	bottom: 2.5vw;
+	left: 2.5vw;
+}
+
+
+
 /* By default, the slide is 95vw wide due to the padding, and the height is 55.625vw. This aspect ratio is 152:89, so when we're larger than that, we switch to measuring in terms of vh instead. At the switching point, 1vw = 1vh * 152/89, which we use for our calculations. */
 @media (min-aspect-ratio: 152/89)
 {
@@ -193,5 +211,18 @@ body
 	#lapsa-slide-container .slide h1
 	{
 		margin-top: calc(-1 * var(--safe-vh) * 152 / 89);
+	}
+	
+	
+	
+	.lapsa-center-content
+	{
+		width: calc(90 * var(--safe-vh) * 152 / 89);
+	}
+	
+	.lapsa-align-bottom
+	{
+		bottom: calc(2.5 * var(--safe-vh) * 152 / 89);
+		left: calc(2.5 * var(--safe-vh) * 152 / 89);
 	}
 }
