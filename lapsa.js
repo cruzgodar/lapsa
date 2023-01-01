@@ -479,7 +479,7 @@ class Lapsa
 		{
 			if (this._currentlyAnimating || this._inTableView)
 			{
-				reject();
+				resolve();
 				return;
 			}
 			
@@ -565,7 +565,7 @@ class Lapsa
 		{
 			if (this._currentlyAnimating || this._inTableView)
 			{
-				reject();
+				resolve();
 				return;
 			}
 			
@@ -647,7 +647,7 @@ class Lapsa
 		{
 			if (this._currentlyAnimating || this._inTableView)
 			{
-				reject();
+				resolve();
 				return;
 			}
 			
@@ -659,7 +659,7 @@ class Lapsa
 			{
 				this._currentlyAnimating = false;
 				
-				reject();
+				resolve();
 				return;
 			}
 			
@@ -726,7 +726,7 @@ class Lapsa
 		{
 			if (this._inTableView || this._currentlyAnimating)
 			{
-				reject();
+				resolve();
 				return;
 			}
 			
@@ -875,7 +875,7 @@ class Lapsa
 		{
 			if (!this._inTableView || this._currentlyAnimating)
 			{
-				reject();
+				resolve();
 				return;
 			}
 			
@@ -1235,4 +1235,4 @@ class Lapsa
 			}, duration);
 		});
 	}
-	}
+}
