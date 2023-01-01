@@ -60,6 +60,8 @@ html.dark-industrial-theme-1
 	color: rgb(255, 255, 255);
 	
 	text-align: center;
+	
+	font-family: "Roboto", sans-serif;
 }
 
 #lapsa-slide-container.dark-industrial-theme-3 .slide p
@@ -67,4 +69,6 @@ html.dark-industrial-theme-1
 	color: rgb(192, 192, 192);
 	
 	text-align: justify;
+	
+	font-family: "Roboto", sans-serif;
 }

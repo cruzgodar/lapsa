@@ -39,8 +39,19 @@
 						
 						setTimeout(() =>
 						{
-							document.documentElement.classList.remove("dark-industrial-theme");
-							lapsa.slideContainer.classList.remove("dark-industrial-theme");
+							if (!forward)
+							{
+								document.documentElement.classList.remove("dark-industrial-theme-1");
+								lapsa.slideContainer.classList.remove("dark-industrial-theme-1");
+								
+								lapsa.slideContainer.classList.add("dark-industrial-theme-2");
+								
+								setTimeout(() =>
+								{
+									lapsa.slideContainer.classList.remove("dark-industrial-theme-3");
+									lapsa.slideContainer.classList.remove("dark-industrial-theme-2");
+								}, duration / 2);
+							}
 						}, 0);
 						
 						setTimeout(() =>
