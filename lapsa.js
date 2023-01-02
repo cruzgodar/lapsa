@@ -4,6 +4,7 @@ class Lapsa
 	slideContainer = null;
 	slides = [];
 	currentSlide = -1;
+	buildState = 0;
 	
 	shelfIconPaths = ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
 	permanentShelf = false;
@@ -33,7 +34,6 @@ class Lapsa
 	
 	_transitionAnimationDistance = 0;
 	
-	_buildState = 0;
 	_numBuilds = [];
 	
 	_currentlyAnimating = false;
@@ -487,24 +487,24 @@ class Lapsa
 			
 			
 			//If there's a build available, we do that instead of moving to the next slide.
-			if (this.currentSlide >= 0 && !skipBuilds && this._numBuilds[this.currentSlide] !== 0 && this._buildState !== this._numBuilds[this.currentSlide])
+			if (this.currentSlide >= 0 && !skipBuilds && this._numBuilds[this.currentSlide] !== 0 && this.buildState !== this._numBuilds[this.currentSlide])
 			{
 				let promises = [];
 				
 				//Gross code because animation durations are weird as hell -- see the corresponding previousSlide block for a better example.
-				this.slides[this.currentSlide].querySelectorAll(`[data-build="${this._buildState}"]`).forEach(element =>
+				this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element =>
 				{
 					this.fadeUpIn(element, this.transitionAnimationTime * 2);
 					
 					promises.push(new Promise((resolve, reject) => setTimeout(resolve, this.transitionAnimationTime)));
 				});
 				
-				try {promises.push(this.callbacks[this.slides[this.currentSlide].id][this._buildState](this.slides[this.currentSlide], true))}
+				try {promises.push(this.callbacks[this.slides[this.currentSlide].id][this.buildState](this.slides[this.currentSlide], true))}
 				catch(ex) {}
 				
 				await Promise.all(promises);
 				
-				this._buildState++;
+				this.buildState++;
 				
 				this._currentlyAnimating = false;
 				
@@ -526,7 +526,7 @@ class Lapsa
 			await this.fadeUpOut(this.slideContainer, this.transitionAnimationTime);
 			
 			//Reset the slide if necessary.
-			if (this.currentSlide >= 0 && this._buildState !== this._numBuilds[this.currentSlide])
+			if (this.currentSlide >= 0 && this.buildState !== this._numBuilds[this.currentSlide])
 			{
 				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, 0)}
 				catch(ex) {}
@@ -538,7 +538,7 @@ class Lapsa
 			
 			this.currentSlide++;
 			
-			this._buildState = 0;
+			this.buildState = 0;
 			
 			
 			
@@ -574,15 +574,15 @@ class Lapsa
 			
 			
 			//If there's a build available, we do that instead of moving to the previous slide.
-			if (!skipBuilds && this._numBuilds[this.currentSlide] !== 0 && this._buildState !== 0)
+			if (!skipBuilds && this._numBuilds[this.currentSlide] !== 0 && this.buildState !== 0)
 			{
-				this._buildState--;
+				this.buildState--;
 				
 				let promises = [];
 				
-				this.slides[this.currentSlide].querySelectorAll(`[data-build="${this._buildState}"]`).forEach(element => promises.push(this.fadeDownOut(element, this.transitionAnimationTime)));
+				this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element => promises.push(this.fadeDownOut(element, this.transitionAnimationTime)));
 				
-				try {promises.push(this.callbacks[this.slides[this.currentSlide].id][this._buildState](this.slides[this.currentSlide], false))}
+				try {promises.push(this.callbacks[this.slides[this.currentSlide].id][this.buildState](this.slides[this.currentSlide], false))}
 				catch(ex) {}
 				
 				await Promise.all(promises);
@@ -608,7 +608,7 @@ class Lapsa
 			await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
 			
 			//Reset the slide if necessary.
-			if (this._buildState !== this._numBuilds[this.currentSlide])
+			if (this.buildState !== this._numBuilds[this.currentSlide])
 			{
 				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0)}
 				catch(ex) {}
@@ -620,7 +620,7 @@ class Lapsa
 			
 			this.currentSlide--;
 			
-			this._buildState = this._numBuilds[this.currentSlide];
+			this.buildState = this._numBuilds[this.currentSlide];
 			
 			
 			
@@ -680,7 +680,7 @@ class Lapsa
 			
 			
 			//Reset the slide if necessary.
-			if (this._buildState !== this._numBuilds[this.currentSlide])
+			if (this.buildState !== this._numBuilds[this.currentSlide])
 			{
 				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0)}
 				catch(ex) {}
@@ -691,7 +691,7 @@ class Lapsa
 			
 			
 			this.currentSlide = index;
-			this._buildState = 0;
+			this.buildState = 0;
 			
 			
 			
@@ -784,7 +784,7 @@ class Lapsa
 			
 			
 			//While all the slides are moving, we also show all builds that are currently hidden and request that the slide be reset to its final state.
-			if (this._buildState !== this._numBuilds[this.currentSlide])
+			if (this.buildState !== this._numBuilds[this.currentSlide])
 			{
 				const builds = this.slides[this.currentSlide].querySelectorAll("[data-build]");
 				const oldTransitionStyles = new Array(builds.length);
@@ -986,7 +986,7 @@ class Lapsa
 				setTimeout(() =>
 				{
 					builds.forEach((element, index) => element.style.transition = oldTransitionStyles[index]);
-					this._buildState = 0;
+					this.buildState = 0;
 					
 					this.slideContainer.style.transition = "";
 					
@@ -1235,4 +1235,4 @@ class Lapsa
 			}, duration);
 		});
 	}
-}
+	}
