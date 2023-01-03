@@ -47,6 +47,9 @@
 								document.documentElement.classList.remove("blue-whimsical-theme-1");
 								lapsa.slideContainer.classList.remove("blue-whimsical-theme-1");
 								
+								document.documentElement.classList.remove("dark-futuristic-theme-1");
+								lapsa.slideContainer.classList.remove("dark-futuristic-theme-1");
+								
 								lapsa.slideContainer.classList.add("theme-opacity-change");
 								
 								setTimeout(() =>
@@ -54,6 +57,7 @@
 									lapsa.slideContainer.classList.remove("theme-opacity-change");
 									lapsa.slideContainer.classList.remove("dark-industrial-theme-2");
 									lapsa.slideContainer.classList.remove("blue-whimsical-theme-2");
+									apsa.slideContainer.classList.remove("dark-futuristic-theme-2");
 								}, duration / 2);
 							}, 0);
 						}
