@@ -155,6 +155,35 @@ For a thorough example of functional builds, see the demo project.
 
 ## Custom Themes
 
+Lapsa's default appearance of minimalist black-on-white is intended to be a general-purpose look suitable for most presentations. Changing it is accomplished by adding CSS to a file loaded after `lapsa.min.css`. Below is a very non-exhaustive list of what can be altered without any extra work.
+
+- Background color of slides, the shelf, and the surrounding page.
+- Text font, color, and size.
+- Border color and style.
+- Box shadow color on slides and the shelf, and hover behavior in the table view.
+
+Modifying distances (for example, the border radius) is slightly more complicated. By default, distances scale with `vw`, but when the window is wide enough, they switch to scaling with `vh` instead. For example, to shrink the border radius down slightly, first set it to `1.5vw` in the main part of the CSS, and then add the following at the end of the file:
+
+```css
+	@media (min-aspect-ratio: 152/89)
+	{
+		#lapsa-slide-container .slide
+		{
+			padding: calc(1.5 * var(--safe-vh) * 152 / 89);
+		}
+	}
+```
+
+The `--safe-vh` variable is calculated by Lapsa to avoid artefacts caused by browsers like iOS Safari that often intentionally report inaccurate viewport heights. The other factor of `152 / 89` is due to the 16:9 ratio of the slides and the surrounding padding and needs to be applied to all styles in this media query.
+
+Some styles cannot be modified: the width, height, and padding of slides are critical to the table view working properly and can't be changed without breaking it.
+
+To add theming HTML to every slide, set the `appendHTML` entry in the options. The `themes` folder contains some example themes -- some have comments on the first line indicating a value to set for `appendHTML`.
+
+
+
+##
+
 
 
 [1]: https://cruzgodar.com/
