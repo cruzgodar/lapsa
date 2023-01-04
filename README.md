@@ -188,5 +188,5 @@ Standard HTML elements like images and videos can be added, scaled, and arranged
 
 
 
-[1]: https://cruzgodar.com/
+[1]: https://cruzgodar.com/projects/lapsa/example-project/
 [2]: https://www.mathjax.org/
