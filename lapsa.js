@@ -72,6 +72,7 @@ class Lapsa
 			resizeOnTableView: false,
 			windowHeightAnimationFrames: 8,
 			
+			useShelf: true,
 			permanentShelf: false,
 			shelfIconPaths: ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"],
 			
@@ -79,7 +80,9 @@ class Lapsa
 			slideAnimateOutEasing: "cubic-bezier(.1, 0.0, .2, 0.0)",
 			shelfAnimateInEasing: "cubic-bezier(.4, 1.0, .7, 1.0)",
 			shelfAnimateOutEasing: "cubic-bezier(.4, 0.0, .4, 1.0)",
-			tableViewEasing: "cubic-bezier(.25, 1.0, .5, 1.0)"
+			tableViewEasing: "cubic-bezier(.25, 1.0, .5, 1.0)",
+			
+			appendHTML: ""
 		};
 	*/
 	
@@ -96,8 +99,9 @@ class Lapsa
 		this.resizeOnTableView = options?.resizeOnTableView ?? false;
 		this.windowHeightAnimationFrames = options?.windowHeightAnimationFrames ?? 8;
 		
-		this.shelfIconPaths = options?.shelfIconPaths ?? ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
+		this.useShelf = options?.useShelf ?? true;
 		this.permanentShelf = options?.permanentShelf ?? false;
+		this.shelfIconPaths = options?.shelfIconPaths ?? ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
 		
 		this.slideAnimateInEasing = options?.slideAnimateInEasing ?? "cubic-bezier(.4, 1.0, .7, 1.0)";
 		this.slideAnimateOutEasing = options?.slideAnimateOutEasing ?? "cubic-bezier(.1, 0.0, .2, 0.0)";
@@ -249,7 +253,7 @@ class Lapsa
 			
 			this._shelfContainer.addEventListener("mouseenter", () =>
 			{
-				if (!this._shelfIsOpen && !this.permanentShelf)
+				if (!this._shelfIsOpen && !this.permanentShelf && this.useShelf)
 				{
 					this.showShelf();
 				}
@@ -257,7 +261,7 @@ class Lapsa
 			
 			this._shelfContainer.addEventListener("mouseleave", () =>
 			{
-				if (this._shelfIsOpen && !this.permanentShelf)
+				if (this._shelfIsOpen && !this.permanentShelf && this.useShelf)
 				{
 					this.hideShelf();
 				}
