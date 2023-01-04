@@ -28,7 +28,7 @@ class Lapsa
 	
 	_shelfContainer = null;
 	_slideShelf = null;
-	_shelfMargin = 50;
+	_shelfMargin = 15;
 	_shelfIsOpen = false;
 	_shelfIsAnimating = false;
 	
@@ -166,11 +166,11 @@ class Lapsa
 			
 			const functionalBuildKeys = Object.keys(this.callbacks?.[element.id] ?? {});
 			
-			let maxFunctionalBuild = -1;
+			let maxFunctionalBuild = 0;
 			
-			functionalBuildKeys.forEach(key => maxFunctionalBuild = Math.max(maxFunctionalBuild, parseInt(key) ?? -1));
+			functionalBuildKeys.forEach(key => maxFunctionalBuild = Math.max(maxFunctionalBuild, (parseInt(key) + 1) || 0));
 			
-			this._numBuilds[index] = Math.max(currentBuild, maxFunctionalBuild + 1);
+			this._numBuilds[index] = Math.max(currentBuild, maxFunctionalBuild);
 		});
 		
 		
@@ -484,6 +484,7 @@ class Lapsa
 			}
 			
 			this._currentlyAnimating = true;
+			
 			
 			
 			//If there's a build available, we do that instead of moving to the next slide.
@@ -1025,6 +1026,8 @@ class Lapsa
 		this._shelfIsAnimating = true;
 		
 		this._slideShelf.style.display = "";
+		this._slideShelf.parentNode.style.paddingRight = "100px";
+		
 		
 		await this.showSlideShelf(this._slideShelf);
 		
@@ -1043,6 +1046,8 @@ class Lapsa
 		this._shelfIsOpen = false;
 		this._shelfIsAnimating = true;
 		
+		this._slideShelf.parentNode.style.paddingRight = "0";
+		
 		await this.hideSlideShelf(this._slideShelf);
 		
 		this._shelfIsAnimating = false;
@@ -1055,7 +1060,7 @@ class Lapsa
 			const oldTransitionStyle = element.style.transition;
 			element.style.transition = `margin-left ${duration}ms ${this.shelfAnimateInEasing}, opacity ${duration}ms ${this.shelfAnimateInEasing}`;
 			
-			element.style.marginLeft = 0;
+			element.style.marginLeft = `${this._shelfMargin}px`;
 			element.style.opacity = 1;
 			
 			setTimeout(() =>
@@ -1235,4 +1240,4 @@ class Lapsa
 			}, duration);
 		});
 	}
-	}
+}

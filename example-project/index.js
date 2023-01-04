@@ -32,7 +32,7 @@
 				{
 					return new Promise((resolve, reject) =>
 					{
-						if (lapsa.buildState >= 2 && lapsa.buildState <= 4)
+						if (lapsa.buildState >= 3 && lapsa.buildState <= 5)
 						{
 							document.querySelector(":root").style.setProperty("--theme-transition-time", `${duration}ms`);
 							
@@ -57,7 +57,7 @@
 									lapsa.slideContainer.classList.remove("theme-opacity-change");
 									lapsa.slideContainer.classList.remove("dark-industrial-theme-2");
 									lapsa.slideContainer.classList.remove("blue-whimsical-theme-2");
-									apsa.slideContainer.classList.remove("dark-futuristic-theme-2");
+									lapsa.slideContainer.classList.remove("dark-futuristic-theme-2");
 								}, duration / 2);
 							}, 0);
 						}
