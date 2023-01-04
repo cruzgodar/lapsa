@@ -61,9 +61,9 @@ Replace each of the five paths with the appropriate paths to the icons. To use L
 
 ## HTML
 
-Slides are contained in `<div class="slide"></div>`. The standard tags to use in slides are the typical `<h1>`, `<h2>`, and `<p>` for headings, subheadings, and body text. These all have bottom padding to separate them from one another -- to apply this padding to other elements, give them the class `.lapsa-bottom-padding`. Other helpful classes are `.lapsa-center-content`, which centers the contents of a container, and `.lapsa-align-bottom`, which positions an element absolutely in the bottom-left of the slide and is useful for footer text.
+Slides are contained in `<div class="slide"></div>`. The standard tags to use in slides are the typical `<h1>`, `<h2>`, and `<p>` for headings, subheadings, and body text. These all have bottom padding to separate them from one another — to apply this padding to other elements, give them the class `.lapsa-bottom-padding`. Other helpful classes are `.lapsa-center-content`, which centers the contents of a container, and `.lapsa-align-bottom`, which positions an element absolutely in the bottom-left of the slide and is useful for footer text.
 
-Lapsa has many features relating to **builds**, which are ways that slides can change while they're on screen. The simplest kind are HTML builds, which build just by animating in. To make an element build in, give it the `.build` class. This makes elements appear one after another -- the first element is build 0, the next is build 1, and so on. To override this behavior and specify a specific build number for an element, set the `data-build` attribute. For example, `<p data-build="2">` will always appear on the third build.
+Lapsa has many features relating to **builds**, which are ways that slides can change while they're on screen. The simplest kind are HTML builds, which build just by animating in. To make an element build in, give it the `.build` class. This makes elements appear one after another — the first element is build 0, the next is build 1, and so on. To override this behavior and specify a specific build number for an element, set the `data-build` attribute. For example, `<p data-build="2">` will always appear on the third build.
 
 
 
@@ -84,7 +84,7 @@ To change Lapsa's behavior, add entries to the `options` object. A complete list
 **Animations**
 
 - `transitionAnimationTime`: animation duration in ms for slides and builds. Set to 0 to skip those animations. Default: 150.
-- `transitionAnimationDistanceFactor`: by default, slides and builds animate by fading in and sliding up. Like every other part of the slides, the distance they move with scales with the size of the window -- this is the scale factor. Set to 0 to make slide and build animations animate only by fading in and out.
+- `transitionAnimationDistanceFactor`: by default, slides and builds animate by fading in and sliding up. Like every other part of the slides, the distance they move with scales with the size of the window — this is the scale factor. Set to 0 to make slide and build animations animate only by fading in and out.
 - `tableViewAnimationTime`: animation duration in ms to enter and exit the table view. Set to 0 to skip those animations. Default: 600.
 - `shelfAnimationTime`: animation duration in ms to show and hide the shelf. Set to 0 to skip those animations. Default: 275.
 
@@ -147,7 +147,7 @@ Functional builds take three arguments: the current slide, whether the build is 
 
 The `reset` function is called when the slide needs to be reset to its initial or final state. HTML builds take care of this automatically, but functional builds need to handle it manually. If the `forward` parameter is `true`, animate the slide back to its initial state over the course of `duration` milliseconds by reverting all of the builds. If `forward` is `false`, animate the slide to its final state. The `reset` function needs to work correctly from **any build state** in order for Lapsa to work properly. While it's not strictly necessary to take the exact duration specified, some cosmetic behavior may not work correctly if that's not the case. When the function is complete, call `resolve()` to tell Lapsa it can continue with what it's doing.
 
-The builds themselves are very similar. They take the same parameters, but they should specify a default value for `duration` -- that is how long they will take to animate in typical conditions, but some circumstances may cause Lapsa to override the default value. If `forward` is `true`, animate the build in, and if it's false, animate the build out. Unlike the `reset` function, build functions only need to support being called from the build state immediately before or after themselves.
+The builds themselves are very similar. They take the same parameters, but they should specify a default value for `duration` — that is how long they will take to animate in typical conditions, but some circumstances may cause Lapsa to override the default value. If `forward` is `true`, animate the build in, and if it's false, animate the build out. Unlike the `reset` function, build functions only need to support being called from the build state immediately before or after themselves.
 
 For a thorough example of functional builds, see the demo project.
 
@@ -155,7 +155,7 @@ For a thorough example of functional builds, see the demo project.
 
 ## Custom Themes
 
-Lapsa's default appearance of minimalist black-on-white is intended to be a general-purpose look suitable for most presentations. Changing it is accomplished by adding CSS to a file loaded after `lapsa.min.css`. Below is a very non-exhaustive list of what can be altered without any extra work.
+Lapsa's default appearance of minimalist black-on-white is intended to be a general-purpose look that's suitable for most presentations. Changing it is accomplished by adding CSS to a file loaded after `lapsa.min.css`. Below is a very non-exhaustive list of what can be altered without any extra work.
 
 - Background color of slides, the shelf, and the surrounding page.
 - Text font, color, and size.
@@ -165,25 +165,28 @@ Lapsa's default appearance of minimalist black-on-white is intended to be a gene
 Modifying distances (for example, the border radius) is slightly more complicated. By default, distances scale with `vw`, but when the window is wide enough, they switch to scaling with `vh` instead. For example, to shrink the border radius down slightly, first set it to `1.5vw` in the main part of the CSS, and then add the following at the end of the file:
 
 ```css
-	@media (min-aspect-ratio: 152/89)
+@media (min-aspect-ratio: 152/89)
+{
+	#lapsa-slide-container .slide
 	{
-		#lapsa-slide-container .slide
-		{
-			padding: calc(1.5 * var(--safe-vh) * 152 / 89);
-		}
+		padding: calc(1.5 * var(—safe-vh) * 152 / 89);
 	}
+}
 ```
 
-The `--safe-vh` variable is calculated by Lapsa to avoid artefacts caused by browsers like iOS Safari that often intentionally report inaccurate viewport heights. The other factor of `152 / 89` is due to the 16:9 ratio of the slides and the surrounding padding and needs to be applied to all styles in this media query.
+The `—safe-vh` variable is calculated by Lapsa to avoid artefacts caused by browsers like iOS Safari that often intentionally report inaccurate viewport heights. The other factor of `152 / 89` is due to the 16:9 ratio of the slides and the surrounding padding and needs to be applied to all styles in this media query.
 
 Some styles cannot be modified: the width, height, and padding of slides are critical to the table view working properly and can't be changed without breaking it.
 
-To add theming HTML to every slide, set the `appendHTML` entry in the options. The `themes` folder contains some example themes -- some have comments on the first line indicating a value to set for `appendHTML`.
+To add theming HTML to every slide, set the `appendHTML` entry in the options. The `themes` folder contains some example themes — some have comments on the first line indicating a value to set for `appendHTML`.
 
 
 
-##
+## Common Use Cases
+
+Standard HTML elements like images and videos can be added, scaled, and arranged like anything else. To add LaTeX-rendered math, [MathJax][2] is as excellent of a solution as ever.
 
 
 
 [1]: https://cruzgodar.com/
+[2]: https://www.mathjax.org/
