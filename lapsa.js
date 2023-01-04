@@ -69,13 +69,6 @@ class Lapsa
 			tableViewAnimationTime = 600,
 			shelfAnimationTime = 275,
 			
-			resizeOnTableView: false,
-			windowHeightAnimationFrames: 8,
-			
-			useShelf: true,
-			permanentShelf: false,
-			shelfIconPaths: ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"],
-			
 			slideAnimateInEasing: "cubic-bezier(.4, 1.0, .7, 1.0)",
 			slideAnimateOutEasing: "cubic-bezier(.1, 0.0, .2, 0.0)",
 			shelfAnimateInEasing: "cubic-bezier(.4, 1.0, .7, 1.0)",
@@ -83,6 +76,13 @@ class Lapsa
 			tableViewEasing: "cubic-bezier(.25, 1.0, .5, 1.0)",
 			
 			appendHTML: ""
+			
+			useShelf: true,
+			permanentShelf: false,
+			shelfIconPaths: ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"],
+			
+			resizeOnTableView: false,
+			windowHeightAnimationFrames: 8,
 		};
 	*/
 	
