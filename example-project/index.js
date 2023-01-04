@@ -1,27 +1,5 @@
 !function()
 {
-	/*
-	let lastTimestamp = -1;
-	
-	let totalTimeElapsed = 0;
-	
-	function updateMandelbrot(timestamp)
-	{
-		const timeElapsed = timestamp - lastTimestamp;
-		
-		lastTimestamp = timestamp;
-		
-		if (timeElapsed === 0)
-		{
-			return;
-		}
-		
-		totalTimeElapsed += timeElapsed;
-	}
-	*/
-	
-	
-	
 	const options =
 	{
 		builds:
