@@ -42,7 +42,7 @@ body
 
 .purple-wave
 {
-	background-image: url("wave.png");
+	background-image: url("/themes/wave.png");
 	background-size: contain;
 	
 	position: absolute;
@@ -56,7 +56,7 @@ body
 	
 	animation: 61s linear infinite moveWave;
 	
-	opacity: .1;
+	opacity: .15;
 }
 
 .purple-wave-2
@@ -169,6 +169,8 @@ html.dark-industrial-theme-1
 
 #lapsa-slide-container.dark-industrial-theme-2 .slide h1, #lapsa-slide-container.dark-industrial-theme-2 .slide h2
 {
+	text-align: center;
+	
 	color: rgb(255, 255, 255);
 	
 	font-family: "Roboto Slab", serif;

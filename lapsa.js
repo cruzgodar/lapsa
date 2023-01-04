@@ -13,7 +13,6 @@ class Lapsa
 	transitionAnimationDistanceFactor = .015;
 	
 	tableViewAnimationTime = 600;
-	
 	shelfAnimationTime = 275;
 	
 	tableViewEasing = "cubic-bezier(.25, 1.0, .5, 1.0)";
@@ -24,6 +23,8 @@ class Lapsa
 	
 	windowHeightAnimationFrames = 8;
 	resizeOnTableView = false;
+	
+	appendHTML = "";
 	
 	
 	
@@ -104,6 +105,8 @@ class Lapsa
 		this.shelfAnimateOutEasing = options?.shelfAnimateOutEasing ?? "cubic-bezier(.4, 0.0, .4, 1.0)";
 		this.tableViewEasing = options?.tableViewEasing ?? "cubic-bezier(.25, 1.0, .5, 1.0)";
 		
+		this.appendHTML = options?.appendHTML ?? "";
+		
 		
 		
 		this._rootSelector = document.querySelector(":root");
@@ -134,6 +137,10 @@ class Lapsa
 			
 			this.slideContainer.insertBefore(wrapper, element);
 			wrapper.appendChild(element);
+			
+			
+			
+			element.lastElementChild.insertAdjacentHTML("afterend", this.appendHTML);
 			
 			
 			
