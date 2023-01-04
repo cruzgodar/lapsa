@@ -12,6 +12,10 @@ class Lapsa
 	transitionAnimationTime = 150;
 	transitionAnimationDistanceFactor = .015;
 	
+	tableViewAnimationTime = 600;
+	
+	shelfAnimationTime = 275;
+	
 	tableViewEasing = "cubic-bezier(.25, 1.0, .5, 1.0)";
 	slideAnimateInEasing = "cubic-bezier(.4, 1.0, .7, 1.0)";
 	slideAnimateOutEasing = "cubic-bezier(.1, 0.0, .2, 0.0)";
@@ -61,6 +65,9 @@ class Lapsa
 			transitionAnimationTime: 150,
 			transitionAnimationDistanceFactor: .015,
 			
+			tableViewAnimationTime = 600,
+			shelfAnimationTime = 275,
+			
 			resizeOnTableView: false,
 			windowHeightAnimationFrames: 8,
 			
@@ -81,6 +88,9 @@ class Lapsa
 		
 		this.transitionAnimationTime = options?.transitionAnimationTime ?? 150;
 		this.transitionAnimationDistanceFactor = options?.transitionAnimationDistanceFactor ?? .015;
+		
+		this.tableViewAnimationTime = options?.tableViewAnimationTime ?? 600;
+		this.shelfAnimationTime = options?.shelfAnimationTime ?? 275;
 		
 		this.resizeOnTableView = options?.resizeOnTableView ?? false;
 		this.windowHeightAnimationFrames = options?.windowHeightAnimationFrames ?? 8;
@@ -721,7 +731,7 @@ class Lapsa
 	
 	
 	
-	openTableView(duration = 600)
+	openTableView(duration = this.tableViewAnimationTime)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -870,7 +880,7 @@ class Lapsa
 	
 	
 	
-	closeTableView(selection, duration = 600)
+	closeTableView(selection, duration = this.tableViewAnimationTime)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -1053,7 +1063,7 @@ class Lapsa
 		this._shelfIsAnimating = false;
 	}
 	
-	showSlideShelf(element, duration = 275)
+	showSlideShelf(element, duration = this.shelfAnimationTime)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -1071,7 +1081,7 @@ class Lapsa
 		});
 	}
 	
-	hideSlideShelf(element, duration = 275)
+	hideSlideShelf(element, duration = this.shelfAnimationTime)
 	{
 		return new Promise((resolve, reject) =>
 		{
