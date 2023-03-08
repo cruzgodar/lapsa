@@ -74,10 +74,12 @@ To change Lapsa's behavior, add entries to the `options` object. A complete list
 **Features**
 
 - `builds`: an object specifying slides' functional builds. See the next section for more details.
+- `startingSlide`: The index of the slide to open the presentation with. Default: `0`.
 - `appendHTML`: a snippet of HTML to append to every slide, typically used for easier theming. Default: `""`.
 - `useShelf`: boolean for whether to enable the shelf. If set to `false`, you will need to provide ways to call the navigation functions yourself. Default: `true`.
 - `permanentShelf`: boolean for whether to make the shelf always visible. If set to `true`, the shelf will always exist in the lower-left corner of the window. Default: `false`.
 - `shelfIconPaths`: 5-element array of paths to the shelf icons, specified from top to bottom of the shelf. Default: `["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"]`.
+- `tableViewSlidesPerScreen`: The minimum number of slides the table view should display at once. Decimal values are supported and will ensure some slides are always cut off, which can be useful to indicate that the view can be scrolled. Very narrow vertical aspect ratios will cause Lapsa to override this value and display however many slides the screen can fit. Default: `4.0`.
 - `resizeOnTableView`: iOS Safari and some other broswers have chrome that very frequently resizes (e.g. when scrolling). On the slide view, Lapsa accounts for all resizes and updates the slide size immediately. On the table view, which is meant to be scrolled, this kind of constant resizing can be quite jarring, and so by default, Lapsa will wait to return to the slide view before reacting to a resize event. If set to `true`, that behavior will be overridden, and all resizes will take effect immediately. Default: `false`.
 - `windowHeightAnimationFrames`: when the window is resized on the table view and a slide has been selected, Lapsa will briefly animate the window height to the new value to avoid the appearance of the slide snapping to a new position. This setting specifies the number of frames that animation should take. Set to 1 to disable the animation completely. Default: 8.
 

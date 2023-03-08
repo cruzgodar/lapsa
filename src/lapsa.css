@@ -154,7 +154,6 @@ body
 	width: 50px;
 	border-radius: 5px;
 	
-	transition: background-color .1s ease-in-out;
 	background-color: rgb(255, 255, 255);
 }
 

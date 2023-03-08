@@ -5,6 +5,7 @@ class Lapsa
 	slides = [];
 	currentSlide = -1;
 	buildState = 0;
+	tableViewSlidesPerScreen = 4;
 	
 	shelfIconPaths = ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
 	permanentShelf = false;
@@ -39,6 +40,7 @@ class Lapsa
 	
 	_transitionAnimationDistance = 0;
 	
+	_startingSlide = 0;
 	_numBuilds = [];
 	
 	_currentlyAnimating = false;
@@ -77,6 +79,9 @@ class Lapsa
 			
 			appendHTML: ""
 			
+			startingSlide: 0,
+			tableViewSlidesPerScreen = 4,
+			
 			useShelf: true,
 			permanentShelf: false,
 			shelfIconPaths: ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"],
@@ -98,6 +103,9 @@ class Lapsa
 		
 		this.resizeOnTableView = options?.resizeOnTableView ?? false;
 		this.windowHeightAnimationFrames = options?.windowHeightAnimationFrames ?? 8;
+		
+		this._startingSlide = options?.startingSlide ?? 0;
+		this.tableViewSlidesPerScreen = options?.tableViewSlidesPerScreen ?? 4;
 		
 		this.useShelf = options?.useShelf ?? true;
 		this.permanentShelf = options?.permanentShelf ?? false;
@@ -335,7 +343,7 @@ class Lapsa
 		document.documentElement.addEventListener("mousemove", this._boundFunctions[3]);
 		window.addEventListener("resize", this._boundFunctions[4]);
 		
-		setTimeout(() => this.nextSlide(), 500);
+		setTimeout(() => this.jumpToSlide(this._startingSlide), 500);
 	}
 	
 	
@@ -378,7 +386,7 @@ class Lapsa
 			
 			const slidesPerScreen = bodyRect.width / bodyRect.height >= 152/89 ? 1 : bodyRect.height / (bodyRect.width * 89/152);
 			
-			const scale = Math.min(slidesPerScreen / 3.5, 1);
+			const scale = Math.min(slidesPerScreen / this.tableViewSlidesPerScreen, 1);
 			
 			const scaledSlidesPerScreen = slidesPerScreen / scale;
 			
@@ -471,7 +479,7 @@ class Lapsa
 		{
 			const slidesPerScreen = window.innerWidth / newHeight >= 152/89 ? 1 : newHeight / (window.innerWidth * 89/152);
 			
-			const scale = Math.min(slidesPerScreen / 3.5, 1);
+			const scale = Math.min(slidesPerScreen / this.tableViewSlidesPerScreen, 1);
 			
 			const scaledSlidesPerScreen = slidesPerScreen / scale;
 			
@@ -702,7 +710,7 @@ class Lapsa
 			
 			
 			//Reset the slide if necessary.
-			if (this.buildState !== this._numBuilds[this.currentSlide])
+			if (this.currentSlide !== -1 && this.buildState !== this._numBuilds[this.currentSlide])
 			{
 				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0)}
 				catch(ex) {}
@@ -733,6 +741,8 @@ class Lapsa
 			{
 				await this.fadeDownIn(this.slideContainer, this.transitionAnimationTime * 2);
 			}
+			
+			
 			
 			this._currentlyAnimating = false;
 			
@@ -770,7 +780,7 @@ class Lapsa
 			//The goal is to have room to display just under 4 slides vertically, then center on one so that the others are clipped, indicating it's scrollable. In a horizontal orientation, exactly one slide fits per screen. In a vertical one, we take a ratio.
 			const slidesPerScreen = bodyRect.width / bodyRect.height >= 152/89 ? 1 : bodyRect.height / (bodyRect.width * 89/152);
 			
-			const scale = Math.min(slidesPerScreen / 3.5, 1);
+			const scale = Math.min(slidesPerScreen / this.tableViewSlidesPerScreen, 1);
 			
 			const scaledSlidesPerScreen = slidesPerScreen / scale;
 			
@@ -870,14 +880,13 @@ class Lapsa
 				
 				this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
 				
-				window.scrollTo(0, 0);
+				document.documentElement.style.overflowY = "visible";
 				
 				const newTop = this.slides[this.currentSlide].getBoundingClientRect().top;
-				const scroll = newTop - correctTop;
 				
-				window.scrollTo(0, scroll);
+				//The old way was to scroll to correctTop and get newTop at that point. If correctTop was 100 and newTop was 25, then after scrolling to position 100, newTop was 25 further, so it was 125 at first. Therefore, we want newTop - correctTop here.
 				
-				document.documentElement.style.overflowY = "visible";
+				window.scrollTo(0, newTop - correctTop);
 				
 				this._currentlyAnimating = false;
 				this._inTableView = true;
@@ -916,7 +925,7 @@ class Lapsa
 			//The goal is to have room to display just under 4 slides vertically, then center on one so that the others are clipped, indicating it's scrollable. In a horizontal orientation, exactly one slide fits per screen. In a vertical one, we take a ratio.
 			const slidesPerScreen = bodyRect.width / bodyRect.height >= 152/89 ? 1 : bodyRect.height / (bodyRect.width * 89/152);
 			
-			const scale = Math.min(slidesPerScreen / 3.5, 1);
+			const scale = Math.min(slidesPerScreen / this.tableViewSlidesPerScreen, 1);
 			
 			
 			//The first and last two slides have different animations since they can't be in the middle of the screen in the table view.
