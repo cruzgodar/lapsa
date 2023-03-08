@@ -151,8 +151,15 @@ class Lapsa
 			wrapper.appendChild(element);
 			
 			
+			if (element.children.length !== 0)
+			{
+				element.lastElementChild.insertAdjacentHTML("afterend", this.appendHTML);
+			}
 			
-			element.lastElementChild.insertAdjacentHTML("afterend", this.appendHTML);
+			else
+			{
+				element.innerHTML = this.appendHTML;
+			}
 			
 			
 			
