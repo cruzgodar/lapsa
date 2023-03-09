@@ -565,7 +565,11 @@ class Lapsa
 			//Reset the slide if necessary.
 			if (this.currentSlide >= 0 && this.buildState !== this._numBuilds[this.currentSlide])
 			{
-				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, 0)}
+				try
+				{
+					await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, 0)
+				}
+				
 				catch(ex) {}
 				
 				this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 1);
@@ -579,8 +583,14 @@ class Lapsa
 			
 			
 			
-			try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, 0)}
+			try
+			{
+				await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, 0)
+			}
+			
 			catch(ex) {}
+			
+			
 			
 			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 0);
 			
@@ -647,7 +657,11 @@ class Lapsa
 			//Reset the slide if necessary.
 			if (this.buildState !== this._numBuilds[this.currentSlide])
 			{
-				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0)}
+				try
+				{
+					await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0);
+				}
+				
 				catch(ex) {}
 				
 				this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 1);
@@ -661,8 +675,14 @@ class Lapsa
 			
 			
 			
-			try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0)}
+			try
+			{
+				await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0);
+			}
+			
 			catch(ex) {}
+			
+			
 			
 			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 1);
 			
@@ -719,7 +739,11 @@ class Lapsa
 			//Reset the slide if necessary.
 			if (this.currentSlide !== -1 && this.buildState !== this._numBuilds[this.currentSlide])
 			{
-				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0)}
+				try
+				{
+					await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, 0);
+				}
+				
 				catch(ex) {}
 				
 				this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 1);
@@ -732,8 +756,14 @@ class Lapsa
 			
 			
 			
-			try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, 0)}
+			try
+			{
+				await this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, 0)
+			}
+			
 			catch(ex) {}
+			
+			
 			
 			this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 0);
 			
@@ -837,6 +867,7 @@ class Lapsa
 					element.style.opacity = 1;
 				});
 				
+				//We don't await this one because we want it to run concurrently with the table view animation.
 				try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], false, duration / 2)}
 				catch(ex) {}
 				
@@ -979,7 +1010,7 @@ class Lapsa
 			
 			
 			
-			//While all the slides are moving, we also show all builds that are currently hidden and request that the slide be reset to its final state.
+			//While all the slides are moving, we also hide all builds that are currently shown and request that the slide be reset to its initial state.
 			const builds = this.slides[this.currentSlide].querySelectorAll("[data-build]");
 			const oldTransitionStyles = new Array(builds.length);
 			
@@ -992,6 +1023,7 @@ class Lapsa
 				element.style.opacity = 0;
 			});
 			
+			//We don't await this one because we want it to run concurrently with the table view animation.
 			try {this.callbacks[this.slides[this.currentSlide].id].reset(this.slides[this.currentSlide], true, duration / 3)}
 			catch(ex) {}
 			
