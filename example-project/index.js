@@ -2,6 +2,8 @@
 {
 	const options =
 	{
+		shelfIconPaths: "/icons/",
+		
 		builds:
 		{
 			"theme-demonstration":

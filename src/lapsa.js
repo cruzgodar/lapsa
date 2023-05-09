@@ -84,7 +84,7 @@ class Lapsa
 			
 			useShelf: true,
 			permanentShelf: false,
-			shelfIconPaths: ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"],
+			shelfIconPaths: "/icons/",
 			
 			resizeOnTableView: false,
 			windowHeightAnimationFrames: 8,
@@ -109,7 +109,18 @@ class Lapsa
 		
 		this.useShelf = options?.useShelf ?? true;
 		this.permanentShelf = options?.permanentShelf ?? false;
-		this.shelfIconPaths = options?.shelfIconPaths ?? ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
+		
+		this.shelfIconPaths = options?.shelfIconPaths ?? "/icons/";
+		
+		if (typeof this.shelfIconPaths === "string")
+		{
+			if (this.shelfIconPaths.length >= 1 && this.shelfIconPaths[this.shelfIconPaths.length - 1] !== "/")
+			{
+				this.shelfIconPaths = `${this.shelfIconPaths}/`;
+			}
+			
+			this.shelfIconPaths = [`${this.shelfIconPaths}up-2.png`, `${this.shelfIconPaths}up-1.png`, `${this.shelfIconPaths}table.png`, `${this.shelfIconPaths}down-1.png`, `${this.shelfIconPaths}down-2.png`];
+		}
 		
 		this.slideAnimateInEasing = options?.slideAnimateInEasing ?? "cubic-bezier(.4, 1.0, .7, 1.0)";
 		this.slideAnimateOutEasing = options?.slideAnimateOutEasing ?? "cubic-bezier(.1, 0.0, .2, 0.0)";
