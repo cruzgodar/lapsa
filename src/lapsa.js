@@ -7,8 +7,10 @@ class Lapsa
 	buildState = 0;
 	tableViewSlidesPerScreen = 4;
 	
-	shelfIconPaths = ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png"];
+	useShelf = true;
+	useShelfIndicator = true;
 	permanentShelf = false;
+	shelfIconPaths = ["/icons/up-2.png", "/icons/up-1.png", "/icons/table.png", "/icons/down-1.png", "/icons/down-2.png", "/icons/shelf-indicator.png"];
 	
 	transitionAnimationTime = 150;
 	transitionAnimationDistanceFactor = .015;
@@ -37,6 +39,9 @@ class Lapsa
 	_shelfMargin = 15;
 	_shelfIsOpen = false;
 	_shelfIsAnimating = false;
+	
+	_shelfIndicatorContainer = null;
+	_slideShelfIndicator = null;
 	
 	_transitionAnimationDistance = 0;
 	
@@ -83,6 +88,7 @@ class Lapsa
 			tableViewSlidesPerScreen = 4,
 			
 			useShelf: true,
+			useShelfIndicator: true,
 			permanentShelf: false,
 			shelfIconPaths: "/icons/",
 			
@@ -108,6 +114,7 @@ class Lapsa
 		this.tableViewSlidesPerScreen = options?.tableViewSlidesPerScreen ?? 4;
 		
 		this.useShelf = options?.useShelf ?? true;
+		this.useShelfIndicator = options?.useShelfIndicator ?? true;
 		this.permanentShelf = options?.permanentShelf ?? false;
 		
 		this.shelfIconPaths = options?.shelfIconPaths ?? "/icons/";
@@ -119,7 +126,17 @@ class Lapsa
 				this.shelfIconPaths = `${this.shelfIconPaths}/`;
 			}
 			
-			this.shelfIconPaths = [`${this.shelfIconPaths}up-2.png`, `${this.shelfIconPaths}up-1.png`, `${this.shelfIconPaths}table.png`, `${this.shelfIconPaths}down-1.png`, `${this.shelfIconPaths}down-2.png`];
+			this.shelfIconPaths = [`${this.shelfIconPaths}up-2.png`, `${this.shelfIconPaths}up-1.png`, `${this.shelfIconPaths}table.png`, `${this.shelfIconPaths}down-1.png`, `${this.shelfIconPaths}down-2.png`, `${this.shelfIconPaths}shelf-indicator.png`];
+		}
+		
+		if (this.shelfIconPaths.length < 5 && this.useShelf)
+		{
+			console.error("[Lapsa] Not enough shelf icons provided!");
+		}
+		
+		if (this.shelfIconPaths.length < 6 && this.useShelfIndicator)
+		{
+			console.error("[Lapsa] No shelf indicator icon provided!");
 		}
 		
 		this.slideAnimateInEasing = options?.slideAnimateInEasing ?? "cubic-bezier(.4, 1.0, .7, 1.0)";
@@ -245,7 +262,15 @@ class Lapsa
 		
 		
 		
+		this._shelfIndicatorContainer = document.createElement("div");
+		this._shelfIndicatorContainer.id = "lapsa-slide-shelf-indicator-container";
 		
+		if (this.useShelfIndicator)
+		{
+			this._shelfIndicatorContainer.innerHTML = `<img id="lapsa-slide-shelf-indicator" src="${this.shelfIconPaths[5]}"></img>`;
+		}
+		
+		document.body.appendChild(this._shelfIndicatorContainer);
 		
 		
 		
@@ -262,12 +287,19 @@ class Lapsa
 		{
 			this._slideShelf = document.querySelector("#lapsa-slide-shelf");
 			
+			if (this.useShelfIndicator)
+			{
+				this._slideShelfIndicator = document.querySelector("#lapsa-slide-shelf-indicator");
+			}
+			
 			if (this.permanentShelf)
 			{
 				this._shelfContainer.classList.add("permanent-shelf");
 				this.showSlideShelf(this._slideShelf);
 				this._shelfIsAnimating = false;
 				this._shelfIsOpen = true;
+				
+				this._slideShelfIndicator.style.display = "none";
 			}
 			
 			else
@@ -1109,6 +1141,7 @@ class Lapsa
 		this._slideShelf.parentNode.style.paddingRight = "100px";
 		
 		
+		this.hideSlideShelfIndicator(this._slideShelfIndicator);
 		await this.showSlideShelf(this._slideShelf);
 		
 		this._shelfIsAnimating = false;
@@ -1128,6 +1161,7 @@ class Lapsa
 		
 		this._slideShelf.parentNode.style.paddingRight = "0";
 		
+		this.showSlideShelfIndicator(this._slideShelfIndicator);
 		await this.hideSlideShelf(this._slideShelf);
 		
 		this._shelfIsAnimating = false;
@@ -1159,6 +1193,52 @@ class Lapsa
 			element.style.transition = `margin-left ${duration}ms ${this.shelfAnimateOutEasing}, opacity ${duration}ms ${this.shelfAnimateOutEasing}`;
 			
 			element.style.marginLeft = `${-this._shelfMargin}px`;
+			element.style.opacity = 0;
+			
+			setTimeout(() =>
+			{
+				element.style.transition = oldTransitionStyle;
+				resolve();
+			}, duration);
+		});	
+	}
+	
+	showSlideShelfIndicator(element, duration = this.shelfAnimationTime)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			if (!this.useShelfIndicator)
+			{
+				resolve();
+				return;
+			}
+			
+			const oldTransitionStyle = element.style.transition;
+			element.style.transition = `opacity ${duration}ms ${this.shelfAnimateOutEasing}`;
+			
+			element.style.opacity = 1;
+			
+			setTimeout(() =>
+			{
+				element.style.transition = oldTransitionStyle;
+				resolve();
+			}, duration);
+		});
+	}
+	
+	hideSlideShelfIndicator(element, duration = this.shelfAnimationTime)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			if (!this.useShelfIndicator)
+			{
+				resolve();
+				return;
+			}
+			
+			const oldTransitionStyle = element.style.transition;
+			element.style.transition = `opacity ${duration}ms ${this.shelfAnimateInEasing}`;
+			
 			element.style.opacity = 0;
 			
 			setTimeout(() =>

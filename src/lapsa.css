@@ -104,7 +104,7 @@ body
 
 
 
-#lapsa-slide-shelf-container
+#lapsa-slide-shelf-container, #lapsa-slide-shelf-indicator-container
 {
 	position: fixed;
 	
@@ -120,6 +120,14 @@ body
 	flex-direction: column;
 	justify-content: center;
 	align-items: flex-start;
+	
+	z-index: 2;
+}
+
+#lapsa-slide-shelf-indicator-container
+{
+	align-items: center;
+	z-index: 1;
 }
 
 #lapsa-slide-shelf-container.permanent-shelf
@@ -129,6 +137,11 @@ body
 	align-items: end;
 	bottom: 15px;
 	left: 25px;
+}
+
+#lapsa-slide-shelf-indicator-container.permanent-shelf
+{
+	display: none;
 }
 
 #lapsa-slide-shelf
@@ -162,6 +175,13 @@ body
 	background-color: rgb(192, 192, 192);
 	cursor: pointer;
 }
+
+#lapsa-slide-shelf-indicator
+{
+	width: 30%;
+}
+
+
 
 #lapsa-bottom-margin
 {
