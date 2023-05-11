@@ -27,6 +27,8 @@ class Lapsa
 	windowHeightAnimationFrames = 8;
 	resizeOnTableView = false;
 	
+	dragDistanceThreshhold = 10;
+	
 	appendHTML = "";
 	
 	
@@ -63,6 +65,14 @@ class Lapsa
 	_resizeAnimationBound = null;
 	_missedResizeAnimation = false;
 	
+	_currentlyDragging = false;
+	_dragDistanceX = 0;
+	_lastTouchX = -1;
+	_dragDistanceY = 0;
+	_lastTouchY = -1;
+	_lastMoveThisDrag = 0;
+	
+	
 	
 	
 	/*
@@ -94,6 +104,8 @@ class Lapsa
 			
 			resizeOnTableView: false,
 			windowHeightAnimationFrames: 8,
+			
+			dragDistanceThreshhold = 10;
 		};
 	*/
 	
@@ -146,6 +158,8 @@ class Lapsa
 		this.tableViewEasing = options?.tableViewEasing ?? "cubic-bezier(.25, 1.0, .5, 1.0)";
 		
 		this.appendHTML = options?.appendHTML ?? "";
+		
+		this.dragDistanceThreshhold = options?.dragDistanceThreshhold ?? 10;
 		
 		
 		
@@ -203,6 +217,12 @@ class Lapsa
 			
 			
 			
+			element.addEventListener("touchstart", this._handleTouchstartEvent.bind(this));
+			
+			element.addEventListener("touchmove", this._handleTouchmoveEvent.bind(this));
+			
+			
+			
 			const builds = element.querySelectorAll(".build, [data-build]");
 			
 			let currentBuild = 0;
@@ -251,12 +271,12 @@ class Lapsa
 		this._shelfContainer.id = "lapsa-slide-shelf-container";
 		
 		this._shelfContainer.innerHTML = `
-			<div id="lapsa-slide-shelf" class="lapsa-hover" style="margin-left: ${this._shelfMargin}px; opacity: 0">
-				<input type="image" id="lapsa-up-2-button" class="shelf-button" src="${this.shelfIconPaths[0]}">
-				<input type="image" id="lapsa-up-1-button" class="shelf-button" src="${this.shelfIconPaths[1]}">
-				<input type="image" id="lapsa-table-button" class="shelf-button" src="${this.shelfIconPaths[2]}">
-				<input type="image" id="lapsa-down-1-button" class="shelf-button" src="${this.shelfIconPaths[3]}">
-				<input type="image" id="lapsa-down-2-button" class="shelf-button" src="${this.shelfIconPaths[4]}">
+			<div id="lapsa-slide-shelf" class="lapsa-hover lapsa-interactable" style="margin-left: ${this._shelfMargin}px; opacity: 0">
+				<input type="image" id="lapsa-up-2-button" class="shelf-button lapsa-interactable" src="${this.shelfIconPaths[0]}">
+				<input type="image" id="lapsa-up-1-button" class="shelf-button lapsa-interactable" src="${this.shelfIconPaths[1]}">
+				<input type="image" id="lapsa-table-button" class="shelf-button lapsa-interactable" src="${this.shelfIconPaths[2]}">
+				<input type="image" id="lapsa-down-1-button" class="shelf-button lapsa-interactable" src="${this.shelfIconPaths[3]}">
+				<input type="image" id="lapsa-down-2-button" class="shelf-button lapsa-interactable" src="${this.shelfIconPaths[4]}">
 			</div>
 		`;
 		
@@ -385,13 +405,13 @@ class Lapsa
 		
 		this._boundFunctions[0] = this._handleKeydownEvent.bind(this);
 		this._boundFunctions[1] = this._handleTouchstartEvent.bind(this);
-		this._boundFunctions[2] = this._handleTouchendEvent.bind(this);
+		this._boundFunctions[2] = this._handleTouchmoveEvent.bind(this);
 		this._boundFunctions[3] = this._handleMousemoveEvent.bind(this);
 		this._boundFunctions[4] = this._onResize.bind(this);
 		
 		document.documentElement.addEventListener("keydown", this._boundFunctions[0]);
 		document.documentElement.addEventListener("touchstart", this._boundFunctions[1]);
-		document.documentElement.addEventListener("touchend", this._boundFunctions[2]);
+		document.documentElement.addEventListener("touchmove", this._boundFunctions[2]);
 		document.documentElement.addEventListener("mousemove", this._boundFunctions[3]);
 		window.addEventListener("resize", this._boundFunctions[4]);
 		
@@ -403,6 +423,8 @@ class Lapsa
 	exit()
 	{
 		this.slideContainer.remove();
+		this._shelfContainer.remove();
+		this._shelfIndicatorContainer.remove();
 		
 		this.slides.forEach(element => element.remove());
 		
@@ -414,7 +436,7 @@ class Lapsa
 		
 		document.documentElement.removeEventListener("keydown", this._boundFunctions[0]);
 		document.documentElement.removeEventListener("touchstart", this._boundFunctions[1]);
-		document.documentElement.removeEventListener("touchend", this._boundFunctions[2]);
+		document.documentElement.removeEventListener("touchmove", this._boundFunctions[2]);
 		document.documentElement.removeEventListener("mousemove", this._boundFunctions[3]);
 		window.removeEventListener("resize", this._boundFunctions[4]);
 	}
@@ -1144,8 +1166,8 @@ class Lapsa
 		
 		setTimeout(async () =>
 		{
-			this.hideSlideShelfIndicator(this._slideShelfIndicator);
-			await this.showSlideShelf(this._slideShelf);
+			this._hideSlideShelfIndicator(this._slideShelfIndicator);
+			await this._showSlideShelf(this._slideShelf);
 			
 			this._shelfIsAnimating = false;
 		}, 16);
@@ -1165,8 +1187,8 @@ class Lapsa
 		
 		this._slideShelf.parentNode.style.paddingRight = "0";
 		
-		this.showSlideShelfIndicator(this._slideShelfIndicator);
-		await this.hideSlideShelf(this._slideShelf);
+		this._showSlideShelfIndicator(this._slideShelfIndicator);
+		await this._hideSlideShelf(this._slideShelf);
 		
 		this._slideShelf.style.display = "none";
 		this._slideShelf.parentNode.style.paddingRight = "";
@@ -1174,7 +1196,7 @@ class Lapsa
 		this._shelfIsAnimating = false;
 	}
 	
-	showSlideShelf(element, duration = this.shelfAnimationTime)
+	_showSlideShelf(element, duration = this.shelfAnimationTime)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -1192,7 +1214,7 @@ class Lapsa
 		});
 	}
 	
-	hideSlideShelf(element, duration = this.shelfAnimationTime)
+	_hideSlideShelf(element, duration = this.shelfAnimationTime)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -1210,7 +1232,7 @@ class Lapsa
 		});	
 	}
 	
-	showSlideShelfIndicator(element, duration = this.shelfAnimationTime)
+	_showSlideShelfIndicator(element, duration = this.shelfAnimationTime)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -1233,7 +1255,7 @@ class Lapsa
 		});
 	}
 	
-	hideSlideShelfIndicator(element, duration = this.shelfAnimationTime)
+	_hideSlideShelfIndicator(element, duration = this.shelfAnimationTime)
 	{
 		return new Promise((resolve, reject) =>
 		{
@@ -1273,35 +1295,102 @@ class Lapsa
 	
 	_handleTouchstartEvent(e)
 	{
-		this._maxTouches = Math.max(this._maxTouches, e.touches.length);
-		
 		this._currentlyTouchDevice = true;
 		this._slideShelf.classList.remove("lapsa-hover");
 		this.slideContainer.classList.remove("lapsa-hover");
+		
+		this._currentlyDragging = false;
+		
+		if (e.touches.length > 1 || e.target.classList.contains("lapsa-interactable"))
+		{
+			return;
+		}
+		
+		this._currentlyDragging = true;
+		
+		this._lastMoveThisDrag = 0;
+		
+		this._dragDistanceX = 0;
+		this.lastTouchX = -1;
+		this._dragDistanceY = 0;
+		this.lastTouchY = -1;
+	}
+	
+	_handleTouchmoveEvent(e)
+	{
+		if (!this._currentlyDragging || e.touches.length > 1)
+		{
+			return;
+		}
+		
+		if (e.target.classList.contains("lapsa-interactable"))
+		{
+			return;
+		}
+		
+		
+		
+		e.preventDefault();
+		
+		
+		
+		if (this.lastTouchY === -1)
+		{
+			this.lastTouchY = e.touches[0].clientY;
+		}
+		
+		else
+		{
+			this._dragDistanceY += e.touches[0].clientY - this.lastTouchY;
+			
+			this.lastTouchY = e.touches[0].clientY;
+			
+			if (this._dragDistanceY < -this.dragDistanceThreshhold && (this._lastMoveThisDrag === 0 || this._lastMoveThisDrag === -1))
+			{
+				this._lastMoveThisDrag = 1;
+				
+				this.nextSlide();
+			}
+			
+			else if (this._dragDistanceY > this.dragDistanceThreshhold && (this._lastMoveThisDrag === 0 || this._lastMoveThisDrag === 1))
+			{
+				this._lastMoveThisDrag = -1;
+				
+				this.previousSlide();
+			}
+		}
+		
+		
+		
+		if (this.lastTouchX === -1)
+		{
+			this.lastTouchX = e.touches[0].clientX;
+		}
+		
+		else
+		{
+			this._dragDistanceX += e.touches[0].clientX - this.lastTouchX;
+			
+			this.lastTouchX = e.touches[0].clientX;
+			
+			if (this._dragDistanceX < -this.dragDistanceThreshhold && (this._lastMoveThisDrag === 0 || this._lastMoveThisDrag === 2))
+			{
+				this._lastMoveThisDrag = -2;
+				
+				this.hideShelf();
+			}
+			
+			else if (this._dragDistanceX > this.dragDistanceThreshhold && (this._lastMoveThisDrag === 0 || this._lastMoveThisDrag === -2))
+			{
+				this._lastMoveThisDrag = 2;
+				
+				this.showShelf();
+			}
+		}
 	}
 	
 	_handleTouchendEvent(e)
 	{
-		if (this._maxTouches === 2)
-		{
-			this.nextSlide();
-		}
-		
-		else if (this._maxTouches === 3 && !this._shelfIsAnimating)
-		{
-			if (!this._shelfIsOpen)
-			{
-				this.showShelf();
-			}
-			
-			else
-			{
-				this.hideShelf();
-			}
-		}
-		
-		this._maxTouches = 0;
-		
 		setTimeout(() => this._slideShelf.classList.remove("lapsa-hover"), 50);
 		setTimeout(() => this.slideContainer.classList.remove("lapsa-hover"), 50);
 	}

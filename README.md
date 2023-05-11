@@ -14,20 +14,22 @@ The minimal compatible html file has the following form:
 <!DOCTYPE html>
 <html lang="en">
 	<head>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 		<link rel="stylesheet" type="text/css" href="lapsa.min.css">
 	</head>
 
 	<body>
 		<div id="lapsa-slide-container">
 			<div class="slide">
-				...
+				<!-- HTML for the first slide -->
 			</div>
 			
 			<div class="slide">
-				...
+				<!-- HTML for the second slide -->
 			</div>
 			
-			...
+			<!-- More slides... -->
 		</div>
 		
 		<script src="lapsa.min.js"></script>
@@ -60,6 +62,12 @@ Lapsa has many features relating to **builds**, which are ways that slides can c
 
 
 
+## Navigation
+
+Outside of the shelf, Lapsa provides many ways to navigate in an effort to support the first one the user tries, whatever that happens to be. With a keyboard, enter, space, and the down and right arrow keys all advance by a build, and the up and left arrow keys move back by one. On a touchscreen, swiping up and down navigates one build forward and back, respectively. For this to work, Lapsa adds `touchmove` event handlers on the html and every slide, which can interfere with custom elements that need to handle that input themselves. To reserve an element from processing `touchmove` events for Lapsa, give it the `.lapsa-interactable` class.
+
+
+
 ## Options
 
 To change Lapsa's behavior, add entries to the `options` object. A complete list of the options is as follows:
@@ -69,6 +77,7 @@ To change Lapsa's behavior, add entries to the `options` object. A complete list
 - `builds`: an object specifying slides' functional builds. See the next section for more details.
 - `startingSlide`: The index of the slide to open the presentation with. Default: `0`.
 - `appendHTML`: a snippet of HTML to append to every slide, typically used for easier theming. Default: `""`.
+- `dragDistanceThreshhold`: minimum distance in pixels for a drag to count for navigating or opening/closing the shelf. Set to `Infinity` to disable dragging entirely. default: `10`.
 - `useShelf`: boolean for whether to enable the shelf. If set to `false`, you will need to provide ways to call the navigation functions yourself. Default: `true`.
 - `useShelfIndicator`: boolean for whether to enable the shelf indicator, which is by default a small chevron to the left of the slide, showing that something is there. Default: `true`.
 - `permanentShelf`: boolean for whether to make the shelf always visible. If set to `true`, the shelf will always exist in the lower-left corner of the window. Default: `false`.
@@ -109,7 +118,10 @@ const options =
 			{
 				return new Promise((resolve, reject) =>
 				{
-					...
+					/*
+						Reset the slide to its initial or final position
+						(based on forward) over the course of duration ms.
+					*/
 				});
 			},
 			
@@ -119,7 +131,10 @@ const options =
 			{
 				return new Promise((resolve, reject) =>
 				{
-					...
+					/*
+						Animate from the initial state to the first build,
+						or vice versa, depending on forward.
+					*/
 				});
 			},
 			
@@ -129,7 +144,10 @@ const options =
 			{
 				return new Promise((resolve, reject) =>
 				{
-					...
+					/*
+						Animate from the state of build 2 to build 3,
+						or vice versa, depending on forward.
+					*/
 				});
 			}
 		}
@@ -181,6 +199,25 @@ To add theming HTML to every slide, set the `appendHTML` entry in the options. T
 ## Common Use Cases
 
 Standard HTML elements like images and videos can be added, scaled, and arranged like anything else. To add LaTeX-rendered math, [MathJax][2] is as excellent of a solution as ever.
+
+
+
+## Methods
+
+Many of Lapsa's methods can be called directly. They can be used to tweak the default behavior in ways the options don't support or completely supplant much of the standard functionality.
+
+Methods and properties prefixed with an underscore are intended to be private --- use and modify at your own risk. Listed here are only the methods intended for external use.
+
+- `exit()`: destroys the slide container, the shelf, and all of the slides, and removes all of the event listeners. While Lapsa is not intended to be used as part of a single-page site, this method can help return to a non-presentation state.
+- `nextSlide(skipBuilds = false)`: advances by a single build or an entire slide if `skipBuilds` is `true`. Returns a promise that resolves when the animation is complete, and has no effect if an animation is currently playing, if the table view is open, or if there are no further builds/slides. When moving to the next slide, it begins at the initial build state.
+- `previousSlide(skipBuilds = false)`: identical to `nextSlide`, but moves back by one build or slide instead. When moving to the previous slide, it begins at the final build state.
+- `jumpToSlide(index)`: moves to another slide and begins at the initial build state. Returns a promise that resolves when the animation completes, and has no effect if `index` is out of bounds or equal to the current slide's index.
+- `openTableView(duration = Lapsa.tableViewAnimationTime)`: opens the table view. Returns a promise that resolves when the animation completes, and has no effect if the table view is already open or an animation is taking place.
+- `closeTableView(selection, duration = Lapsa.tableViewAnimationTime)`: identical to `openTableView`, but closes the table view by returning to the slide with index `selection`.
+- `showShelf()`: shows the shelf. Returns a promise that resolves when the animation completes, and has no effect if the shelf is already animating or the option `permanentShelf` is enabled.
+- `hideShelf()`: identical to `showShelf`, but hides it instead.
+- `fadeUpIn(element, duration)`, `fadeUpOut(element, duration)`, `fadeDownIn(element, duration)`, `fadeDownOut(element, duration)`: animation functions for animating between slides that return promises that resolve when complete. When moving forward by a slide, `fadeUpOut` is called on the old slide, and then `fadeUpIn` is called on the new one. Similarly, when moving back a slide, `fadeDownOut` is called on the old slide, and then `fadeDownIn` is called on the new one. To change the duration or easing of these animations, it's easiest to set the relevant options, but redefining these functions entirely can allow for more complex behavior.
+- `buildIn(element, duration)`, `buildOut(element, duration)`: similar to the previous animation functions, but operate on HTML builds rather than slides.
 
 
 
