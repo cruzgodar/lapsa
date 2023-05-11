@@ -207,6 +207,8 @@ class Lapsa
 			
 			let currentBuild = 0;
 			
+			this._numBuilds[index] = 0;
+			
 			builds.forEach(buildElement =>
 			{
 				let attr = buildElement.getAttribute("data-build");
@@ -223,6 +225,8 @@ class Lapsa
 					currentBuild = parseInt(attr) + 1;
 				}
 				
+				this._numBuilds[index] = Math.max(this._numBuilds[index], currentBuild);
+				
 				buildElement.classList.remove("build");
 			});
 			
@@ -234,10 +238,8 @@ class Lapsa
 			
 			functionalBuildKeys.forEach(key => maxFunctionalBuild = Math.max(maxFunctionalBuild, (parseInt(key) + 1) || 0));
 			
-			this._numBuilds[index] = Math.max(currentBuild, maxFunctionalBuild);
+			this._numBuilds[index] = Math.max(this._numBuilds[index], maxFunctionalBuild);
 		});
-		
-		
 		
 		this._transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * this.transitionAnimationDistanceFactor * 159/82 : window.innerWidth * this.transitionAnimationDistanceFactor;
 		
@@ -574,7 +576,7 @@ class Lapsa
 				//Gross code because animation durations are weird as hell -- see the corresponding previousSlide block for a better example.
 				this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element =>
 				{
-					this.fadeUpIn(element, this.transitionAnimationTime * 2);
+					this.buildIn(element, this.transitionAnimationTime * 2);
 					
 					promises.push(new Promise((resolve, reject) => setTimeout(resolve, this.transitionAnimationTime)));
 				});
@@ -670,7 +672,7 @@ class Lapsa
 				
 				let promises = [];
 				
-				this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element => promises.push(this.fadeDownOut(element, this.transitionAnimationTime)));
+				this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element => promises.push(this.buildOut(element, this.transitionAnimationTime)));
 				
 				try {promises.push(this.callbacks[this.slides[this.currentSlide].id][this.buildState](this.slides[this.currentSlide], false))}
 				catch(ex) {}
@@ -1127,7 +1129,7 @@ class Lapsa
 	
 	async showShelf()
 	{
-		if (this.permanentShelf)
+		if (this.permanentShelf || this._shelfIsAnimating)
 		{
 			return;
 		}
@@ -1137,19 +1139,21 @@ class Lapsa
 		this._shelfIsOpen = true;
 		this._shelfIsAnimating = true;
 		
-		this._slideShelf.style.display = "";
+		this._slideShelf.style.display = "flex";
 		this._slideShelf.parentNode.style.paddingRight = "100px";
 		
-		
-		this.hideSlideShelfIndicator(this._slideShelfIndicator);
-		await this.showSlideShelf(this._slideShelf);
-		
-		this._shelfIsAnimating = false;
+		setTimeout(async () =>
+		{
+			this.hideSlideShelfIndicator(this._slideShelfIndicator);
+			await this.showSlideShelf(this._slideShelf);
+			
+			this._shelfIsAnimating = false;
+		}, 16);
 	}
 	
 	async hideShelf()
 	{
-		if (this.permanentShelf)
+		if (this.permanentShelf || this._shelfIsAnimating)
 		{
 			return;
 		}
@@ -1163,6 +1167,9 @@ class Lapsa
 		
 		this.showSlideShelfIndicator(this._slideShelfIndicator);
 		await this.hideSlideShelf(this._slideShelf);
+		
+		this._slideShelf.style.display = "none";
+		this._slideShelf.parentNode.style.paddingRight = "";
 		
 		this._shelfIsAnimating = false;
 	}
@@ -1398,6 +1405,55 @@ class Lapsa
 				element.style.transition = oldTransitionStyle;
 				resolve();
 			}, duration);
+		});
+	}
+	
+	
+	
+	buildIn(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			element.style.marginTop = `${this._transitionAnimationDistance}px`;
+			element.style.marginBottom = `${-this._transitionAnimationDistance}px`;
+			
+			setTimeout(() =>
+			{
+				const oldTransitionStyle = element.style.transition;
+				element.style.transition = `margin-top ${duration}ms ${this.slideAnimateInEasing}, margin-bottom ${duration}ms ${this.slideAnimateInEasing}, opacity ${duration}ms ${this.slideAnimateInEasing}`;
+				
+				element.style.marginTop = 0;
+				element.style.marginBottom = 0;
+				element.style.opacity = 1;
+				
+				setTimeout(() =>
+				{
+					element.style.transition = oldTransitionStyle;
+					resolve();
+				}, duration);
+			}, 16);
+		});
+	}
+	
+	buildOut(element, duration)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			setTimeout(() =>
+			{
+				const oldTransitionStyle = element.style.transition;
+				element.style.transition = `margin-top ${duration}ms ${this.slideAnimateInEasing}, margin-bottom ${duration}ms ${this.slideAnimateInEasing}, opacity ${duration}ms ${this.slideAnimateInEasing}`;
+				
+				element.style.marginTop = `${this._transitionAnimationDistance}px`;
+				element.style.marginBottom = `${-this._transitionAnimationDistance}px`;
+				element.style.opacity = 0;
+				
+				setTimeout(() =>
+				{
+					element.style.transition = oldTransitionStyle;
+					resolve();
+				}, duration);
+			}, 16);
 		});
 	}
 }
