@@ -54,7 +54,6 @@ class Lapsa
 	_inTableView = false;
 	
 	_boundFunctions = [null, null, null, null, null];
-	_maxTouches = 0;
 	_currentlyTouchDevice = false;
 	_lastMousemoveEvent = 0;
 	
@@ -271,7 +270,7 @@ class Lapsa
 		this._shelfContainer.id = "lapsa-slide-shelf-container";
 		
 		this._shelfContainer.innerHTML = `
-			<div id="lapsa-slide-shelf" class="lapsa-hover lapsa-interactable" style="margin-left: ${this._shelfMargin}px; opacity: 0">
+			<div id="lapsa-slide-shelf" class="lapsa-hover lapsa-interactable" style="margin-left: ${-this._shelfMargin}px; opacity: 0">
 				<input type="image" id="lapsa-up-2-button" class="shelf-button lapsa-interactable" src="${this.shelfIconPaths[0]}">
 				<input type="image" id="lapsa-up-1-button" class="shelf-button lapsa-interactable" src="${this.shelfIconPaths[1]}">
 				<input type="image" id="lapsa-table-button" class="shelf-button lapsa-interactable" src="${this.shelfIconPaths[2]}">
@@ -317,7 +316,7 @@ class Lapsa
 			if (this.permanentShelf)
 			{
 				this._shelfContainer.classList.add("permanent-shelf");
-				this.showSlideShelf(this._slideShelf);
+				this._showSlideShelf(this._slideShelf);
 				this._shelfIsAnimating = false;
 				this._shelfIsOpen = true;
 				
@@ -326,7 +325,7 @@ class Lapsa
 			
 			else
 			{
-				this.hideSlideShelf(this._slideShelf, 0);
+				this._hideSlideShelf(this._slideShelf, 0);
 			}
 			
 			
