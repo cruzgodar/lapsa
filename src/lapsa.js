@@ -1300,7 +1300,7 @@ class Lapsa
 		
 		this._currentlyDragging = false;
 		
-		if (e.touches.length > 1 || e.target.classList.contains("lapsa-interactable"))
+		if (this._inTableView || e.touches.length > 1 || e.target.classList.contains("lapsa-interactable"))
 		{
 			return;
 		}
@@ -1317,7 +1317,7 @@ class Lapsa
 	
 	_handleTouchmoveEvent(e)
 	{
-		if (!this._currentlyDragging || e.touches.length > 1)
+		if (this._inTableView || !this._currentlyDragging || e.touches.length > 1)
 		{
 			return;
 		}
