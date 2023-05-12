@@ -204,7 +204,8 @@ body
 .lapsa-align-bottom
 {
 	position: absolute;
-	bottom: 2.5vw;
+	padding-bottom: 0 !important;
+	bottom: 2.25vw;
 	left: 2.5vw;
 }
 
@@ -261,7 +262,7 @@ body
 	
 	.lapsa-align-bottom
 	{
-		bottom: calc(2.5 * var(--safe-vh) * 152 / 89);
+		bottom: calc(2.25 * var(--safe-vh) * 152 / 89);
 		left: calc(2.5 * var(--safe-vh) * 152 / 89);
 	}
 	
