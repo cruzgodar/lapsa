@@ -161,7 +161,7 @@ Functional builds take three arguments: the current slide, whether the build is 
 
 The `reset` function is called when the slide needs to be reset to its initial or final state. HTML builds take care of this automatically, but functional builds need to handle it manually. If the `forward` parameter is `true`, animate the slide back to its initial state over the course of `duration` milliseconds by reverting all of the builds. If `forward` is `false`, animate the slide to its final state. The `reset` function needs to work correctly from **any build state** in order for Lapsa to work properly. While it's not strictly necessary to take the exact duration specified, some cosmetic behavior may not work correctly if that's not the case. When the function is complete, call `resolve()` to tell Lapsa it can continue with what it's doing.
 
-The builds themselves are very similar. They take the same parameters, but they should specify a default value for `duration` — that is how long they will take to animate in typical conditions, but some circumstances may cause Lapsa to override the default value. If `forward` is `true`, animate the build in, and if it's false, animate the build out. Unlike the `reset` function, build functions only need to support being called from the build state immediately before or after themselves.
+The builds themselves are very similar. They take the same parameters, but they should specify a default value for `duration` — that's how long they will take to animate in typical conditions, but some circumstances may cause Lapsa to override the default value. If `forward` is `true`, animate the build in, and if it's false, animate the build out. Unlike the `reset` function, build functions only need to support being called from the build state immediately before or after themselves.
 
 For a thorough example of functional builds, see the demo project.
 
@@ -183,12 +183,12 @@ Modifying distances (for example, the border radius) is slightly more complicate
 {
 	#lapsa-slide-container .slide
 	{
-		padding: calc(1.5 * var(—safe-vh) * 152 / 89);
+		padding: calc(1.5 * var(--safe-vh) * 152 / 89);
 	}
 }
 ```
 
-The `—safe-vh` variable is calculated by Lapsa to avoid artefacts caused by browsers like iOS Safari that often intentionally report inaccurate viewport heights. The other factor of `152 / 89` is due to the 16:9 ratio of the slides and the surrounding padding and needs to be applied to all styles in this media query.
+The `--safe-vh` variable is calculated by Lapsa to avoid artefacts caused by browsers like iOS Safari that often intentionally report inaccurate viewport heights. The other factor of `152 / 89` is due to the 16:9 ratio of the slides and the surrounding padding and needs to be applied to all styles in this media query.
 
 Some styles cannot be modified: the width, height, and padding of slides are critical to the table view working properly and can't be changed without breaking it.
 
@@ -206,7 +206,7 @@ Standard HTML elements like images and videos can be added, scaled, and arranged
 
 Many of Lapsa's methods can be called directly. They can be used to tweak the default behavior in ways the options don't support or completely supplant much of the standard functionality.
 
-Methods and properties prefixed with an underscore are intended to be private --- use and modify at your own risk. Listed here are only the methods intended for external use.
+Methods and properties prefixed with an underscore are intended to be private – use and modify at your own risk. Listed here are only the methods intended for external use.
 
 - `exit()`: destroys the slide container, the shelf, and all of the slides, and removes all of the event listeners. While Lapsa is not intended to be used as part of a single-page site, this method can help return to a non-presentation state.
 - `nextSlide(skipBuilds = false)`: advances by a single build or an entire slide if `skipBuilds` is `true`. Returns a promise that resolves when the animation is complete, and has no effect if an animation is currently playing, if the table view is open, or if there are no further builds/slides. When moving to the next slide, it begins at the initial build state.
