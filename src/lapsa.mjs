@@ -1,4 +1,4 @@
-class Lapsa
+export default class Lapsa
 {
 	callbacks = {};
 	slideContainer = null;

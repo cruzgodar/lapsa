@@ -6,9 +6,9 @@ Lapsa (Latin for glide) is the incredibly simple way to build beautiful and inte
 
 ## Installation and Setup
 
-Add `lapsa.min.js` and `lapsa.min.css` to your project's folder and include them in the html. To use the built-in shelf feature, you'll also need to either add the `icons` folder and its contents or supply your own icons.
+Add `lapsa.min.js` and `lapsa.min.css` to your project's folder and include them in the HTML. To use the built-in shelf feature, you'll also need to either add the `icons` folder and its contents or supply your own icons.
 
-The minimal compatible html file has the following form:
+The minimal compatible HTML file has the following form:
 
 ```html
 <!DOCTYPE html>
@@ -39,7 +39,9 @@ The minimal compatible html file has the following form:
 </html>
 ```
 
-Create a JavaScript file and add it to the html. In the above example, it's called `index.js` and is located in the same directory as the html file. The minimal contents of that JS file are:
+If you prefer to use ES6 modules, add `lapsa.min.mjs` to your project instead, add `<script src="index.js" type="module"></script>` to the HTML, and begin `index.js` with `import Lapsa from "./lapsa.min.mjs";`
+
+Create a JavaScript file and add it to the HTML. In the above example, it's called `index.js` and is located in the same directory as the HTML file. The minimal contents of that JS file are:
 
 ```js
 const options =
@@ -64,7 +66,7 @@ Lapsa has many features relating to **builds**, which are ways that slides can c
 
 ## Navigation
 
-Outside of the shelf, Lapsa provides many ways to navigate in an effort to support the first one the user tries, whatever that happens to be. With a keyboard, enter, space, and the down and right arrow keys all advance by a build, and the up and left arrow keys move back by one. On a touchscreen, swiping up and down navigates one build forward and back, respectively. For this to work, Lapsa adds `touchmove` event handlers on the html and every slide, which can interfere with custom elements that need to handle that input themselves. To reserve an element from processing `touchmove` events for Lapsa, give it the `.lapsa-interactable` class.
+Outside of the shelf, Lapsa provides many ways to navigate in an effort to support the first one the user tries, whatever that happens to be. With a keyboard, enter, space, and the down and right arrow keys all advance by a build, and the up and left arrow keys move back by one. On a touchscreen, swiping up and down navigates one build forward and back, respectively. For this to work, Lapsa adds `touchmove` event handlers on the HTML and every slide, which can interfere with custom elements that need to handle that input themselves. To reserve an element from processing `touchmove` events for Lapsa, give it the `.lapsa-interactable` class.
 
 
 
