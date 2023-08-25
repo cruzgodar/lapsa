@@ -39,7 +39,7 @@ The minimal compatible HTML file has the following form:
 </html>
 ```
 
-If you prefer to use ES6 modules, add `lapsa.min.mjs` to your project instead, add `<script src="index.js" type="module"></script>` to the HTML, and begin `index.js` with `import Lapsa from "./lapsa.min.mjs";`
+If you prefer to use ES6 modules, add `lapsa.min.mjs` to your project instead, add `<script src="index.js" type="module"></script>` to the HTML, and begin `index.js` with `import Lapsa from "/path/to/lapsa.min.mjs";`
 
 Create a JavaScript file and add it to the HTML. In the above example, it's called `index.js` and is located in the same directory as the HTML file. The minimal contents of that JS file are:
 
