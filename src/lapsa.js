@@ -70,6 +70,8 @@ class Lapsa
 	_dragDistanceY = 0;
 	_lastTouchY = -1;
 	_lastMoveThisDrag = 0;
+
+	_safeVh = window.innerHeight / 100;
 	
 	
 	
@@ -262,7 +264,8 @@ class Lapsa
 		
 		this._transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152/89 ? window.innerHeight * this.transitionAnimationDistanceFactor * 159/82 : window.innerWidth * this.transitionAnimationDistanceFactor;
 		
-		this._rootSelector.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
+		this._safeVh = window.innerHeight / 100;
+		this._rootSelector.style.setProperty("--safe-vh", `${this._safeVh}px`);
 		
 		
 		
@@ -468,7 +471,9 @@ class Lapsa
 			//The first and last several slides have different animations since they can't be in the middle of the screen in the table view.
 			const centerSlide = Math.min(Math.max((scaledSlidesPerScreen - 1) / 2, this.currentSlide), this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2);
 			
-			const translation = bodyRect.width / bodyRect.height >= 152/89 ? `calc(${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale} * var(--safe-vh))` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale} * var(--safe-vh))`;
+			const translation = bodyRect.width / bodyRect.height >= 152/89
+				? (58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale * this._safeVh
+				: (58.125 * centerSlide) * scale * window.innerWidth / 100 - 100 * centerSlide * scale * this._safeVh;
 			
 			
 			
@@ -497,7 +502,7 @@ class Lapsa
 			
 			
 			
-			this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
+			this.slideContainer.style.transform = `matrix(${scale}, 0, 0, ${scale}, 0, ${translation})`;
 			
 			
 			if (this.resizeOnTableView)
@@ -517,11 +522,12 @@ class Lapsa
 		
 		else
 		{
-			this._rootSelector.style.setProperty("--safe-vh", `${window.innerHeight / 100}px`);
+			this._safeVh = window.innerHeight / 100;
+			this._rootSelector.style.setProperty("--safe-vh", `${this._safeVh}px`);
 			
 			this.slides.forEach((element, index) => element.parentNode.style.top = window.innerWidth / window.innerHeight >= 152/89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`);
 			
-			this.slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
+			this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * this._safeVh})`;
 		}
 	}
 	
@@ -546,7 +552,8 @@ class Lapsa
 		
 		
 		
-		this._rootSelector.style.setProperty("--safe-vh", `${newHeight / 100}px`);
+		this._safeVh = newHeight / 100;
+		this._rootSelector.style.setProperty("--safe-vh", `${this._safeVh}px`);
 		
 		if (this._inTableView)
 		{
@@ -558,9 +565,11 @@ class Lapsa
 			
 			const centerSlide = Math.min(Math.max((scaledSlidesPerScreen - 1) / 2, this.currentSlide), this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2);
 			
-			const translation = window.innerWidth / newHeight >= 152/89 ? `calc(${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale} * var(--safe-vh))` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale} * var(--safe-vh))`;
+			const translation = window.innerWidth / newHeight >= 152/89
+				? (58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale * this._safeVh
+				: (58.125 * centerSlide) * scale * window.innerWidth / 100 - 100 * centerSlide * scale * this._safeVh;
 			
-			this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
+			this.slideContainer.style.transform = `matrix(${scale}, 0, 0, ${scale}, 0, ${translation})`;
 		}
 		
 		
@@ -682,7 +691,7 @@ class Lapsa
 		
 		this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 0);
 		
-		this.slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
+		this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * this._safeVh})`;
 		
 		await this.fadeUpIn(this.slideContainer, this.transitionAnimationTime * 2);
 		
@@ -792,7 +801,7 @@ class Lapsa
 		
 		this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 1);
 		
-		this.slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
+		this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * this._safeVh})`;
 		
 		await this.fadeDownIn(this.slideContainer, this.transitionAnimationTime * 2);
 		
@@ -881,7 +890,7 @@ class Lapsa
 		
 		this.slides[this.currentSlide].querySelectorAll("[data-build]").forEach(element => element.style.opacity = 0);
 		
-		this.slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
+		this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * this._safeVh})`;
 		
 		if (forwardAnimation)
 		{
@@ -936,12 +945,16 @@ class Lapsa
 		
 		this.slideContainer.style.transformOrigin = `center calc(${this.currentSlide * 100 + 50} * var(--safe-vh))`;
 		
-		const translation = bodyRect.width / bodyRect.height >= 152/89 ? `calc(${(58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale} * var(--safe-vh))` : `calc(${(58.125 * centerSlide) * scale}vw - ${100 * centerSlide * scale} * var(--safe-vh))`;
+		const translation = bodyRect.width / bodyRect.height >= 152/89
+			? (58.125 * 152/89 * centerSlide - 100 * centerSlide) * scale * this._safeVh
+			: (58.125 * centerSlide) * scale * window.innerWidth / 100 - 100 * centerSlide * scale * this._safeVh;
 		
 		this.slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
 		
-		this.slideContainer.style.transform = bodyRect.width / bodyRect.height >= 152/89 ? `translateY(calc(${(this.currentSlide - centerSlide) * 58.125 * 152/89 * scale - 100 * this.currentSlide} * var(--safe-vh))) scale(${scale})` : `translateY(calc(${(this.currentSlide - centerSlide) * 58.125 * scale}vw - ${100 * this.currentSlide} * var(--safe-vh))) scale(${scale})`;
-		
+		this.slideContainer.style.transform = bodyRect.width / bodyRect.height >= 152/89
+			? `matrix(${scale}, 0, 0, ${scale}, 0, ${((this.currentSlide - centerSlide) * 58.125 * 152/89 * scale - 100 * this.currentSlide) * this._safeVh})`
+			: `matrix(${scale}, 0, 0, ${scale}, 0, ${(this.currentSlide - centerSlide) * 58.125 * scale * window.innerWidth / 100 - 100 * this.currentSlide * this._safeVh})`;
+
 		this.slides.forEach((element, index) =>
 		{
 			element.parentNode.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
@@ -1037,7 +1050,7 @@ class Lapsa
 				
 				this.slideContainer.style.transformOrigin = "center top";
 				
-				this.slideContainer.style.transform = `translateY(${translation}) scale(${scale})`;
+				this.slideContainer.style.transform = `matrix(${scale}, 0, 0, ${scale}, 0, ${translation})`;
 				
 				document.documentElement.style.overflowY = "visible";
 				
@@ -1116,7 +1129,7 @@ class Lapsa
 		
 		
 		
-		this.slideContainer.style.transform = `translateY(0) scale(${scale})`;
+		this.slideContainer.style.transform = `matrix(${scale}, 0, 0, ${scale}, 0, 0)`;
 		
 		window.scrollTo(0, 0);
 		
@@ -1124,7 +1137,7 @@ class Lapsa
 		
 		const scroll = correctTop - newTop;
 		
-		this.slideContainer.style.transform = `translateY(${scroll}px) scale(${scale})`;
+		this.slideContainer.style.transform = `matrix(${scale}, 0, 0, ${scale}, 0, ${scroll})`;
 		
 		
 		
@@ -1167,14 +1180,14 @@ class Lapsa
 		
 		//Someday, I will understand why these four lines need to be the way they are. And then I will finally rest.
 		this.slideContainer.style.transition = "";
-		this.slideContainer.style.transform = `translateY(${scroll}px) scale(${scale})`;
+		this.slideContainer.style.transform = `matrix(${scale}, 0, 0, ${scale}, 0, ${scroll})`;
 		
 		await new Promise(resolve =>
 		{
 			setTimeout(() =>
 			{
 				this.slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
-				this.slideContainer.style.transform = `translateY(calc(${-100 * this.currentSlide} * var(--safe-vh))) scale(1)`;
+				this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * this._safeVh})`;
 			
 				
 				this.slides.forEach((element, index) =>
