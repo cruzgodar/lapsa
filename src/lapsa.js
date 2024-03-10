@@ -33,9 +33,8 @@ const defaultOptions = {
     dragDistanceThreshhold: 10
 };
 class Lapsa {
-    constructor(options) {
+    constructor(inputOptions) {
         _Lapsa_instances.add(this);
-        this.callbacks = {};
         this.currentSlide = -1;
         this.buildState = 0;
         _Lapsa_rootSelector.set(this, void 0);
@@ -52,7 +51,7 @@ class Lapsa {
         _Lapsa_numBuilds.set(this, []);
         _Lapsa_currentlyAnimating.set(this, false);
         _Lapsa_inTableView.set(this, false);
-        _Lapsa_boundFunctions.set(this, [null, null, null, null, null]);
+        _Lapsa_boundFunctions.set(this, Array(5).fill(() => { }));
         _Lapsa_currentlyTouchDevice.set(this, false);
         _Lapsa_lastMousemoveEvent.set(this, 0);
         _Lapsa_lastWindowHeight.set(this, window.innerHeight);
@@ -68,9 +67,9 @@ class Lapsa {
         _Lapsa_lastTouchY.set(this, -1);
         _Lapsa_lastMoveThisDrag.set(this, 0);
         _Lapsa_safeVh.set(this, window.innerHeight / 100);
-        options = {
+        const options = {
+            ...inputOptions,
             ...defaultOptions,
-            ...options
         };
         this.callbacks = options.builds;
         this.transitionAnimationTime = options.transitionAnimationTime;
@@ -112,9 +111,17 @@ class Lapsa {
         this.tableViewEasing = options.tableViewEasing;
         this.appendHTML = options.appendHTML;
         this.dragDistanceThreshhold = options.dragDistanceThreshhold;
-        __classPrivateFieldSet(this, _Lapsa_rootSelector, document.querySelector(":root"), "f");
+        const rootElement = document.querySelector(":root");
+        if (!rootElement) {
+            throw new Error("[Lapsa] Root element doesn't exist");
+        }
+        __classPrivateFieldSet(this, _Lapsa_rootSelector, rootElement, "f");
         __classPrivateFieldSet(this, _Lapsa_resizeAnimationBound, __classPrivateFieldGet(this, _Lapsa_instances, "m", _Lapsa_resizeAnimation).bind(this), "f");
-        this.slideContainer = document.body.querySelector("#lapsa-slide-container");
+        const slideContainerElement = document.body.querySelector("#lapsa-slide-container");
+        if (!slideContainerElement) {
+            throw new Error("[Lapsa] Slide container element doesn't exist");
+        }
+        this.slideContainer = slideContainerElement;
         this.slideContainer.classList.add("lapsa-hover");
         __classPrivateFieldSet(this, _Lapsa_bottomMarginElement, document.createElement("div"), "f");
         __classPrivateFieldGet(this, _Lapsa_bottomMarginElement, "f").id = "lapsa-bottom-margin";
@@ -128,7 +135,7 @@ class Lapsa {
             wrapper.style.top = window.innerWidth / window.innerHeight >= 152 / 89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
             this.slideContainer.insertBefore(wrapper, element);
             wrapper.appendChild(element);
-            if (element.children.length !== 0) {
+            if (element.lastElementChild) {
                 element.lastElementChild.insertAdjacentHTML("afterend", this.appendHTML);
             }
             else {
@@ -190,9 +197,17 @@ class Lapsa {
         }
         setTimeout(() => window.scrollTo(0, 0), 10);
         setTimeout(() => {
-            __classPrivateFieldSet(this, _Lapsa_slideShelf, document.querySelector("#lapsa-slide-shelf"), "f");
+            const slideShelfElement = document.querySelector("#lapsa-slide-shelf");
+            if (!slideShelfElement) {
+                throw new Error("[Lapsa] Slide shelf element doesn't exist");
+            }
+            __classPrivateFieldSet(this, _Lapsa_slideShelf, slideShelfElement, "f");
             if (this.useShelfIndicator) {
-                __classPrivateFieldSet(this, _Lapsa_slideShelfIndicator, document.querySelector("#lapsa-slide-shelf-indicator"), "f");
+                const slideShelfIndicatorElement = document.querySelector("#lapsa-slide-shelf-indicator");
+                if (!slideShelfIndicatorElement) {
+                    throw new Error("[Lapsa] Slide shelf indicator element doesn't exist");
+                }
+                __classPrivateFieldSet(this, _Lapsa_slideShelfIndicator, slideShelfIndicatorElement, "f");
             }
             if (this.permanentShelf) {
                 __classPrivateFieldGet(this, _Lapsa_shelfContainer, "f").classList.add("permanent-shelf");
@@ -287,7 +302,9 @@ class Lapsa {
             const promises = [];
             // Gross code because animation durations are weird as hell --
             // see the corresponding previousSlide block for a better example.
-            this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element => {
+            this.slides[this.currentSlide]
+                .querySelectorAll(`[data-build="${this.buildState}"]`)
+                .forEach(element => {
                 this.buildIn(element, this.transitionAnimationTime * 2);
                 promises.push(new Promise(resolve => setTimeout(resolve, this.transitionAnimationTime)));
             });
@@ -348,8 +365,9 @@ class Lapsa {
         // If there's a build available, we do that instead of moving to the previous slide.
         if (!skipBuilds && __classPrivateFieldGet(this, _Lapsa_numBuilds, "f")[this.currentSlide] !== 0 && this.buildState !== 0) {
             this.buildState--;
-            const promises = [];
-            this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element => promises.push(this.buildOut(element, this.transitionAnimationTime)));
+            const promises = Array.from(this.slides[this.currentSlide]
+                .querySelectorAll(`[data-build="${this.buildState}"]`))
+                .map(element => this.buildOut(element, this.transitionAnimationTime));
             try {
                 const callbacks = this.callbacks[this.slides[this.currentSlide].id];
                 const callback = callbacks[this.buildState];
@@ -482,6 +500,9 @@ class Lapsa {
             ? `matrix(${scale}, 0, 0, ${scale}, 0, ${((this.currentSlide - centerSlide) * 58.125 * 152 / 89 * scale - 100 * this.currentSlide) * __classPrivateFieldGet(this, _Lapsa_safeVh, "f")})`
             : `matrix(${scale}, 0, 0, ${scale}, 0, ${(this.currentSlide - centerSlide) * 58.125 * scale * window.innerWidth / 100 - 100 * this.currentSlide * __classPrivateFieldGet(this, _Lapsa_safeVh, "f")})`;
         this.slides.forEach((element, index) => {
+            if (!element.parentElement) {
+                return;
+            }
             element.parentElement.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
             // On these, we include the top margin term to match with how
             // things were before -- otherwise, the transformation center will be misaligned.
@@ -524,6 +545,9 @@ class Lapsa {
                 const correctTop = this.slides[this.currentSlide].getBoundingClientRect().top;
                 this.slideContainer.style.transition = "";
                 this.slides.forEach((element, index) => {
+                    if (!element.parentElement) {
+                        return;
+                    }
                     element.parentElement.style.transition = "";
                     // Here, we no longer include the margin, since we don't want the slides
                     // to have a gap at the top. It's accounted for in the translation amount
@@ -585,6 +609,9 @@ class Lapsa {
         document.body.style.overflowY = "hidden";
         this.slideContainer.style.transformOrigin = `center calc(${centerSlide * 100 + 50} * var(--safe-vh))`;
         this.slides.forEach((element, index) => {
+            if (!element.parentElement) {
+                return;
+            }
             // On these, we include the top margin term to match with how things were before --
             // otherwise, the transformation center will be misaligned.
             if (bodyRect.width / bodyRect.height >= 152 / 89) {
@@ -634,6 +661,9 @@ class Lapsa {
                 this.slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
                 this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * __classPrivateFieldGet(this, _Lapsa_safeVh, "f")})`;
                 this.slides.forEach((element, index) => {
+                    if (!element.parentElement) {
+                        return;
+                    }
                     element.parentElement.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
                     element.parentElement.style.top = window.innerWidth / window.innerHeight >= 152 / 89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
                 });
@@ -643,7 +673,12 @@ class Lapsa {
                     });
                     this.buildState = 0;
                     this.slideContainer.style.transition = "";
-                    this.slides.forEach(element => element.parentElement.style.transition = "");
+                    this.slides.forEach(element => {
+                        if (!element.parentElement) {
+                            return;
+                        }
+                        element.parentElement.style.transition = "";
+                    });
                     __classPrivateFieldSet(this, _Lapsa_currentlyAnimating, false, "f");
                     __classPrivateFieldSet(this, _Lapsa_inTableView, false, "f");
                     document.body.style.position = "fixed";
@@ -658,7 +693,7 @@ class Lapsa {
         });
     }
     async showShelf() {
-        if (this.permanentShelf || __classPrivateFieldGet(this, _Lapsa_shelfIsAnimating, "f")) {
+        if (this.permanentShelf || __classPrivateFieldGet(this, _Lapsa_shelfIsAnimating, "f") || !__classPrivateFieldGet(this, _Lapsa_slideShelf, "f").parentElement) {
             return;
         }
         __classPrivateFieldSet(this, _Lapsa_shelfIsOpen, true, "f");
@@ -672,7 +707,7 @@ class Lapsa {
         }, 16);
     }
     async hideShelf() {
-        if (this.permanentShelf || __classPrivateFieldGet(this, _Lapsa_shelfIsAnimating, "f")) {
+        if (this.permanentShelf || __classPrivateFieldGet(this, _Lapsa_shelfIsAnimating, "f") || !__classPrivateFieldGet(this, _Lapsa_slideShelf, "f").parentElement) {
             return;
         }
         __classPrivateFieldSet(this, _Lapsa_shelfIsOpen, false, "f");
@@ -690,8 +725,8 @@ class Lapsa {
             setTimeout(() => {
                 const oldTransitionStyle = element.style.transition;
                 element.style.transition = `margin-top ${duration}ms ${this.slideAnimateInEasing}, opacity ${duration}ms ${this.slideAnimateInEasing}`;
-                element.style.marginTop = 0;
-                element.style.opacity = 1;
+                element.style.marginTop = "0";
+                element.style.opacity = "1";
                 setTimeout(() => {
                     element.style.transition = oldTransitionStyle;
                     resolve();
@@ -703,7 +738,7 @@ class Lapsa {
         const oldTransitionStyle = element.style.transition;
         element.style.transition = `margin-top ${duration}ms ${this.slideAnimateOutEasing}, opacity ${duration}ms ${this.slideAnimateOutEasing}`;
         element.style.marginTop = `${-__classPrivateFieldGet(this, _Lapsa_transitionAnimationDistance, "f")}px`;
-        element.style.opacity = 0;
+        element.style.opacity = "0";
         await new Promise(resolve => {
             setTimeout(() => {
                 element.style.transition = oldTransitionStyle;
@@ -717,8 +752,8 @@ class Lapsa {
             setTimeout(() => {
                 const oldTransitionStyle = element.style.transition;
                 element.style.transition = `margin-top ${duration}ms ${this.slideAnimateInEasing}, opacity ${duration}ms ${this.slideAnimateInEasing}`;
-                element.style.marginTop = 0;
-                element.style.opacity = 1;
+                element.style.marginTop = "0";
+                element.style.opacity = "1";
                 setTimeout(() => {
                     element.style.transition = oldTransitionStyle;
                     resolve();
@@ -730,7 +765,7 @@ class Lapsa {
         const oldTransitionStyle = element.style.transition;
         element.style.transition = `margin-top ${duration}ms ${this.slideAnimateOutEasing}, opacity ${duration}ms ${this.slideAnimateOutEasing}`;
         element.style.marginTop = `${__classPrivateFieldGet(this, _Lapsa_transitionAnimationDistance, "f")}px`;
-        element.style.opacity = 0;
+        element.style.opacity = "0";
         await new Promise(resolve => {
             setTimeout(() => {
                 element.style.transition = oldTransitionStyle;
@@ -745,9 +780,9 @@ class Lapsa {
             setTimeout(() => {
                 const oldTransitionStyle = element.style.transition;
                 element.style.transition = `margin-top ${duration}ms ${this.slideAnimateInEasing}, margin-bottom ${duration}ms ${this.slideAnimateInEasing}, opacity ${duration}ms ${this.slideAnimateInEasing}`;
-                element.style.marginTop = 0;
-                element.style.marginBottom = 0;
-                element.style.opacity = 1;
+                element.style.marginTop = "0";
+                element.style.marginBottom = "0";
+                element.style.opacity = "1";
                 setTimeout(() => {
                     element.style.transition = oldTransitionStyle;
                     resolve();
@@ -762,7 +797,7 @@ class Lapsa {
                 element.style.transition = `margin-top ${duration}ms ${this.slideAnimateInEasing}, margin-bottom ${duration}ms ${this.slideAnimateInEasing}, opacity ${duration}ms ${this.slideAnimateInEasing}`;
                 element.style.marginTop = `${__classPrivateFieldGet(this, _Lapsa_transitionAnimationDistance, "f")}px`;
                 element.style.marginBottom = `${-__classPrivateFieldGet(this, _Lapsa_transitionAnimationDistance, "f")}px`;
-                element.style.opacity = 0;
+                element.style.opacity = "0";
                 setTimeout(() => {
                     element.style.transition = oldTransitionStyle;
                     resolve();
@@ -793,6 +828,9 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
             : (58.125 * centerSlide) * scale * window.innerWidth / 100
                 - 100 * centerSlide * scale * __classPrivateFieldGet(this, _Lapsa_safeVh, "f");
         this.slides.forEach((element, index) => {
+            if (!element.parentElement) {
+                return;
+            }
             if (window.innerWidth / window.innerHeight >= 152 / 89) {
                 element.parentElement.style.top = `calc(${5 + 58.125 * 152 / 89 * (index - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
             }
@@ -819,12 +857,19 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
     else {
         __classPrivateFieldSet(this, _Lapsa_safeVh, window.innerHeight / 100, "f");
         __classPrivateFieldGet(this, _Lapsa_rootSelector, "f").style.setProperty("--safe-vh", `${__classPrivateFieldGet(this, _Lapsa_safeVh, "f")}px`);
-        this.slides.forEach((element, index) => element.parentElement.style.top = window.innerWidth / window.innerHeight >= 152 / 89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`);
+        this.slides.forEach((element, index) => {
+            if (!element.parentElement) {
+                return;
+            }
+            element.parentElement.style.top = window.innerWidth / window.innerHeight >= 152 / 89
+                ? `calc(${index * 100 + 2.5} * var(--safe-vh))`
+                : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
+        });
         this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * __classPrivateFieldGet(this, _Lapsa_safeVh, "f")})`;
     }
 }, _Lapsa_resizeAnimation = function _Lapsa_resizeAnimation(timestamp) {
     var _a;
-    const timeElapsed = timestamp = __classPrivateFieldGet(this, _Lapsa_windowHeightAnimationLastTimestamp, "f");
+    const timeElapsed = timestamp - __classPrivateFieldGet(this, _Lapsa_windowHeightAnimationLastTimestamp, "f");
     __classPrivateFieldSet(this, _Lapsa_windowHeightAnimationLastTimestamp, timestamp, "f");
     if (timeElapsed === 0) {
         return;
@@ -855,7 +900,7 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
     const oldTransitionStyle = element.style.transition;
     element.style.transition = `margin-left ${duration}ms ${this.shelfAnimateInEasing}, opacity ${duration}ms ${this.shelfAnimateInEasing}`;
     element.style.marginLeft = `${__classPrivateFieldGet(this, _Lapsa_shelfMargin, "f")}px`;
-    element.style.opacity = 1;
+    element.style.opacity = "1";
     await new Promise(resolve => {
         setTimeout(() => {
             element.style.transition = oldTransitionStyle;
@@ -866,7 +911,7 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
     const oldTransitionStyle = element.style.transition;
     element.style.transition = `margin-left ${duration}ms ${this.shelfAnimateOutEasing}, opacity ${duration}ms ${this.shelfAnimateOutEasing}`;
     element.style.marginLeft = `${-__classPrivateFieldGet(this, _Lapsa_shelfMargin, "f")}px`;
-    element.style.opacity = 0;
+    element.style.opacity = "0";
     await new Promise(resolve => {
         setTimeout(() => {
             element.style.transition = oldTransitionStyle;
@@ -879,7 +924,7 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
     }
     const oldTransitionStyle = element.style.transition;
     element.style.transition = `opacity ${duration}ms ${this.shelfAnimateOutEasing}`;
-    element.style.opacity = 1;
+    element.style.opacity = "1";
     await new Promise(resolve => {
         setTimeout(() => {
             element.style.transition = oldTransitionStyle;
@@ -892,7 +937,7 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
     }
     const oldTransitionStyle = element.style.transition;
     element.style.transition = `opacity ${duration}ms ${this.shelfAnimateInEasing}`;
-    element.style.opacity = 0;
+    element.style.opacity = "0";
     await new Promise(resolve => {
         setTimeout(() => {
             element.style.transition = oldTransitionStyle;
@@ -911,9 +956,11 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
     __classPrivateFieldGet(this, _Lapsa_slideShelf, "f").classList.remove("lapsa-hover");
     this.slideContainer.classList.remove("lapsa-hover");
     __classPrivateFieldSet(this, _Lapsa_currentlyDragging, false, "f");
+    const targetContainsLapsaInteractableClass = (e.target instanceof HTMLElement)
+        && e.target.classList.contains("lapsa-interactable");
     if (__classPrivateFieldGet(this, _Lapsa_inTableView, "f")
         || e.touches.length > 1
-        || e.target.classList.contains("lapsa-interactable")) {
+        || targetContainsLapsaInteractableClass) {
         return;
     }
     __classPrivateFieldSet(this, _Lapsa_currentlyDragging, true, "f");
@@ -926,7 +973,9 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
     if (__classPrivateFieldGet(this, _Lapsa_inTableView, "f") || !__classPrivateFieldGet(this, _Lapsa_currentlyDragging, "f") || e.touches.length > 1) {
         return;
     }
-    if (e.target.classList.contains("lapsa-interactable")) {
+    const targetContainsLapsaInteractableClass = (e.target instanceof HTMLElement)
+        && e.target.classList.contains("lapsa-interactable");
+    if (targetContainsLapsaInteractableClass) {
         return;
     }
     e.preventDefault();

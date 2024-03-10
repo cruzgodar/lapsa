@@ -9,6 +9,8 @@
 		"forceConsistentCasingInFileNames": true,
 		"skipLibCheck": true,
 		"strict": false,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
 		"paths":
 		{
 			"/*": ["*"]

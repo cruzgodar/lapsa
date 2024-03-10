@@ -1,6 +1,8 @@
+type Build = (slide: HTMLElement, forward: boolean, duration?: number) => void;
+
 type Options =
 {
-	builds: {},
+	builds: {[key: string]: {[key: string]: Build}},
 	
 	transitionAnimationTime: number,
 	transitionAnimationDistanceFactor: number,
@@ -65,7 +67,7 @@ const defaultOptions: Options = {
 
 class Lapsa
 {
-	callbacks = {};
+	callbacks: {[key: string]: {[key: string]: Build}};
 	slideContainer: HTMLElement;
 	slides: NodeListOf<HTMLElement>;
 	currentSlide: number = -1;
@@ -113,12 +115,12 @@ class Lapsa
 	#transitionAnimationDistance = 0;
 	
 	#startingSlide = 0;
-	#numBuilds = [];
+	#numBuilds: number[] = [];
 	
 	#currentlyAnimating = false;
 	#inTableView = false;
 	
-	#boundFunctions = [null, null, null, null, null];
+	#boundFunctions: (() => void)[] = Array(5).fill(() => {});
 	#currentlyTouchDevice = false;
 	#lastMousemoveEvent = 0;
 	
@@ -138,13 +140,13 @@ class Lapsa
 
 	#safeVh = window.innerHeight / 100;
 	
-	constructor(options: Partial<Options>)
+	constructor(inputOptions: Partial<Options>)
 	{
-		options = {
+		const options = {
+			...inputOptions,
 			...defaultOptions,
-			...options
 		};
-		
+
 		this.callbacks = options.builds;
 		
 		this.transitionAnimationTime = options.transitionAnimationTime;
@@ -206,14 +208,27 @@ class Lapsa
 		this.dragDistanceThreshhold = options.dragDistanceThreshhold;
 		
 		
-		
-		this.#rootSelector = document.querySelector<HTMLElement>(":root");
+		const rootElement = document.querySelector<HTMLElement>(":root");
+
+		if (!rootElement)
+		{
+			throw new Error("[Lapsa] Root element doesn't exist")
+		}
+
+		this.#rootSelector = rootElement;
 		
 		this.#resizeAnimationBound = this.#resizeAnimation.bind(this);
 		
 		
+
+		const slideContainerElement = document.body.querySelector<HTMLElement>("#lapsa-slide-container");
+
+		if (!slideContainerElement)
+		{
+			throw new Error("[Lapsa] Slide container element doesn't exist")
+		}
 		
-		this.slideContainer = document.body.querySelector("#lapsa-slide-container");
+		this.slideContainer = slideContainerElement;
 		this.slideContainer.classList.add("lapsa-hover");
 		
 		this.#bottomMarginElement = document.createElement("div");
@@ -237,7 +252,7 @@ class Lapsa
 			wrapper.appendChild(element);
 			
 			
-			if (element.children.length !== 0)
+			if (element.lastElementChild)
 			{
 				element.lastElementChild.insertAdjacentHTML("afterend", this.appendHTML);
 			}
@@ -357,11 +372,25 @@ class Lapsa
 		
 		setTimeout(() =>
 		{
-			this.#slideShelf = document.querySelector("#lapsa-slide-shelf");
+			const slideShelfElement = document.querySelector<HTMLElement>("#lapsa-slide-shelf");
+
+			if (!slideShelfElement)
+			{
+				throw new Error("[Lapsa] Slide shelf element doesn't exist")
+			}
+
+			this.#slideShelf = slideShelfElement;
 			
 			if (this.useShelfIndicator)
 			{
-				this.#slideShelfIndicator = document.querySelector("#lapsa-slide-shelf-indicator");
+				const slideShelfIndicatorElement = document.querySelector<HTMLElement>("#lapsa-slide-shelf-indicator");
+
+				if (!slideShelfIndicatorElement)
+				{
+					throw new Error("[Lapsa] Slide shelf indicator element doesn't exist")
+				}
+				
+				this.#slideShelfIndicator = slideShelfIndicatorElement;
 			}
 			
 			if (this.permanentShelf)
@@ -535,6 +564,11 @@ class Lapsa
 			
 			this.slides.forEach((element, index) =>
 			{
+				if (!element.parentElement)
+				{
+					return;
+				}
+
 				if (window.innerWidth / window.innerHeight >= 152 / 89)
 				{
 					element.parentElement.style.top = `calc(${5 + 58.125 * 152 / 89 * (index - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
@@ -581,7 +615,17 @@ class Lapsa
 			this.#safeVh = window.innerHeight / 100;
 			this.#rootSelector.style.setProperty("--safe-vh", `${this.#safeVh}px`);
 			
-			this.slides.forEach((element, index) => element.parentElement.style.top = window.innerWidth / window.innerHeight >= 152 / 89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`);
+			this.slides.forEach((element, index) =>
+			{
+				if (!element.parentElement)
+				{
+					return;
+				}
+
+				element.parentElement.style.top = window.innerWidth / window.innerHeight >= 152 / 89
+					? `calc(${index * 100 + 2.5} * var(--safe-vh))`
+					: `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`
+			});
 			
 			this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * this.#safeVh})`;
 		}
@@ -589,9 +633,9 @@ class Lapsa
 	
 	
 	
-	#resizeAnimation(timestamp)
+	#resizeAnimation(timestamp: number)
 	{
-		const timeElapsed = timestamp = this.#windowHeightAnimationLastTimestamp;
+		const timeElapsed = timestamp - this.#windowHeightAnimationLastTimestamp;
 		
 		this.#windowHeightAnimationLastTimestamp = timestamp;
 		
@@ -674,14 +718,16 @@ class Lapsa
 			
 			// Gross code because animation durations are weird as hell --
 			// see the corresponding previousSlide block for a better example.
-			this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element =>
-			{
-				this.buildIn(element, this.transitionAnimationTime * 2);
-				
-				promises.push(
-					new Promise(resolve => setTimeout(resolve, this.transitionAnimationTime))
-				);
-			});
+			this.slides[this.currentSlide]
+				.querySelectorAll<HTMLElement>(`[data-build="${this.buildState}"]`)
+				.forEach(element =>
+				{
+					this.buildIn(element, this.transitionAnimationTime * 2);
+					
+					promises.push(
+						new Promise(resolve => setTimeout(resolve, this.transitionAnimationTime))
+					);
+				});
 			
 			try
 			{
@@ -794,9 +840,9 @@ class Lapsa
 		{
 			this.buildState--;
 			
-			const promises = [];
-			
-			this.slides[this.currentSlide].querySelectorAll(`[data-build="${this.buildState}"]`).forEach(element => promises.push(this.buildOut(element, this.transitionAnimationTime)));
+			const promises = Array.from(this.slides[this.currentSlide]
+				.querySelectorAll<HTMLElement>(`[data-build="${this.buildState}"]`))
+				.map(element => this.buildOut(element, this.transitionAnimationTime));
 			
 			try
 			{
@@ -891,7 +937,7 @@ class Lapsa
 	
 	
 	
-	async jumpToSlide(index)
+	async jumpToSlide(index: number)
 	{
 		if (this.#currentlyAnimating || this.#inTableView)
 		{
@@ -1052,6 +1098,11 @@ class Lapsa
 
 		this.slides.forEach((element, index) =>
 		{
+			if (!element.parentElement)
+			{
+				return;
+			}
+
 			element.parentElement.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
 			
 			// On these, we include the top margin term to match with how
@@ -1123,6 +1174,11 @@ class Lapsa
 				
 				this.slides.forEach((element, index) =>
 				{
+					if (!element.parentElement)
+					{
+						return;
+					}
+
 					element.parentElement.style.transition = "";
 					
 					// Here, we no longer include the margin, since we don't want the slides
@@ -1179,7 +1235,7 @@ class Lapsa
 	
 	
 	
-	async closeTableView(selection, duration = this.tableViewAnimationTime)
+	async closeTableView(selection: number, duration = this.tableViewAnimationTime)
 	{
 		if (!this.#inTableView || this.#currentlyAnimating)
 		{
@@ -1227,6 +1283,11 @@ class Lapsa
 		
 		this.slides.forEach((element, index) =>
 		{
+			if (!element.parentElement)
+			{
+				return;
+			}
+
 			// On these, we include the top margin term to match with how things were before --
 			// otherwise, the transformation center will be misaligned.
 			if (bodyRect.width / bodyRect.height >= 152 / 89)
@@ -1313,6 +1374,11 @@ class Lapsa
 				
 				this.slides.forEach((element, index) =>
 				{
+					if (!element.parentElement)
+					{
+						return;
+					}
+
 					element.parentElement.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
 					
 					element.parentElement.style.top = window.innerWidth / window.innerHeight >= 152 / 89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
@@ -1328,7 +1394,15 @@ class Lapsa
 					
 					this.slideContainer.style.transition = "";
 					
-					this.slides.forEach(element => element.parentElement.style.transition = "");
+					this.slides.forEach(element =>
+					{
+						if (!element.parentElement)
+						{
+							return;
+						}
+						
+						element.parentElement.style.transition = "";
+					});
 					
 					this.#currentlyAnimating = false;
 					this.#inTableView = false;
@@ -1352,7 +1426,7 @@ class Lapsa
 	
 	async showShelf()
 	{
-		if (this.permanentShelf || this.#shelfIsAnimating)
+		if (this.permanentShelf || this.#shelfIsAnimating || !this.#slideShelf.parentElement)
 		{
 			return;
 		}
@@ -1376,7 +1450,7 @@ class Lapsa
 	
 	async hideShelf()
 	{
-		if (this.permanentShelf || this.#shelfIsAnimating)
+		if (this.permanentShelf || this.#shelfIsAnimating || !this.#slideShelf.parentElement)
 		{
 			return;
 		}
@@ -1397,13 +1471,13 @@ class Lapsa
 		this.#shelfIsAnimating = false;
 	}
 	
-	async #showSlideShelf(element, duration = this.shelfAnimationTime)
+	async #showSlideShelf(element: HTMLElement, duration = this.shelfAnimationTime)
 	{
 		const oldTransitionStyle = element.style.transition;
 		element.style.transition = `margin-left ${duration}ms ${this.shelfAnimateInEasing}, opacity ${duration}ms ${this.shelfAnimateInEasing}`;
 		
 		element.style.marginLeft = `${this.#shelfMargin}px`;
-		element.style.opacity = 1;
+		element.style.opacity = "1";
 		
 		await new Promise<void>(resolve =>
 		{
@@ -1415,13 +1489,13 @@ class Lapsa
 		});
 	}
 	
-	async #hideSlideShelf(element, duration = this.shelfAnimationTime)
+	async #hideSlideShelf(element: HTMLElement, duration = this.shelfAnimationTime)
 	{
 		const oldTransitionStyle = element.style.transition;
 		element.style.transition = `margin-left ${duration}ms ${this.shelfAnimateOutEasing}, opacity ${duration}ms ${this.shelfAnimateOutEasing}`;
 		
 		element.style.marginLeft = `${-this.#shelfMargin}px`;
-		element.style.opacity = 0;
+		element.style.opacity = "0";
 		
 		await new Promise<void>(resolve =>
 		{
@@ -1433,7 +1507,7 @@ class Lapsa
 		});
 	}
 	
-	async #showSlideShelfIndicator(element, duration = this.shelfAnimationTime)
+	async #showSlideShelfIndicator(element: HTMLElement, duration = this.shelfAnimationTime)
 	{
 		if (!this.useShelfIndicator)
 		{
@@ -1443,7 +1517,7 @@ class Lapsa
 		const oldTransitionStyle = element.style.transition;
 		element.style.transition = `opacity ${duration}ms ${this.shelfAnimateOutEasing}`;
 		
-		element.style.opacity = 1;
+		element.style.opacity = "1";
 		
 		await new Promise<void>(resolve =>
 		{
@@ -1455,7 +1529,7 @@ class Lapsa
 		});
 	}
 	
-	async #hideSlideShelfIndicator(element, duration = this.shelfAnimationTime)
+	async #hideSlideShelfIndicator(element: HTMLElement, duration = this.shelfAnimationTime)
 	{
 		if (!this.useShelfIndicator)
 		{
@@ -1465,7 +1539,7 @@ class Lapsa
 		const oldTransitionStyle = element.style.transition;
 		element.style.transition = `opacity ${duration}ms ${this.shelfAnimateInEasing}`;
 		
-		element.style.opacity = 0;
+		element.style.opacity = "0";
 		
 		await new Promise<void>(resolve =>
 		{
@@ -1479,7 +1553,7 @@ class Lapsa
 	
 	
 	
-	#handleKeydownEvent(e)
+	#handleKeydownEvent(e: KeyboardEvent)
 	{
 		if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " " || e.key === "Enter")
 		{
@@ -1492,18 +1566,21 @@ class Lapsa
 		}
 	}
 	
-	#handleTouchstartEvent(e)
+	#handleTouchstartEvent(e: TouchEvent)
 	{
 		this.#currentlyTouchDevice = true;
 		this.#slideShelf.classList.remove("lapsa-hover");
 		this.slideContainer.classList.remove("lapsa-hover");
 		
 		this.#currentlyDragging = false;
+
+		const targetContainsLapsaInteractableClass = (e.target instanceof HTMLElement)
+			&& e.target.classList.contains("lapsa-interactable");
 		
 		if (
 			this.#inTableView
 			|| e.touches.length > 1
-			|| e.target.classList.contains("lapsa-interactable")
+			|| targetContainsLapsaInteractableClass
 		) {
 			return;
 		}
@@ -1518,14 +1595,17 @@ class Lapsa
 		this.#lastTouchY = -1;
 	}
 	
-	#handleTouchmoveEvent(e)
+	#handleTouchmoveEvent(e: TouchEvent)
 	{
 		if (this.#inTableView || !this.#currentlyDragging || e.touches.length > 1)
 		{
 			return;
 		}
+
+		const targetContainsLapsaInteractableClass = (e.target instanceof HTMLElement)
+			&& e.target.classList.contains("lapsa-interactable");
 		
-		if (e.target.classList.contains("lapsa-interactable"))
+		if (targetContainsLapsaInteractableClass)
 		{
 			return;
 		}
@@ -1643,7 +1723,7 @@ class Lapsa
 	
 	
 	
-	async fadeUpIn(element, duration)
+	async fadeUpIn(element: HTMLElement, duration: number)
 	{
 		element.style.marginTop = `${this.#transitionAnimationDistance}px`;
 		
@@ -1654,8 +1734,8 @@ class Lapsa
 				const oldTransitionStyle = element.style.transition;
 				element.style.transition = `margin-top ${duration}ms ${this.slideAnimateInEasing}, opacity ${duration}ms ${this.slideAnimateInEasing}`;
 				
-				element.style.marginTop = 0;
-				element.style.opacity = 1;
+				element.style.marginTop = "0";
+				element.style.opacity = "1";
 			
 				setTimeout(() =>
 				{
@@ -1666,13 +1746,13 @@ class Lapsa
 		});
 	}
 	
-	async fadeUpOut(element, duration)
+	async fadeUpOut(element: HTMLElement, duration: number)
 	{
 		const oldTransitionStyle = element.style.transition;
 		element.style.transition = `margin-top ${duration}ms ${this.slideAnimateOutEasing}, opacity ${duration}ms ${this.slideAnimateOutEasing}`;
 		
 		element.style.marginTop = `${-this.#transitionAnimationDistance}px`;
-		element.style.opacity = 0;
+		element.style.opacity = "0";
 		
 		await new Promise<void>(resolve =>
 		{
@@ -1684,7 +1764,7 @@ class Lapsa
 		});
 	}
 	
-	async fadeDownIn(element, duration)
+	async fadeDownIn(element: HTMLElement, duration: number)
 	{
 		element.style.marginTop = `${-this.#transitionAnimationDistance}px`;
 		
@@ -1695,8 +1775,8 @@ class Lapsa
 				const oldTransitionStyle = element.style.transition;
 				element.style.transition = `margin-top ${duration}ms ${this.slideAnimateInEasing}, opacity ${duration}ms ${this.slideAnimateInEasing}`;
 				
-				element.style.marginTop = 0;
-				element.style.opacity = 1;
+				element.style.marginTop = "0";
+				element.style.opacity = "1";
 				
 				setTimeout(() =>
 				{
@@ -1707,13 +1787,13 @@ class Lapsa
 		});
 	}
 	
-	async fadeDownOut(element, duration)
+	async fadeDownOut(element: HTMLElement, duration: number)
 	{
 		const oldTransitionStyle = element.style.transition;
 		element.style.transition = `margin-top ${duration}ms ${this.slideAnimateOutEasing}, opacity ${duration}ms ${this.slideAnimateOutEasing}`;
 		
 		element.style.marginTop = `${this.#transitionAnimationDistance}px`;
-		element.style.opacity = 0;
+		element.style.opacity = "0";
 		
 		await new Promise<void>(resolve =>
 		{
@@ -1727,7 +1807,7 @@ class Lapsa
 	
 	
 	
-	async buildIn(element, duration)
+	async buildIn(element: HTMLElement, duration: number)
 	{
 		element.style.marginTop = `${this.#transitionAnimationDistance}px`;
 		element.style.marginBottom = `${-this.#transitionAnimationDistance}px`;
@@ -1739,9 +1819,9 @@ class Lapsa
 				const oldTransitionStyle = element.style.transition;
 				element.style.transition = `margin-top ${duration}ms ${this.slideAnimateInEasing}, margin-bottom ${duration}ms ${this.slideAnimateInEasing}, opacity ${duration}ms ${this.slideAnimateInEasing}`;
 				
-				element.style.marginTop = 0;
-				element.style.marginBottom = 0;
-				element.style.opacity = 1;
+				element.style.marginTop = "0";
+				element.style.marginBottom = "0";
+				element.style.opacity = "1";
 				
 				setTimeout(() =>
 				{
@@ -1752,7 +1832,7 @@ class Lapsa
 		});
 	}
 	
-	async buildOut(element, duration)
+	async buildOut(element: HTMLElement, duration: number)
 	{
 		await new Promise<void>(resolve =>
 		{
@@ -1763,7 +1843,7 @@ class Lapsa
 				
 				element.style.marginTop = `${this.#transitionAnimationDistance}px`;
 				element.style.marginBottom = `${-this.#transitionAnimationDistance}px`;
-				element.style.opacity = 0;
+				element.style.opacity = "0";
 				
 				setTimeout(() =>
 				{
