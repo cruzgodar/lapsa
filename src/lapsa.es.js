@@ -10,43 +10,82 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _Lapsa_instances, _Lapsa_rootSelector, _Lapsa_bottomMarginElement, _Lapsa_shelfContainer, _Lapsa_slideShelf, _Lapsa_shelfMargin, _Lapsa_shelfIsOpen, _Lapsa_shelfIsAnimating, _Lapsa_shelfIndicatorContainer, _Lapsa_slideShelfIndicator, _Lapsa_transitionAnimationDistance, _Lapsa_startingSlide, _Lapsa_numBuilds, _Lapsa_currentlyAnimating, _Lapsa_inTableView, _Lapsa_boundFunctions, _Lapsa_currentlyTouchDevice, _Lapsa_lastMousemoveEvent, _Lapsa_lastWindowHeight, _Lapsa_startWindowHeight, _Lapsa_windowHeightAnimationFrame, _Lapsa_windowHeightAnimationLastTimestamp, _Lapsa_resizeAnimationBound, _Lapsa_missedResizeAnimation, _Lapsa_currentlyDragging, _Lapsa_dragDistanceX, _Lapsa_lastTouchX, _Lapsa_dragDistanceY, _Lapsa_lastTouchY, _Lapsa_lastMoveThisDrag, _Lapsa_safeVh, _Lapsa_onResize, _Lapsa_resizeAnimation, _Lapsa_showSlideShelf, _Lapsa_hideSlideShelf, _Lapsa_showSlideShelfIndicator, _Lapsa_hideSlideShelfIndicator, _Lapsa_handleKeydownEvent, _Lapsa_handleTouchstartEvent, _Lapsa_handleTouchmoveEvent, _Lapsa_handleTouchendEvent, _Lapsa_handleMousemoveEvent;
-const defaultOptions = {
-    builds: {},
-    transitionAnimationTime: 150,
-    transitionAnimationDistanceFactor: .015,
-    tableViewAnimationTime: 600,
-    shelfAnimationTime: 275,
-    slideAnimateInEasing: "cubic-bezier(.4, 1.0, .7, 1.0)",
-    slideAnimateOutEasing: "cubic-bezier(.1, 0.0, .2, 0.0)",
-    shelfAnimateInEasing: "cubic-bezier(.4, 1.0, .7, 1.0)",
-    shelfAnimateOutEasing: "cubic-bezier(.4, 0.0, .4, 1.0)",
-    tableViewEasing: "cubic-bezier(.25, 1.0, .5, 1.0)",
-    appendHTML: "",
-    startingSlide: 0,
-    tableViewSlidesPerScreen: 4,
-    useShelf: true,
-    useShelfIndicator: true,
-    permanentShelf: false,
-    shelfIconPaths: "/icons/",
-    resizeOnTableView: false,
-    windowHeightAnimationFrames: 8,
-    dragDistanceThreshhold: 10
-};
 class Lapsa {
+    /*
+        options =
+        {
+            builds: {},
+            
+            transitionAnimationTime: 150,
+            transitionAnimationDistanceFactor: .015,
+            
+            tableViewAnimationTime = 600,
+            shelfAnimationTime = 275,
+            
+            slideAnimateInEasing: "cubic-bezier(.4, 1.0, .7, 1.0)",
+            slideAnimateOutEasing: "cubic-bezier(.1, 0.0, .2, 0.0)",
+            shelfAnimateInEasing: "cubic-bezier(.4, 1.0, .7, 1.0)",
+            shelfAnimateOutEasing: "cubic-bezier(.4, 0.0, .4, 1.0)",
+            tableViewEasing: "cubic-bezier(.25, 1.0, .5, 1.0)",
+            
+            appendHTML: ""
+            
+            startingSlide: 0,
+            tableViewSlidesPerScreen = 4,
+            
+            useShelf: true,
+            useShelfIndicator: true,
+            permanentShelf: false,
+            shelfIconPaths: "/icons/",
+            
+            resizeOnTableView: false,
+            windowHeightAnimationFrames: 8,
+            
+            dragDistanceThreshhold = 10;
+        };
+    */
     constructor(options) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
         _Lapsa_instances.add(this);
         this.callbacks = {};
+        this.slideContainer = null;
+        this.slides = [];
         this.currentSlide = -1;
         this.buildState = 0;
-        _Lapsa_rootSelector.set(this, void 0);
-        _Lapsa_bottomMarginElement.set(this, void 0);
-        _Lapsa_shelfContainer.set(this, void 0);
-        _Lapsa_slideShelf.set(this, void 0);
+        this.tableViewSlidesPerScreen = 4;
+        this.useShelf = true;
+        this.useShelfIndicator = true;
+        this.permanentShelf = false;
+        this.shelfIconPaths = [
+            "/icons/up-2.png",
+            "/icons/up-1.png",
+            "/icons/table.png",
+            "/icons/down-1.png",
+            "/icons/down-2.png",
+            "/icons/shelf-indicator.png"
+        ];
+        this.transitionAnimationTime = 150;
+        this.transitionAnimationDistanceFactor = .015;
+        this.tableViewAnimationTime = 600;
+        this.shelfAnimationTime = 275;
+        this.tableViewEasing = "cubic-bezier(.25, 1.0, .5, 1.0)";
+        this.slideAnimateInEasing = "cubic-bezier(.4, 1.0, .7, 1.0)";
+        this.slideAnimateOutEasing = "cubic-bezier(.1, 0.0, .2, 0.0)";
+        this.shelfAnimateInEasing = "cubic-bezier(.4, 1.0, .7, 1.0)";
+        this.shelfAnimateOutEasing = "cubic-bezier(.4, 0.0, .4, 1.0)";
+        this.windowHeightAnimationFrames = 8;
+        this.resizeOnTableView = false;
+        this.dragDistanceThreshhold = 10;
+        this.appendHTML = "";
+        _Lapsa_rootSelector.set(this, null);
+        _Lapsa_bottomMarginElement.set(this, null);
+        _Lapsa_shelfContainer.set(this, null);
+        _Lapsa_slideShelf.set(this, null);
         _Lapsa_shelfMargin.set(this, 15);
         _Lapsa_shelfIsOpen.set(this, false);
         _Lapsa_shelfIsAnimating.set(this, false);
-        _Lapsa_shelfIndicatorContainer.set(this, void 0);
-        _Lapsa_slideShelfIndicator.set(this, void 0);
+        _Lapsa_shelfIndicatorContainer.set(this, null);
+        _Lapsa_slideShelfIndicator.set(this, null);
         _Lapsa_transitionAnimationDistance.set(this, 0);
         _Lapsa_startingSlide.set(this, 0);
         _Lapsa_numBuilds.set(this, []);
@@ -59,7 +98,7 @@ class Lapsa {
         _Lapsa_startWindowHeight.set(this, window.innerHeight);
         _Lapsa_windowHeightAnimationFrame.set(this, 0);
         _Lapsa_windowHeightAnimationLastTimestamp.set(this, -1);
-        _Lapsa_resizeAnimationBound.set(this, void 0);
+        _Lapsa_resizeAnimationBound.set(this, null);
         _Lapsa_missedResizeAnimation.set(this, false);
         _Lapsa_currentlyDragging.set(this, false);
         _Lapsa_dragDistanceX.set(this, 0);
@@ -68,50 +107,39 @@ class Lapsa {
         _Lapsa_lastTouchY.set(this, -1);
         _Lapsa_lastMoveThisDrag.set(this, 0);
         _Lapsa_safeVh.set(this, window.innerHeight / 100);
-        options = {
-            ...defaultOptions,
-            ...options
-        };
-        this.callbacks = options.builds;
-        this.transitionAnimationTime = options.transitionAnimationTime;
-        this.transitionAnimationDistanceFactor = options.transitionAnimationDistanceFactor;
-        this.tableViewAnimationTime = options.tableViewAnimationTime;
-        this.shelfAnimationTime = options.shelfAnimationTime;
-        this.resizeOnTableView = options.resizeOnTableView;
-        this.windowHeightAnimationFrames = options.windowHeightAnimationFrames;
-        __classPrivateFieldSet(this, _Lapsa_startingSlide, options.startingSlide, "f");
-        this.tableViewSlidesPerScreen = options.tableViewSlidesPerScreen;
-        this.useShelf = options.useShelf;
-        this.useShelfIndicator = options.useShelfIndicator;
-        this.permanentShelf = options.permanentShelf;
-        this.shelfIconPaths = options.shelfIconPaths;
+        this.callbacks = (_a = options === null || options === void 0 ? void 0 : options.builds) !== null && _a !== void 0 ? _a : {};
+        this.transitionAnimationTime = (_b = options === null || options === void 0 ? void 0 : options.transitionAnimationTime) !== null && _b !== void 0 ? _b : 150;
+        this.transitionAnimationDistanceFactor = (_c = options === null || options === void 0 ? void 0 : options.transitionAnimationDistanceFactor) !== null && _c !== void 0 ? _c : .015;
+        this.tableViewAnimationTime = (_d = options === null || options === void 0 ? void 0 : options.tableViewAnimationTime) !== null && _d !== void 0 ? _d : 600;
+        this.shelfAnimationTime = (_e = options === null || options === void 0 ? void 0 : options.shelfAnimationTime) !== null && _e !== void 0 ? _e : 275;
+        this.resizeOnTableView = (_f = options === null || options === void 0 ? void 0 : options.resizeOnTableView) !== null && _f !== void 0 ? _f : false;
+        this.windowHeightAnimationFrames = (_g = options === null || options === void 0 ? void 0 : options.windowHeightAnimationFrames) !== null && _g !== void 0 ? _g : 8;
+        __classPrivateFieldSet(this, _Lapsa_startingSlide, (_h = options === null || options === void 0 ? void 0 : options.startingSlide) !== null && _h !== void 0 ? _h : 0, "f");
+        this.tableViewSlidesPerScreen = (_j = options === null || options === void 0 ? void 0 : options.tableViewSlidesPerScreen) !== null && _j !== void 0 ? _j : 4;
+        this.useShelf = (_k = options === null || options === void 0 ? void 0 : options.useShelf) !== null && _k !== void 0 ? _k : true;
+        this.useShelfIndicator = (_l = options === null || options === void 0 ? void 0 : options.useShelfIndicator) !== null && _l !== void 0 ? _l : true;
+        this.permanentShelf = (_m = options === null || options === void 0 ? void 0 : options.permanentShelf) !== null && _m !== void 0 ? _m : false;
+        this.shelfIconPaths = (_o = options === null || options === void 0 ? void 0 : options.shelfIconPaths) !== null && _o !== void 0 ? _o : "/icons/";
         if (typeof this.shelfIconPaths === "string") {
             if (this.shelfIconPaths.length >= 1
                 && this.shelfIconPaths[this.shelfIconPaths.length - 1] !== "/") {
                 this.shelfIconPaths = `${this.shelfIconPaths}/`;
             }
-            this.shelfIconPaths = [
-                `${this.shelfIconPaths}up-2.png`,
-                `${this.shelfIconPaths}up-1.png`,
-                `${this.shelfIconPaths}table.png`,
-                `${this.shelfIconPaths}down-1.png`,
-                `${this.shelfIconPaths}down-2.png`,
-                `${this.shelfIconPaths}shelf-indicator.png`
-            ];
+            this.shelfIconPaths = [`${this.shelfIconPaths}up-2.png`, `${this.shelfIconPaths}up-1.png`, `${this.shelfIconPaths}table.png`, `${this.shelfIconPaths}down-1.png`, `${this.shelfIconPaths}down-2.png`, `${this.shelfIconPaths}shelf-indicator.png`];
         }
         if (this.shelfIconPaths.length < 5 && this.useShelf) {
-            throw new Error("[Lapsa] Not enough shelf icons provided!");
+            console.error("[Lapsa] Not enough shelf icons provided!");
         }
         if (this.shelfIconPaths.length < 6 && this.useShelfIndicator) {
-            throw new Error("[Lapsa] No shelf indicator icon provided!");
+            console.error("[Lapsa] No shelf indicator icon provided!");
         }
-        this.slideAnimateInEasing = options.slideAnimateInEasing;
-        this.slideAnimateOutEasing = options.slideAnimateOutEasing;
-        this.shelfAnimateInEasing = options.shelfAnimateInEasing;
-        this.shelfAnimateOutEasing = options.shelfAnimateOutEasing;
-        this.tableViewEasing = options.tableViewEasing;
-        this.appendHTML = options.appendHTML;
-        this.dragDistanceThreshhold = options.dragDistanceThreshhold;
+        this.slideAnimateInEasing = (_p = options === null || options === void 0 ? void 0 : options.slideAnimateInEasing) !== null && _p !== void 0 ? _p : "cubic-bezier(.4, 1.0, .7, 1.0)";
+        this.slideAnimateOutEasing = (_q = options === null || options === void 0 ? void 0 : options.slideAnimateOutEasing) !== null && _q !== void 0 ? _q : "cubic-bezier(.1, 0.0, .2, 0.0)";
+        this.shelfAnimateInEasing = (_r = options === null || options === void 0 ? void 0 : options.shelfAnimateInEasing) !== null && _r !== void 0 ? _r : "cubic-bezier(.4, 1.0, .7, 1.0)";
+        this.shelfAnimateOutEasing = (_s = options === null || options === void 0 ? void 0 : options.shelfAnimateOutEasing) !== null && _s !== void 0 ? _s : "cubic-bezier(.4, 0.0, .4, 1.0)";
+        this.tableViewEasing = (_t = options === null || options === void 0 ? void 0 : options.tableViewEasing) !== null && _t !== void 0 ? _t : "cubic-bezier(.25, 1.0, .5, 1.0)";
+        this.appendHTML = (_u = options === null || options === void 0 ? void 0 : options.appendHTML) !== null && _u !== void 0 ? _u : "";
+        this.dragDistanceThreshhold = (_v = options === null || options === void 0 ? void 0 : options.dragDistanceThreshhold) !== null && _v !== void 0 ? _v : 10;
         __classPrivateFieldSet(this, _Lapsa_rootSelector, document.querySelector(":root"), "f");
         __classPrivateFieldSet(this, _Lapsa_resizeAnimationBound, __classPrivateFieldGet(this, _Lapsa_instances, "m", _Lapsa_resizeAnimation).bind(this), "f");
         this.slideContainer = document.body.querySelector("#lapsa-slide-container");
@@ -148,7 +176,7 @@ class Lapsa {
             builds.forEach(buildElement => {
                 const attr = buildElement.getAttribute("data-build");
                 if (attr === null) {
-                    buildElement.setAttribute("data-build", currentBuild.toString());
+                    buildElement.setAttribute("data-build", currentBuild);
                     currentBuild++;
                 }
                 else {
@@ -248,6 +276,7 @@ class Lapsa {
         document.documentElement.style.overflowY = "hidden";
         document.body.style.overflowY = "hidden";
         document.body.style.userSelect = "none";
+        document.body.style.WebkitUserSelect = "none";
         __classPrivateFieldGet(this, _Lapsa_boundFunctions, "f")[0] = __classPrivateFieldGet(this, _Lapsa_instances, "m", _Lapsa_handleKeydownEvent).bind(this);
         __classPrivateFieldGet(this, _Lapsa_boundFunctions, "f")[1] = __classPrivateFieldGet(this, _Lapsa_instances, "m", _Lapsa_handleTouchstartEvent).bind(this);
         __classPrivateFieldGet(this, _Lapsa_boundFunctions, "f")[2] = __classPrivateFieldGet(this, _Lapsa_instances, "m", _Lapsa_handleTouchmoveEvent).bind(this);
@@ -269,6 +298,7 @@ class Lapsa {
         document.body.style.overflowY = "visible";
         document.body.style.height = "fit-content";
         document.body.style.userSelect = "auto";
+        document.body.style.WebkitUserSelect = "auto";
         document.documentElement.removeEventListener("keydown", __classPrivateFieldGet(this, _Lapsa_boundFunctions, "f")[0]);
         document.documentElement.removeEventListener("touchstart", __classPrivateFieldGet(this, _Lapsa_boundFunctions, "f")[1]);
         document.documentElement.removeEventListener("touchmove", __classPrivateFieldGet(this, _Lapsa_boundFunctions, "f")[2]);
@@ -322,7 +352,7 @@ class Lapsa {
                 // No reset defined
             }
             this.slides[this.currentSlide].querySelectorAll("[data-build]")
-                .forEach(element => element.style.opacity = "1");
+                .forEach(element => element.style.opacity = 1);
         }
         this.currentSlide++;
         this.buildState = 0;
@@ -335,7 +365,7 @@ class Lapsa {
             // No reset defined
         }
         this.slides[this.currentSlide].querySelectorAll("[data-build]")
-            .forEach(element => element.style.opacity = "0");
+            .forEach(element => element.style.opacity = 0);
         this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * __classPrivateFieldGet(this, _Lapsa_safeVh, "f")})`;
         await this.fadeUpIn(this.slideContainer, this.transitionAnimationTime * 2);
         __classPrivateFieldSet(this, _Lapsa_currentlyAnimating, false, "f");
@@ -380,7 +410,7 @@ class Lapsa {
                 // No reset defined
             }
             this.slides[this.currentSlide].querySelectorAll("[data-build]")
-                .forEach(element => element.style.opacity = "1");
+                .forEach(element => element.style.opacity = 1);
         }
         this.currentSlide--;
         this.buildState = __classPrivateFieldGet(this, _Lapsa_numBuilds, "f")[this.currentSlide];
@@ -393,7 +423,7 @@ class Lapsa {
             // No reset defined
         }
         this.slides[this.currentSlide].querySelectorAll("[data-build]")
-            .forEach(element => element.style.opacity = "1");
+            .forEach(element => element.style.opacity = 1);
         this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * __classPrivateFieldGet(this, _Lapsa_safeVh, "f")})`;
         await this.fadeDownIn(this.slideContainer, this.transitionAnimationTime * 2);
         __classPrivateFieldSet(this, _Lapsa_currentlyAnimating, false, "f");
@@ -425,7 +455,7 @@ class Lapsa {
                 // No reset defined
             }
             this.slides[this.currentSlide].querySelectorAll("[data-build]")
-                .forEach(element => element.style.opacity = "1");
+                .forEach(element => element.style.opacity = 1);
         }
         this.currentSlide = index;
         this.buildState = 0;
@@ -438,7 +468,7 @@ class Lapsa {
             // No reset defined
         }
         this.slides[this.currentSlide].querySelectorAll("[data-build]")
-            .forEach(element => element.style.opacity = "0");
+            .forEach(element => element.style.opacity = 0);
         this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * __classPrivateFieldGet(this, _Lapsa_safeVh, "f")})`;
         if (forwardAnimation) {
             await this.fadeUpIn(this.slideContainer, this.transitionAnimationTime * 2);
@@ -500,7 +530,7 @@ class Lapsa {
             builds.forEach((element, index) => {
                 oldTransitionStyles[index] = element.style.transition;
                 element.style.transition = `opacity ${duration / 2}ms ${this.slideAnimateOutEasing}`;
-                element.style.opacity = "1";
+                element.style.opacity = 1;
             });
             // We don't await this one because we want it to run concurrently
             // with the table view animation.
@@ -594,7 +624,7 @@ class Lapsa {
                 element.parentElement.style.top = `calc(${58.125 * (index - this.currentSlide)}vw + ${100 * this.currentSlide} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
             }
         });
-        __classPrivateFieldGet(this, _Lapsa_bottomMarginElement, "f").style.top = "0";
+        __classPrivateFieldGet(this, _Lapsa_bottomMarginElement, "f").style.top = 0;
         this.slideContainer.style.transform = `matrix(${scale}, 0, 0, ${scale}, 0, 0)`;
         window.scrollTo(0, 0);
         const newTop = this.slides[0].getBoundingClientRect().top;
@@ -607,7 +637,7 @@ class Lapsa {
         builds.forEach((element, index) => {
             oldTransitionStyles[index] = element.style.transition;
             element.style.transition = `opacity ${duration / 3}ms ${this.slideAnimateInEasing}`;
-            element.style.opacity = "0";
+            element.style.opacity = 0;
         });
         // We don't await this one because we want it to run concurrently
         // with the table view animation.
@@ -919,9 +949,9 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
     __classPrivateFieldSet(this, _Lapsa_currentlyDragging, true, "f");
     __classPrivateFieldSet(this, _Lapsa_lastMoveThisDrag, 0, "f");
     __classPrivateFieldSet(this, _Lapsa_dragDistanceX, 0, "f");
-    __classPrivateFieldSet(this, _Lapsa_lastTouchX, -1, "f");
+    this.lastTouchX = -1;
     __classPrivateFieldSet(this, _Lapsa_dragDistanceY, 0, "f");
-    __classPrivateFieldSet(this, _Lapsa_lastTouchY, -1, "f");
+    this.lastTouchY = -1;
 }, _Lapsa_handleTouchmoveEvent = function _Lapsa_handleTouchmoveEvent(e) {
     if (__classPrivateFieldGet(this, _Lapsa_inTableView, "f") || !__classPrivateFieldGet(this, _Lapsa_currentlyDragging, "f") || e.touches.length > 1) {
         return;
@@ -930,12 +960,12 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
         return;
     }
     e.preventDefault();
-    if (__classPrivateFieldGet(this, _Lapsa_lastTouchY, "f") === -1) {
-        __classPrivateFieldSet(this, _Lapsa_lastTouchY, e.touches[0].clientY, "f");
+    if (this.lastTouchY === -1) {
+        this.lastTouchY = e.touches[0].clientY;
     }
     else {
-        __classPrivateFieldSet(this, _Lapsa_dragDistanceY, __classPrivateFieldGet(this, _Lapsa_dragDistanceY, "f") + (e.touches[0].clientY - __classPrivateFieldGet(this, _Lapsa_lastTouchY, "f")), "f");
-        __classPrivateFieldSet(this, _Lapsa_lastTouchY, e.touches[0].clientY, "f");
+        __classPrivateFieldSet(this, _Lapsa_dragDistanceY, __classPrivateFieldGet(this, _Lapsa_dragDistanceY, "f") + (e.touches[0].clientY - this.lastTouchY), "f");
+        this.lastTouchY = e.touches[0].clientY;
         if (__classPrivateFieldGet(this, _Lapsa_dragDistanceY, "f") < -this.dragDistanceThreshhold
             && (__classPrivateFieldGet(this, _Lapsa_lastMoveThisDrag, "f") === 0
                 || __classPrivateFieldGet(this, _Lapsa_lastMoveThisDrag, "f") === -1)) {
@@ -949,12 +979,12 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
             this.previousSlide();
         }
     }
-    if (__classPrivateFieldGet(this, _Lapsa_lastTouchX, "f") === -1) {
-        __classPrivateFieldSet(this, _Lapsa_lastTouchX, e.touches[0].clientX, "f");
+    if (this.lastTouchX === -1) {
+        this.lastTouchX = e.touches[0].clientX;
     }
     else {
-        __classPrivateFieldSet(this, _Lapsa_dragDistanceX, __classPrivateFieldGet(this, _Lapsa_dragDistanceX, "f") + (e.touches[0].clientX - __classPrivateFieldGet(this, _Lapsa_lastTouchX, "f")), "f");
-        __classPrivateFieldSet(this, _Lapsa_lastTouchX, e.touches[0].clientX, "f");
+        __classPrivateFieldSet(this, _Lapsa_dragDistanceX, __classPrivateFieldGet(this, _Lapsa_dragDistanceX, "f") + (e.touches[0].clientX - this.lastTouchX), "f");
+        this.lastTouchX = e.touches[0].clientX;
         if (__classPrivateFieldGet(this, _Lapsa_dragDistanceX, "f") < -this.dragDistanceThreshhold
             && (__classPrivateFieldGet(this, _Lapsa_lastMoveThisDrag, "f") === 0
                 || __classPrivateFieldGet(this, _Lapsa_lastMoveThisDrag, "f") === 2)) {
@@ -988,3 +1018,4 @@ _Lapsa_rootSelector = new WeakMap(), _Lapsa_bottomMarginElement = new WeakMap(),
         }
     }
 };
+export default Lapsa;
