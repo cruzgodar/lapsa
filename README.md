@@ -6,7 +6,7 @@ Lapsa (Latin for glide) is the incredibly simple way to build beautiful and inte
 
 ## Installation and Setup
 
-Add `lapsa.css` to your project's folder and include it in the HTML. To use the built-in shelf feature, you'll also need to either add the `icons` folder and its contents or supply your own icons. Then include either `lapsa.js` or `lapsa.ts`, depending on whether you're using JavaScript or TypeScript. The minimal compatible HTML file has the following form:
+Add `lapsa.css` and either `lapsa.js` or `lapsa.ts`, depending on whether you're using JavaScript or TypeScript, to your project's folder. To use the built-in shelf feature, you'll also need to either add the `icons` folder and its contents or supply your own icons. The minimal compatible HTML file has the following form:
 
 ```html
 <!DOCTYPE html>
@@ -30,21 +30,19 @@ Add `lapsa.css` to your project's folder and include it in the HTML. To use the 
 			<!-- More slides... -->
 		</div>
 		
-		<script src="lapsa.js"></script>
-		
-		<script src="index.js"></script>
+		<script type="module" src="index.js"></script>
 	</body>
 </html>
 ```
 
-If you prefer to use ES6 modules, add `lapsa.es.js` or `lapsa.es.ts` to your project instead, add `<script src="index.js" type="module"></script>` to the HTML, and begin `index.js` with `import Lapsa from "/path/to/lapsa";`.
-
-Create a JavaScript file and add it to the HTML. In the above example, it's called `index.js` and is located in the same directory as the HTML file. The minimal contents of that JS file are:
+Create a JavaScript/TypeScript file and add it to the HTML. In the above example, it's called `index.js` and is located in the same directory as the HTML file. The minimal contents of that file are:
 
 ```js
+import Lapsa from "/path/to/lapsa.js";
+
 const options =
 {
-	shelfIconPaths: "path/to/icons/"
+	shelfIconPaths: "/path/to/icons/"
 };
 
 const lapsa = new Lapsa(options);
@@ -105,60 +103,73 @@ To change Lapsa's behavior, add entries to the `options` object. A complete list
 
 ## Functional Builds
 
-In addition to text and other HTML elements, builds in Lapsa can be JavaScript functions. These functional builds are created as part of the options object and are called by Lapsa as needed. To get started, give a slide an id: for example, `<div class="slide" id="my-slide">`. Then add an entry to the options called `builds`:
+In addition to text and other HTML elements, builds in Lapsa can be JavaScript functions. These functional builds are created as part of the options object and are called by Lapsa as needed. To get started, give a slide an id: for example, `<div class="slide" id="my-slide">`. For the sake of organization, it's recommended to put each slide's builds in their own file. Let's create a folder called `builds` and a file called `mySlide.js` with the following contents:
 
 ```js
-const mySlideBuilds = 
+function reset({ lapsa, forward, duration })
 {
-	reset: function(slide, forward, duration)
+	return new Promise(resolve =>
 	{
-		return new Promise((resolve, reject) =>
-		{
-			/*
-				Reset the slide to its initial or final position
-				(based on forward) over the course of duration ms.
-			*/
-		});
-	},
-	
-	
-	
-	0: function(slide, forward, duration = 500)
+		/*
+			Reset the slide to its initial or final position
+			(based whether forward is true or false)
+			over the course of duration ms, and then call resolve().
+		*/
+	});
+}
+
+function build0({ lapsa, forward, duration = 500 })
+{
+	return new Promise(resolve =>
 	{
-		return new Promise((resolve, reject) =>
-		{
-			/*
-				Animate from the initial state to the first build,
-				or vice versa, depending on forward.
-			*/
-		});
-	},
-	
-	
-	
-	3: function(slide, forward, duration = 200)
+		/*
+			Animate from the initial state to the first build,
+			or vice versa, depending on forward, and then resolve.
+		*/
+	});
+}
+
+function build3({ lapsa, forward, duration = 200 })
+{
+	return new Promise(resolve =>
 	{
-		return new Promise((resolve, reject) =>
-		{
-			/*
-				Animate from the state of build 2 to build 3,
-				or vice versa, depending on forward.
-			*/
-		});
+		/*
+			Animate from the state of build 2 to build 3,
+			or vice versa, depending on forward, and then resolve.
+		*/
+	});
+}
+
+export const mySlideBuilds =
+{
+	reset,
+	0: build0,
+	3: build3
+};
+```
+
+Back in `index.js`, we'll update the `options` object to reflect the builds.
+
+```js
+import Lapsa from "/path/to/lapsa.js";
+import { mySlideBuilds } from "./builds/mySlide.js";
+
+const options =
+{
+	builds:
+	{
+		"my-slide": mySlideBuilds
 	}
+
+	shelfIconPaths: "/path/to/icons/"
 };
 
-const builds =
-{
-	"my-slide": mySlideBuilds
-};
-
-const options = { builds };
+const lapsa = new Lapsa(options);
 ```
 
 Functional builds are organized by slide id and should contain an entry called `reset`, along with one entry for each build. For example, the code above will have one function run on the first build and another on the fourth.
 
-Functional builds take three arguments: the current slide, whether the build is running in forward or reverse, and how long the build should take in milliseconds. They must return a promise that resolves when the build is complete.
+Functional builds take on object with three arguments: the Lapsa object responsible, whether the build is running in forward or reverse, and how long the build should take in milliseconds. They must return a promise that resolves (without a value) when the build is complete.
 
 The `reset` function is called when the slide needs to be reset to its initial or final state. HTML builds take care of this automatically, but functional builds need to handle it manually. If the `forward` parameter is `true`, animate the slide back to its initial state over the course of `duration` milliseconds by reverting all of the builds. If `forward` is `false`, animate the slide to its final state. The `reset` function needs to work correctly from **any build state** in order for Lapsa to work properly. While it's not strictly necessary to take the exact duration specified, some cosmetic behavior may not work correctly if that's not the case. When the function is complete, call `resolve()` to tell Lapsa it can continue with what it's doing.
 
@@ -170,7 +181,7 @@ For a thorough example of functional builds, see the demo project.
 
 ## Custom Themes
 
-Lapsa's default appearance of minimalist black-on-white is intended to be a general-purpose look that's suitable for most presentations. Changing it is accomplished by adding CSS to a file loaded after `lapsa.min.css`. Below is a very non-exhaustive list of what can be altered without any extra work.
+Lapsa's default appearance of minimalist black-on-white is intended to be a general-purpose look that's suitable for most presentations. Changing it is accomplished by adding CSS to a file loaded after `lapsa.css`. Below is a very non-exhaustive list of what can be altered without any extra work.
 
 - Background color of slides, the shelf, and the surrounding page.
 - Text font, color, and size.

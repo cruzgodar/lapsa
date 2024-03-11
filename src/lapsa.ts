@@ -1,12 +1,24 @@
-export type ResetFunction = (slide: HTMLElement, forward: boolean, duration: number) => Promise<void>;
-export type BuildFunction = (slide: HTMLElement, forward: boolean, duration?: number) => Promise<void>;
+export type ResetFunctionData = {
+	lapsa: Lapsa,
+	forward: boolean,
+	duration: number
+ };
 
-type SlideBuilds = {
-	reset: ResetFunction;
-	[index: number]: BuildFunction;
+ export type BuildFunctionData = {
+	lapsa: Lapsa,
+	forward: boolean,
+	duration?: number
+ };
+
+export type ResetFunction = (data: ResetFunctionData) => Promise<void>;
+export type BuildFunction = (data: BuildFunctionData) => Promise<void>;
+
+export type SlideBuilds = {
+	reset: ResetFunction,
+	[index: number]: BuildFunction
 }
 
-type Options =
+type LapsaOptionsFull =
 {
 	builds: {[slideID: string]: SlideBuilds},
 	
@@ -38,7 +50,9 @@ type Options =
 	dragDistanceThreshhold: number;
 };
 
-const defaultOptions: Options = {
+export type LapsaOptions = Partial<LapsaOptionsFull>;
+
+const defaultOptions: LapsaOptionsFull = {
 	builds: {},
 	
 	transitionAnimationTime: 150,
@@ -71,7 +85,7 @@ const defaultOptions: Options = {
 
 
 
-class Lapsa
+export default class Lapsa
 {
 	callbacks: {[slideID: string]: SlideBuilds};
 	slideContainer: HTMLElement;
@@ -151,7 +165,7 @@ class Lapsa
 
 	#safeVh = window.innerHeight / 100;
 	
-	constructor(inputOptions: Partial<Options>)
+	constructor(inputOptions: LapsaOptions)
 	{
 		const options = {
 			...defaultOptions,
@@ -728,7 +742,7 @@ class Lapsa
 			&& !skipBuilds && this.#numBuilds[this.currentSlide] !== 0
 			&& this.buildState !== this.#numBuilds[this.currentSlide]
 		) {
-			const promises = [];
+			const promises: Promise<void>[] = [];
 			
 			// Gross code because animation durations are weird as hell --
 			// see the corresponding previousSlide block for a better example.
@@ -746,11 +760,14 @@ class Lapsa
 			
 			const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
-			const callback = callbacks[this.buildState];
+			const callback = callbacks ? callbacks[this.buildState] : undefined;
 
 			if (callback)
 			{
-				promises.push(callback(this.slides[this.currentSlide], true));
+				promises.push(callback({
+					lapsa: this,
+					forward: true
+				}));
 			}
 			
 			await Promise.all(promises);
@@ -782,11 +799,15 @@ class Lapsa
 		{
 			const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
-			const callback = callbacks.reset;
+			const callback = callbacks?.reset;
 
 			if (callback)
 			{
-				await callback(this.slides[this.currentSlide], true, 0);
+				await callback({
+					lapsa: this,
+					forward: true,
+					duration: 0
+				});
 			}
 			
 			this.slides[this.currentSlide].querySelectorAll<HTMLElement>("[data-build]")
@@ -803,10 +824,15 @@ class Lapsa
 
 		const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
-		const callback = callbacks.reset;
+		const callback = callbacks?.reset;
+
 		if (callback)
 		{
-			await callback(this.slides[this.currentSlide], true, 0);
+			await callback({
+				lapsa: this,
+				forward: true,
+				duration: 0
+			});
 		}
 		
 		
@@ -845,11 +871,14 @@ class Lapsa
 			
 			const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
-			const callback = callbacks[this.buildState];
+			const callback = callbacks ? callbacks[this.buildState] : undefined;
 
 			if (callback)
 			{
-				await callback(this.slides[this.currentSlide], false);
+				await callback({
+					lapsa: this,
+					forward: false
+				});
 			}
 			
 			await Promise.all(promises);
@@ -881,11 +910,15 @@ class Lapsa
 			
 			const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
-			const callback = callbacks.reset;
+			const callback = callbacks?.reset;
 			
 			if (callback)
 			{
-				await callback(this.slides[this.currentSlide], false, 0);
+				await callback({
+					lapsa: this,
+					forward: false,
+					duration: 0
+				});
 			}
 			
 			this.slides[this.currentSlide].querySelectorAll<HTMLElement>("[data-build]")
@@ -902,11 +935,15 @@ class Lapsa
 
 		const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
-		const callback = callbacks.reset;
+		const callback = callbacks?.reset;
 		
 		if (callback)
 		{
-			await callback(this.slides[this.currentSlide], false, 0);
+			await callback({
+				lapsa: this,
+				forward: false,
+				duration: 0
+			});
 		}
 		
 		
@@ -962,11 +999,15 @@ class Lapsa
 		{
 			const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
-			const callback = callbacks.reset;
+			const callback = callbacks?.reset;
 
 			if (callback)
 			{
-				await callback(this.slides[this.currentSlide], false, 0);
+				await callback({
+					lapsa: this,
+					forward: false,
+					duration: 0
+				});
 			}
 			
 			this.slides[this.currentSlide].querySelectorAll<HTMLElement>("[data-build]")
@@ -982,11 +1023,15 @@ class Lapsa
 
 		const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
-		const callback = callbacks.reset;
+		const callback = callbacks?.reset;
 
 		if (callback)
 		{
-			await callback(this.slides[this.currentSlide], true, 0);
+			await callback({
+				lapsa: this,
+				forward: true,
+				duration: 0
+			});
 		}
 		
 		
@@ -1117,11 +1162,15 @@ class Lapsa
 			
 			const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
-			const callback = callbacks.reset;
+			const callback = callbacks?.reset;
 
 			if (callback)
 			{
-				callback(this.slides[this.currentSlide], false, duration / 2);
+				callback({
+					lapsa: this,
+					forward: false,
+					duration: duration / 2
+				});
 			}
 			
 			setTimeout(() =>
@@ -1307,11 +1356,15 @@ class Lapsa
 		// with the table view animation.
 		const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
-		const callback = callbacks.reset;
+		const callback = callbacks?.reset;
 
 		if (callback)
 		{
-			callback(this.slides[this.currentSlide], true, duration / 3);
+			callback({
+				lapsa: this,
+				forward: true,
+				duration: duration / 3
+			});
 		}
 		
 		setTimeout(() =>
