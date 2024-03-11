@@ -1,11 +1,13 @@
 export type ResetFunctionData = {
 	lapsa: Lapsa,
+	slide: HTMLElement,
 	forward: boolean,
 	duration: number
 };
 
 export type BuildFunctionData = {
 	lapsa: Lapsa,
+	slide: HTMLElement,
 	forward: boolean,
 	duration?: number
 };
@@ -770,6 +772,7 @@ export default class Lapsa
 			{
 				promises.push(callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: true
 				}));
 			}
@@ -809,6 +812,7 @@ export default class Lapsa
 			{
 				await callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: true,
 					duration: 0
 				});
@@ -834,6 +838,7 @@ export default class Lapsa
 		{
 			await callback({
 				lapsa: this,
+				slide: this.slides[this.currentSlide],
 				forward: true,
 				duration: 0
 			});
@@ -881,6 +886,7 @@ export default class Lapsa
 			{
 				await callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: false
 				});
 			}
@@ -920,6 +926,7 @@ export default class Lapsa
 			{
 				await callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: false,
 					duration: 0
 				});
@@ -945,6 +952,7 @@ export default class Lapsa
 		{
 			await callback({
 				lapsa: this,
+				slide: this.slides[this.currentSlide],
 				forward: false,
 				duration: 0
 			});
@@ -1009,6 +1017,7 @@ export default class Lapsa
 			{
 				await callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: false,
 					duration: 0
 				});
@@ -1033,6 +1042,7 @@ export default class Lapsa
 		{
 			await callback({
 				lapsa: this,
+				slide: this.slides[this.currentSlide],
 				forward: true,
 				duration: 0
 			});
@@ -1174,6 +1184,7 @@ export default class Lapsa
 			{
 				callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: false,
 					duration: duration / 2
 				});
@@ -1368,6 +1379,7 @@ export default class Lapsa
 		{
 			callback({
 				lapsa: this,
+				slide: this.slides[this.currentSlide],
 				forward: true,
 				duration: duration / 3
 			});

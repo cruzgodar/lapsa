@@ -1,14 +1,16 @@
 export type ResetFunctionData = {
 	lapsa: Lapsa,
+	slide: HTMLElement,
 	forward: boolean,
 	duration: number
- };
+};
 
- export type BuildFunctionData = {
+export type BuildFunctionData = {
 	lapsa: Lapsa,
+	slide: HTMLElement,
 	forward: boolean,
 	duration?: number
- };
+};
 
 export type ResetFunction = (data: ResetFunctionData) => Promise<void>;
 export type BuildFunction = (data: BuildFunctionData) => Promise<void>;
@@ -16,7 +18,7 @@ export type BuildFunction = (data: BuildFunctionData) => Promise<void>;
 export type SlideBuilds = {
 	reset: ResetFunction,
 	[index: number]: BuildFunction
-}
+};
 
 type LapsaOptionsFull =
 {
@@ -237,7 +239,7 @@ export default class Lapsa
 
 		if (!rootElement)
 		{
-			throw new Error("[Lapsa] Root element doesn't exist")
+			throw new Error("[Lapsa] Root element doesn't exist");
 		}
 
 		this.#rootSelector = rootElement;
@@ -246,11 +248,13 @@ export default class Lapsa
 		
 		
 
-		const slideContainerElement = document.body.querySelector<HTMLElement>("#lapsa-slide-container");
+		const slideContainerElement = document.body.querySelector<HTMLElement>(
+			"#lapsa-slide-container"
+		);
 
 		if (!slideContainerElement)
 		{
-			throw new Error("[Lapsa] Slide container element doesn't exist")
+			throw new Error("[Lapsa] Slide container element doesn't exist");
 		}
 		
 		this.slideContainer = slideContainerElement;
@@ -395,113 +399,112 @@ export default class Lapsa
 		
 		
 		
-		// setTimeout(() =>
-		// {
-			const slideShelfElement = document.querySelector<HTMLElement>("#lapsa-slide-shelf");
+		const slideShelfElement = document.querySelector<HTMLElement>("#lapsa-slide-shelf");
 
-			if (!slideShelfElement)
+		if (!slideShelfElement)
+		{
+			throw new Error("[Lapsa] Slide shelf element doesn't exist");
+		}
+
+		this.#slideShelf = slideShelfElement;
+		
+		if (this.useShelfIndicator)
+		{
+			const slideShelfIndicatorElement = document.querySelector<HTMLElement>(
+				"#lapsa-slide-shelf-indicator"
+			);
+
+			if (!slideShelfIndicatorElement)
 			{
-				throw new Error("[Lapsa] Slide shelf element doesn't exist")
-			}
-
-			this.#slideShelf = slideShelfElement;
-			
-			if (this.useShelfIndicator)
-			{
-				const slideShelfIndicatorElement = document.querySelector<HTMLElement>("#lapsa-slide-shelf-indicator");
-
-				if (!slideShelfIndicatorElement)
-				{
-					throw new Error("[Lapsa] Slide shelf indicator element doesn't exist")
-				}
-				
-				this.#slideShelfIndicator = slideShelfIndicatorElement;
-
-				if (this.permanentShelf)
-				{
-					this.#slideShelfIndicator.style.display = "none";
-				}
+				throw new Error("[Lapsa] Slide shelf indicator element doesn't exist");
 			}
 			
+			this.#slideShelfIndicator = slideShelfIndicatorElement;
+
 			if (this.permanentShelf)
 			{
-				this.#shelfContainer.classList.add("permanent-shelf");
-				this.#showSlideShelf(this.#slideShelf);
-				this.#shelfIsAnimating = false;
-				this.#shelfIsOpen = true;	
+				this.#slideShelfIndicator.style.display = "none";
 			}
-			
-			else
+		}
+		
+		if (this.permanentShelf)
+		{
+			this.#shelfContainer.classList.add("permanent-shelf");
+			this.#showSlideShelf(this.#slideShelf);
+			this.#shelfIsAnimating = false;
+			this.#shelfIsOpen = true;
+		}
+		
+		else
+		{
+			this.#hideSlideShelf(this.#slideShelf, 0);
+		}
+		
+		
+		
+		this.#shelfContainer.addEventListener("mouseenter", () =>
+		{
+			if (!this.#shelfIsOpen && !this.permanentShelf && this.useShelf)
 			{
-				this.#hideSlideShelf(this.#slideShelf, 0);
+				this.showShelf();
 			}
-			
-			
-			
-			this.#shelfContainer.addEventListener("mouseenter", () =>
+		});
+		
+		this.#shelfContainer.addEventListener("mouseleave", () =>
+		{
+			if (this.#shelfIsOpen && !this.permanentShelf && this.useShelf)
 			{
-				if (!this.#shelfIsOpen && !this.permanentShelf && this.useShelf)
-				{
-					this.showShelf();
-				}
-			});
-			
-			this.#shelfContainer.addEventListener("mouseleave", () =>
+				this.hideShelf();
+			}
+		});
+		
+		this.#slideShelf.children[0].addEventListener("click", () =>
+		{
+			if (this.#shelfIsOpen && !this.#shelfIsAnimating)
 			{
-				if (this.#shelfIsOpen && !this.permanentShelf && this.useShelf)
-				{
-					this.hideShelf();
-				}
-			});
-			
-			this.#slideShelf.children[0].addEventListener("click", () =>
+				this.previousSlide(true);
+			}
+		});
+		
+		this.#slideShelf.children[1].addEventListener("click", () =>
+		{
+			if (this.#shelfIsOpen && !this.#shelfIsAnimating)
 			{
-				if (this.#shelfIsOpen && !this.#shelfIsAnimating)
-				{
-					this.previousSlide(true);
-				}
-			});
-			
-			this.#slideShelf.children[1].addEventListener("click", () =>
+				this.previousSlide();
+			}
+		});
+		
+		this.#slideShelf.children[2].addEventListener("click", () =>
+		{
+			if (this.#shelfIsOpen && !this.#shelfIsAnimating)
 			{
-				if (this.#shelfIsOpen && !this.#shelfIsAnimating)
+				if (this.#inTableView)
 				{
-					this.previousSlide();
+					this.closeTableView(this.currentSlide);
 				}
-			});
-			
-			this.#slideShelf.children[2].addEventListener("click", () =>
+				
+				else
+				{
+					this.openTableView();
+				}
+			}
+		});
+		
+		this.#slideShelf.children[3].addEventListener("click", () =>
+		{
+			if (this.#shelfIsOpen && !this.#shelfIsAnimating)
 			{
-				if (this.#shelfIsOpen && !this.#shelfIsAnimating)
-				{
-					if (this.#inTableView)
-					{
-						this.closeTableView(this.currentSlide);
-					}
-					
-					else
-					{
-						this.openTableView();
-					}
-				}
-			});
-			
-			this.#slideShelf.children[3].addEventListener("click", () =>
+				this.nextSlide();
+			}
+		});
+		
+		this.#slideShelf.children[4].addEventListener("click", () =>
+		{
+			if (this.#shelfIsOpen && !this.#shelfIsAnimating)
 			{
-				if (this.#shelfIsOpen && !this.#shelfIsAnimating)
-				{
-					this.nextSlide();
-				}
-			});
-			
-			this.#slideShelf.children[4].addEventListener("click", () =>
-			{
-				if (this.#shelfIsOpen && !this.#shelfIsAnimating)
-				{
-					this.nextSlide(true);
-				}
-			});
-		// }, 100);
+				this.nextSlide(true);
+			}
+		});
 		
 		
 		
@@ -540,7 +543,10 @@ export default class Lapsa
 		document.body.style.userSelect = "auto";
 		
 		document.documentElement.removeEventListener("keydown", this.#handleKeydownEventBound);
-		document.documentElement.removeEventListener("touchstart", this.#handleTouchstartEventBound);
+		document.documentElement.removeEventListener(
+			"touchstart",
+			this.#handleTouchstartEventBound
+		);
 		document.documentElement.removeEventListener("touchmove", this.#handleTouchmoveEventBound);
 		document.documentElement.removeEventListener("mousemove", this.#handleMousemoveEventBound);
 		window.removeEventListener("resize", this.#onResizeBound);
@@ -652,7 +658,7 @@ export default class Lapsa
 
 				element.parentElement.style.top = window.innerWidth / window.innerHeight >= 152 / 89
 					? `calc(${index * 100 + 2.5} * var(--safe-vh))`
-					: `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`
+					: `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 			});
 			
 			this.slideContainer.style.transform = `matrix(1, 0, 0, 1, 0, ${-100 * this.currentSlide * this.#safeVh})`;
@@ -766,6 +772,7 @@ export default class Lapsa
 			{
 				promises.push(callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: true
 				}));
 			}
@@ -805,6 +812,7 @@ export default class Lapsa
 			{
 				await callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: true,
 					duration: 0
 				});
@@ -830,6 +838,7 @@ export default class Lapsa
 		{
 			await callback({
 				lapsa: this,
+				slide: this.slides[this.currentSlide],
 				forward: true,
 				duration: 0
 			});
@@ -877,6 +886,7 @@ export default class Lapsa
 			{
 				await callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: false
 				});
 			}
@@ -916,6 +926,7 @@ export default class Lapsa
 			{
 				await callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: false,
 					duration: 0
 				});
@@ -941,6 +952,7 @@ export default class Lapsa
 		{
 			await callback({
 				lapsa: this,
+				slide: this.slides[this.currentSlide],
 				forward: false,
 				duration: 0
 			});
@@ -1005,6 +1017,7 @@ export default class Lapsa
 			{
 				await callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: false,
 					duration: 0
 				});
@@ -1029,6 +1042,7 @@ export default class Lapsa
 		{
 			await callback({
 				lapsa: this,
+				slide: this.slides[this.currentSlide],
 				forward: true,
 				duration: 0
 			});
@@ -1145,7 +1159,9 @@ export default class Lapsa
 		// currently hidden and request that the slide be reset to its final state.
 		if (this.buildState !== this.#numBuilds[this.currentSlide])
 		{
-			const builds = this.slides[this.currentSlide].querySelectorAll<HTMLElement>("[data-build]");
+			const builds = this.slides[this.currentSlide]
+				.querySelectorAll<HTMLElement>("[data-build]");
+
 			const oldTransitionStyles = new Array(builds.length);
 			
 			builds.forEach((element, index) =>
@@ -1168,6 +1184,7 @@ export default class Lapsa
 			{
 				callback({
 					lapsa: this,
+					slide: this.slides[this.currentSlide],
 					forward: false,
 					duration: duration / 2
 				});
@@ -1362,6 +1379,7 @@ export default class Lapsa
 		{
 			callback({
 				lapsa: this,
+				slide: this.slides[this.currentSlide],
 				forward: true,
 				duration: duration / 3
 			});
@@ -1527,8 +1545,10 @@ export default class Lapsa
 		});
 	}
 	
-	async #showSlideShelfIndicator(element: HTMLElement | undefined, duration = this.shelfAnimationTime)
-	{
+	async #showSlideShelfIndicator(
+		element?: HTMLElement,
+		duration = this.shelfAnimationTime
+	) {
 		if (!this.useShelfIndicator || !element)
 		{
 			return;
@@ -1549,8 +1569,10 @@ export default class Lapsa
 		});
 	}
 	
-	async #hideSlideShelfIndicator(element: HTMLElement | undefined, duration = this.shelfAnimationTime)
-	{
+	async #hideSlideShelfIndicator(
+		element?: HTMLElement,
+		duration = this.shelfAnimationTime
+	) {
 		if (!this.useShelfIndicator || !element)
 		{
 			return;
@@ -1709,12 +1731,6 @@ export default class Lapsa
 				this.showShelf();
 			}
 		}
-	}
-	
-	#handleTouchendEvent()
-	{
-		setTimeout(() => this.#slideShelf.classList.remove("lapsa-hover"), 50);
-		setTimeout(() => this.slideContainer.classList.remove("lapsa-hover"), 50);
 	}
 	
 	#handleMousemoveEvent()

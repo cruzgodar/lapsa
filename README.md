@@ -106,7 +106,7 @@ To change Lapsa's behavior, add entries to the `options` object. A complete list
 In addition to text and other HTML elements, builds in Lapsa can be JavaScript functions. These functional builds are created as part of the options object and are called by Lapsa as needed. To get started, give a slide an id: for example, `<div class="slide" id="my-slide">`. For the sake of organization, it's recommended to put each slide's builds in their own file. Let's create a folder called `builds` and a file called `mySlide.js` with the following contents:
 
 ```js
-function reset({ lapsa, forward, duration })
+function reset({ lapsa, slide, forward, duration })
 {
 	return new Promise(resolve =>
 	{
@@ -118,7 +118,7 @@ function reset({ lapsa, forward, duration })
 	});
 }
 
-function build0({ lapsa, forward, duration = 500 })
+function build0({ lapsa, slide, forward, duration = 500 })
 {
 	return new Promise(resolve =>
 	{
@@ -129,7 +129,7 @@ function build0({ lapsa, forward, duration = 500 })
 	});
 }
 
-function build3({ lapsa, forward, duration = 200 })
+function build3({ lapsa, slide, forward, duration = 200 })
 {
 	return new Promise(resolve =>
 	{
@@ -169,7 +169,7 @@ const lapsa = new Lapsa(options);
 
 Functional builds are organized by slide id and should contain an entry called `reset`, along with one entry for each build. For example, the code above will have one function run on the first build and another on the fourth.
 
-Functional builds take on object with three arguments: the Lapsa object responsible, whether the build is running in forward or reverse, and how long the build should take in milliseconds. They must return a promise that resolves (without a value) when the build is complete.
+Functional builds take an object argument with four fields: the Lapsa object responsible, the current slide, whether the build is running in forward or reverse, and how long the build should take in milliseconds. They must return a promise that resolves (without a value) when the build is complete.
 
 The `reset` function is called when the slide needs to be reset to its initial or final state. HTML builds take care of this automatically, but functional builds need to handle it manually. If the `forward` parameter is `true`, animate the slide back to its initial state over the course of `duration` milliseconds by reverting all of the builds. If `forward` is `false`, animate the slide to its final state. The `reset` function needs to work correctly from **any build state** in order for Lapsa to work properly. While it's not strictly necessary to take the exact duration specified, some cosmetic behavior may not work correctly if that's not the case. When the function is complete, call `resolve()` to tell Lapsa it can continue with what it's doing.
 
