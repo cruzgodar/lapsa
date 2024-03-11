@@ -6,9 +6,7 @@ Lapsa (Latin for glide) is the incredibly simple way to build beautiful and inte
 
 ## Installation and Setup
 
-Add `lapsa.min.js` and `lapsa.min.css` to your project's folder and include them in the HTML. To use the built-in shelf feature, you'll also need to either add the `icons` folder and its contents or supply your own icons.
-
-The minimal compatible HTML file has the following form:
+Add `lapsa.css` to your project's folder and include it in the HTML. To use the built-in shelf feature, you'll also need to either add the `icons` folder and its contents or supply your own icons. Then include either `lapsa.js` or `lapsa.ts`, depending on whether you're using JavaScript or TypeScript. The minimal compatible HTML file has the following form:
 
 ```html
 <!DOCTYPE html>
@@ -16,7 +14,7 @@ The minimal compatible HTML file has the following form:
 	<head>
 		<meta charset="utf-8"/>
 		<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-		<link rel="stylesheet" type="text/css" href="lapsa.min.css">
+		<link rel="stylesheet" type="text/css" href="lapsa.css">
 	</head>
 
 	<body>
@@ -32,14 +30,14 @@ The minimal compatible HTML file has the following form:
 			<!-- More slides... -->
 		</div>
 		
-		<script src="lapsa.min.js"></script>
+		<script src="lapsa.js"></script>
 		
 		<script src="index.js"></script>
 	</body>
 </html>
 ```
 
-If you prefer to use ES6 modules, add `lapsa.min.mjs` to your project instead, add `<script src="index.js" type="module"></script>` to the HTML, and begin `index.js` with `import Lapsa from "/path/to/lapsa.min.mjs";`
+If you prefer to use ES6 modules, add `lapsa.es.js` or `lapsa.es.ts` to your project instead, add `<script src="index.js" type="module"></script>` to the HTML, and begin `index.js` with `import Lapsa from "/path/to/lapsa";`.
 
 Create a JavaScript file and add it to the HTML. In the above example, it's called `index.js` and is located in the same directory as the HTML file. The minimal contents of that JS file are:
 
@@ -110,51 +108,52 @@ To change Lapsa's behavior, add entries to the `options` object. A complete list
 In addition to text and other HTML elements, builds in Lapsa can be JavaScript functions. These functional builds are created as part of the options object and are called by Lapsa as needed. To get started, give a slide an id: for example, `<div class="slide" id="my-slide">`. Then add an entry to the options called `builds`:
 
 ```js
-const options =
+const mySlideBuilds = 
 {
-	builds:
+	reset: function(slide, forward, duration)
 	{
-		"my-slide":
+		return new Promise((resolve, reject) =>
 		{
-			reset: (slide, forward, duration) =>
-			{
-				return new Promise((resolve, reject) =>
-				{
-					/*
-						Reset the slide to its initial or final position
-						(based on forward) over the course of duration ms.
-					*/
-				});
-			},
-			
-			
-			
-			0: (slide, forward, duration = 500) =>
-			{
-				return new Promise((resolve, reject) =>
-				{
-					/*
-						Animate from the initial state to the first build,
-						or vice versa, depending on forward.
-					*/
-				});
-			},
-			
-			
-			
-			3: (slide, forward, duration = 200) =>
-			{
-				return new Promise((resolve, reject) =>
-				{
-					/*
-						Animate from the state of build 2 to build 3,
-						or vice versa, depending on forward.
-					*/
-				});
-			}
-		}
+			/*
+				Reset the slide to its initial or final position
+				(based on forward) over the course of duration ms.
+			*/
+		});
+	},
+	
+	
+	
+	0: function(slide, forward, duration = 500)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			/*
+				Animate from the initial state to the first build,
+				or vice versa, depending on forward.
+			*/
+		});
+	},
+	
+	
+	
+	3: function(slide, forward, duration = 200)
+	{
+		return new Promise((resolve, reject) =>
+		{
+			/*
+				Animate from the state of build 2 to build 3,
+				or vice versa, depending on forward.
+			*/
+		});
 	}
 };
+
+const builds =
+{
+	"my-slide": mySlideBuilds
+};
+
+const options = { builds };
 ```
 
 Functional builds are organized by slide id and should contain an entry called `reset`, along with one entry for each build. For example, the code above will have one function run on the first build and another on the fourth.
@@ -208,8 +207,6 @@ Standard HTML elements like images and videos can be added, scaled, and arranged
 
 Many of Lapsa's methods can be called directly. They can be used to tweak the default behavior in ways the options don't support or completely supplant much of the standard functionality.
 
-Methods and properties prefixed with an underscore are intended to be private â€“ use and modify at your own risk. Listed here are only the methods intended for external use.
-
 - `exit()`: destroys the slide container, the shelf, and all of the slides, and removes all of the event listeners. While Lapsa is not intended to be used as part of a single-page site, this method can help return to a non-presentation state.
 - `nextSlide(skipBuilds = false)`: advances by a single build or an entire slide if `skipBuilds` is `true`. Returns a promise that resolves when the animation is complete, and has no effect if an animation is currently playing, if the table view is open, or if there are no further builds/slides. When moving to the next slide, it begins at the initial build state.
 - `previousSlide(skipBuilds = false)`: identical to `nextSlide`, but moves back by one build or slide instead. When moving to the previous slide, it begins at the final build state.
@@ -221,6 +218,11 @@ Methods and properties prefixed with an underscore are intended to be private â€
 - `fadeUpIn(element, duration)`, `fadeUpOut(element, duration)`, `fadeDownIn(element, duration)`, `fadeDownOut(element, duration)`: animation functions for animating between slides that return promises that resolve when complete. When moving forward by a slide, `fadeUpOut` is called on the old slide, and then `fadeUpIn` is called on the new one. Similarly, when moving back a slide, `fadeDownOut` is called on the old slide, and then `fadeDownIn` is called on the new one. To change the duration or easing of these animations, it's easiest to set the relevant options, but redefining these functions entirely can allow for more complex behavior.
 - `buildIn(element, duration)`, `buildOut(element, duration)`: similar to the previous animation functions, but operate on HTML builds rather than slides.
 
+
+
+## TypeScript
+
+Lapsa is written in TypeScript, and it is available in its non-compiled form for TypeScript projects. The project in the `example-project-typescript` directory is a good place to get started; the main differences are types enforcing the type of functions that can serve as functional builds, as well as the possible options passed to the constructor.
 
 
 [1]: https://cruzgodar.com/slides/lapsa/

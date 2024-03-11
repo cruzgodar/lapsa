@@ -315,13 +315,10 @@ class Lapsa {
                 this.buildIn(element, this.transitionAnimationTime * 2);
                 promises.push(new Promise(resolve => setTimeout(resolve, this.transitionAnimationTime)));
             });
-            try {
-                const callbacks = this.callbacks[this.slides[this.currentSlide].id];
-                const callback = callbacks[this.buildState];
+            const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+            const callback = callbacks ? callbacks[this.buildState] : undefined;
+            if (callback) {
                 promises.push(callback(this.slides[this.currentSlide], true));
-            }
-            catch (ex) {
-                // No callback defined
             }
             await Promise.all(promises);
             this.buildState++;
@@ -337,26 +334,20 @@ class Lapsa {
         await this.fadeUpOut(this.slideContainer, this.transitionAnimationTime);
         // Reset the slide if necessary.
         if (this.currentSlide >= 0 && this.buildState !== __classPrivateFieldGet(this, _Lapsa_numBuilds, "f")[this.currentSlide]) {
-            try {
-                const callbacks = this.callbacks[this.slides[this.currentSlide].id];
-                const callback = callbacks.reset;
+            const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+            const callback = callbacks === null || callbacks === void 0 ? void 0 : callbacks.reset;
+            if (callback) {
                 await callback(this.slides[this.currentSlide], true, 0);
-            }
-            catch (ex) {
-                // No reset defined
             }
             this.slides[this.currentSlide].querySelectorAll("[data-build]")
                 .forEach(element => element.style.opacity = "1");
         }
         this.currentSlide++;
         this.buildState = 0;
-        try {
-            const callbacks = this.callbacks[this.slides[this.currentSlide].id];
-            const callback = callbacks.reset;
+        const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+        const callback = callbacks === null || callbacks === void 0 ? void 0 : callbacks.reset;
+        if (callback) {
             await callback(this.slides[this.currentSlide], true, 0);
-        }
-        catch (ex) {
-            // No reset defined
         }
         this.slides[this.currentSlide].querySelectorAll("[data-build]")
             .forEach(element => element.style.opacity = "0");
@@ -375,13 +366,10 @@ class Lapsa {
             const promises = Array.from(this.slides[this.currentSlide]
                 .querySelectorAll(`[data-build="${this.buildState}"]`))
                 .map(element => this.buildOut(element, this.transitionAnimationTime));
-            try {
-                const callbacks = this.callbacks[this.slides[this.currentSlide].id];
-                const callback = callbacks[this.buildState];
+            const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+            const callback = callbacks ? callbacks[this.buildState] : undefined;
+            if (callback) {
                 await callback(this.slides[this.currentSlide], false);
-            }
-            catch (ex) {
-                // No callback defined
             }
             await Promise.all(promises);
             __classPrivateFieldSet(this, _Lapsa_currentlyAnimating, false, "f");
@@ -396,26 +384,20 @@ class Lapsa {
         await this.fadeDownOut(this.slideContainer, this.transitionAnimationTime);
         // Reset the slide if necessary.
         if (this.buildState !== __classPrivateFieldGet(this, _Lapsa_numBuilds, "f")[this.currentSlide]) {
-            try {
-                const callbacks = this.callbacks[this.slides[this.currentSlide].id];
-                const callback = callbacks.reset;
+            const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+            const callback = callbacks === null || callbacks === void 0 ? void 0 : callbacks.reset;
+            if (callback) {
                 await callback(this.slides[this.currentSlide], false, 0);
-            }
-            catch (ex) {
-                // No reset defined
             }
             this.slides[this.currentSlide].querySelectorAll("[data-build]")
                 .forEach(element => element.style.opacity = "1");
         }
         this.currentSlide--;
         this.buildState = __classPrivateFieldGet(this, _Lapsa_numBuilds, "f")[this.currentSlide];
-        try {
-            const callbacks = this.callbacks[this.slides[this.currentSlide].id];
-            const callback = callbacks.reset;
+        const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+        const callback = callbacks === null || callbacks === void 0 ? void 0 : callbacks.reset;
+        if (callback) {
             await callback(this.slides[this.currentSlide], false, 0);
-        }
-        catch (ex) {
-            // No reset defined
         }
         this.slides[this.currentSlide].querySelectorAll("[data-build]")
             .forEach(element => element.style.opacity = "1");
@@ -441,26 +423,20 @@ class Lapsa {
         }
         // Reset the slide if necessary.
         if (this.currentSlide !== -1 && this.buildState !== __classPrivateFieldGet(this, _Lapsa_numBuilds, "f")[this.currentSlide]) {
-            try {
-                const callbacks = this.callbacks[this.slides[this.currentSlide].id];
-                const callback = callbacks.reset;
+            const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+            const callback = callbacks === null || callbacks === void 0 ? void 0 : callbacks.reset;
+            if (callback) {
                 await callback(this.slides[this.currentSlide], false, 0);
-            }
-            catch (ex) {
-                // No reset defined
             }
             this.slides[this.currentSlide].querySelectorAll("[data-build]")
                 .forEach(element => element.style.opacity = "1");
         }
         this.currentSlide = index;
         this.buildState = 0;
-        try {
-            const callbacks = this.callbacks[this.slides[this.currentSlide].id];
-            const callback = callbacks.reset;
+        const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+        const callback = callbacks === null || callbacks === void 0 ? void 0 : callbacks.reset;
+        if (callback) {
             await callback(this.slides[this.currentSlide], true, 0);
-        }
-        catch (ex) {
-            // No reset defined
         }
         this.slides[this.currentSlide].querySelectorAll("[data-build]")
             .forEach(element => element.style.opacity = "0");
@@ -532,13 +508,10 @@ class Lapsa {
             });
             // We don't await this one because we want it to run concurrently
             // with the table view animation.
-            try {
-                const callbacks = this.callbacks[this.slides[this.currentSlide].id];
-                const callback = callbacks.reset;
+            const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+            const callback = callbacks === null || callbacks === void 0 ? void 0 : callbacks.reset;
+            if (callback) {
                 callback(this.slides[this.currentSlide], false, duration / 2);
-            }
-            catch (ex) {
-                // No reset defined
             }
             setTimeout(() => {
                 builds.forEach((element, index) => {
@@ -645,13 +618,10 @@ class Lapsa {
         });
         // We don't await this one because we want it to run concurrently
         // with the table view animation.
-        try {
-            const callbacks = this.callbacks[this.slides[this.currentSlide].id];
-            const callback = callbacks.reset;
+        const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+        const callback = callbacks === null || callbacks === void 0 ? void 0 : callbacks.reset;
+        if (callback) {
             callback(this.slides[this.currentSlide], true, duration / 3);
-        }
-        catch (ex) {
-            // No reset defined
         }
         setTimeout(() => {
             builds.forEach((element, index) => {

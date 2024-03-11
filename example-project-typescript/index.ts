@@ -1,11 +1,13 @@
-const rootElement = document.querySelector(":root");
+import Lapsa, { BuildFunction, SlideBuilds } from "/lapsa.es.js";
+
+const rootElement = document.querySelector<HTMLElement>(":root");
 
 if (!rootElement)
 {
 	throw new Error("Root element does not exist");
 }
 
-const themeDemonstrationSlideBuilds =
+const themeDemonstrationSlideBuilds: SlideBuilds =
 {
 	reset: function(slide, forward, duration)
 	{
@@ -53,7 +55,7 @@ const themeDemonstrationSlideBuilds =
 
 	2: function(slide, forward, duration = 300)
 	{
-		return new Promise(resolve =>
+		return new Promise<void>(resolve =>
 		{
 			rootElement.style.setProperty("--theme-transition-time", `${duration}ms`);
 			
@@ -99,7 +101,7 @@ const themeDemonstrationSlideBuilds =
 				resolve();
 			}, duration);
 		});
-	},
+	} as BuildFunction,
 
 	3: function(slide, forward, duration = 300)
 	{
@@ -158,7 +160,7 @@ const themeDemonstrationSlideBuilds =
 				resolve();
 			}, duration);
 		});
-	},
+	} as BuildFunction,
 	
 	
 	
@@ -219,7 +221,7 @@ const themeDemonstrationSlideBuilds =
 				resolve();
 			}, duration);
 		});
-	},
+	} as BuildFunction,
 	
 	
 	
@@ -272,7 +274,7 @@ const themeDemonstrationSlideBuilds =
 				resolve();
 			}, duration);
 		});
-	}
+	} as BuildFunction
 };
 
 const options =
