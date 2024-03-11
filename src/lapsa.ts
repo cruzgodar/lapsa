@@ -110,7 +110,7 @@ class Lapsa
 	#shelfIsAnimating = false;
 	
 	#shelfIndicatorContainer: HTMLElement;
-	#slideShelfIndicator: HTMLElement;
+	#slideShelfIndicator: HTMLElement | undefined;
 	
 	#transitionAnimationDistance = 0;
 	
@@ -120,7 +120,12 @@ class Lapsa
 	#currentlyAnimating = false;
 	#inTableView = false;
 	
-	#boundFunctions: (() => void)[] = Array(5).fill(() => {});
+	#handleKeydownEventBound: (e: KeyboardEvent) => void;
+	#handleTouchstartEventBound: (e: TouchEvent) => void;
+	#handleTouchmoveEventBound: (e: TouchEvent) => void;
+	#handleMousemoveEventBound: () => void;
+	#onResizeBound: () => void;
+
 	#currentlyTouchDevice = false;
 	#lastMousemoveEvent = 0;
 	
@@ -143,8 +148,8 @@ class Lapsa
 	constructor(inputOptions: Partial<Options>)
 	{
 		const options = {
-			...inputOptions,
 			...defaultOptions,
+			...inputOptions,
 		};
 
 		this.callbacks = options.builds;
@@ -370,8 +375,8 @@ class Lapsa
 		
 		
 		
-		setTimeout(() =>
-		{
+		// setTimeout(() =>
+		// {
 			const slideShelfElement = document.querySelector<HTMLElement>("#lapsa-slide-shelf");
 
 			if (!slideShelfElement)
@@ -391,6 +396,11 @@ class Lapsa
 				}
 				
 				this.#slideShelfIndicator = slideShelfIndicatorElement;
+
+				if (this.permanentShelf)
+				{
+					this.#slideShelfIndicator.style.display = "none";
+				}
 			}
 			
 			if (this.permanentShelf)
@@ -398,9 +408,7 @@ class Lapsa
 				this.#shelfContainer.classList.add("permanent-shelf");
 				this.#showSlideShelf(this.#slideShelf);
 				this.#shelfIsAnimating = false;
-				this.#shelfIsOpen = true;
-				
-				this.#slideShelfIndicator.style.display = "none";
+				this.#shelfIsOpen = true;	
 			}
 			
 			else
@@ -473,7 +481,7 @@ class Lapsa
 					this.nextSlide(true);
 				}
 			});
-		}, 100);
+		// }, 100);
 		
 		
 		
@@ -481,17 +489,17 @@ class Lapsa
 		document.body.style.overflowY = "hidden";
 		document.body.style.userSelect = "none";
 		
-		this.#boundFunctions[0] = this.#handleKeydownEvent.bind(this);
-		this.#boundFunctions[1] = this.#handleTouchstartEvent.bind(this);
-		this.#boundFunctions[2] = this.#handleTouchmoveEvent.bind(this);
-		this.#boundFunctions[3] = this.#handleMousemoveEvent.bind(this);
-		this.#boundFunctions[4] = this.#onResize.bind(this);
+		this.#handleKeydownEventBound = this.#handleKeydownEvent.bind(this);
+		this.#handleTouchstartEventBound = this.#handleTouchstartEvent.bind(this);
+		this.#handleTouchmoveEventBound = this.#handleTouchmoveEvent.bind(this);
+		this.#handleMousemoveEventBound = this.#handleMousemoveEvent.bind(this);
+		this.#onResizeBound = this.#onResize.bind(this);
 		
-		document.documentElement.addEventListener("keydown", this.#boundFunctions[0]);
-		document.documentElement.addEventListener("touchstart", this.#boundFunctions[1]);
-		document.documentElement.addEventListener("touchmove", this.#boundFunctions[2]);
-		document.documentElement.addEventListener("mousemove", this.#boundFunctions[3]);
-		window.addEventListener("resize", this.#boundFunctions[4]);
+		document.documentElement.addEventListener("keydown", this.#handleKeydownEventBound);
+		document.documentElement.addEventListener("touchstart", this.#handleTouchstartEventBound);
+		document.documentElement.addEventListener("touchmove", this.#handleTouchmoveEventBound);
+		document.documentElement.addEventListener("mousemove", this.#handleMousemoveEventBound);
+		window.addEventListener("resize", this.#onResizeBound);
 		
 		setTimeout(() => this.jumpToSlide(this.#startingSlide), 500);
 	}
@@ -511,11 +519,11 @@ class Lapsa
 		document.body.style.height = "fit-content";
 		document.body.style.userSelect = "auto";
 		
-		document.documentElement.removeEventListener("keydown", this.#boundFunctions[0]);
-		document.documentElement.removeEventListener("touchstart", this.#boundFunctions[1]);
-		document.documentElement.removeEventListener("touchmove", this.#boundFunctions[2]);
-		document.documentElement.removeEventListener("mousemove", this.#boundFunctions[3]);
-		window.removeEventListener("resize", this.#boundFunctions[4]);
+		document.documentElement.removeEventListener("keydown", this.#handleKeydownEventBound);
+		document.documentElement.removeEventListener("touchstart", this.#handleTouchstartEventBound);
+		document.documentElement.removeEventListener("touchmove", this.#handleTouchmoveEventBound);
+		document.documentElement.removeEventListener("mousemove", this.#handleMousemoveEventBound);
+		window.removeEventListener("resize", this.#onResizeBound);
 	}
 	
 	
@@ -1507,9 +1515,9 @@ class Lapsa
 		});
 	}
 	
-	async #showSlideShelfIndicator(element: HTMLElement, duration = this.shelfAnimationTime)
+	async #showSlideShelfIndicator(element: HTMLElement | undefined, duration = this.shelfAnimationTime)
 	{
-		if (!this.useShelfIndicator)
+		if (!this.useShelfIndicator || !element)
 		{
 			return;
 		}
@@ -1529,9 +1537,9 @@ class Lapsa
 		});
 	}
 	
-	async #hideSlideShelfIndicator(element: HTMLElement, duration = this.shelfAnimationTime)
+	async #hideSlideShelfIndicator(element: HTMLElement | undefined, duration = this.shelfAnimationTime)
 	{
-		if (!this.useShelfIndicator)
+		if (!this.useShelfIndicator || !element)
 		{
 			return;
 		}

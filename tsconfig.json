@@ -8,7 +8,7 @@
 		"esModuleInterop": false,
 		"forceConsistentCasingInFileNames": true,
 		"skipLibCheck": true,
-		"strict": false,
+		"strict": true,
 		"noImplicitAny": true,
 		"strictNullChecks": true,
 		"paths":
