@@ -280,4 +280,4 @@ export const themeDemonstrationSlideBuilds: SlideBuilds =
 	3: build3,
 	4: build4,
 	5: build5
-}
+};
