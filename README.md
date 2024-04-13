@@ -73,6 +73,7 @@ To change Lapsa's behavior, add entries to the `options` object. A complete list
 **Features**
 
 - `builds`: an object specifying slides' functional builds. See the next section for more details.
+- `setupBuild`: a synchronous function called just before a slide is shown. See the next section for details.
 - `startingSlide`: The index of the slide to open the presentation with. Default: `0`.
 - `appendHTML`: a snippet of HTML to append to every slide, typically used for easier theming. Default: `""`.
 - `dragDistanceThreshhold`: minimum distance in pixels for a drag to count for navigating or opening/closing the shelf. Set to `Infinity` to disable dragging entirely. Default: `10`.
@@ -174,6 +175,8 @@ Functional builds take an object argument with four fields: the Lapsa object res
 The `reset` function is called when the slide needs to be reset to its initial or final state. HTML builds take care of this automatically, but functional builds need to handle it manually. If the `forward` parameter is `true`, animate the slide back to its initial state over the course of `duration` milliseconds by reverting all of the builds. If `forward` is `false`, animate the slide to its final state. The `reset` function needs to work correctly from **any build state** in order for Lapsa to work properly. While it's not strictly necessary to take the exact duration specified, some cosmetic behavior may not work correctly if that's not the case. When the function is complete, call `resolve()` to tell Lapsa it can continue with what it's doing.
 
 The builds themselves are very similar. They take the same parameters, but they should specify a default value for `duration` — that's how long they will take to animate in typical conditions, but some circumstances may cause Lapsa to override the default value. If `forward` is `true`, animate the build in, and if it's false, animate the build out. Unlike the `reset` function, build functions only need to support being called from the build state immediately before or after themselves.
+
+One final functional build argument in the options is `setupBuild`, which is called just before a slide is shown (and before its `reset` build is called, if one is defined). It takes no duration parameter and should be synchronous.
 
 For a thorough example of functional builds, see the demo project.
 

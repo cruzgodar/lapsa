@@ -12,8 +12,15 @@ export type BuildFunctionData = {
 	duration?: number
 };
 
+export type SetupFunctionData = {
+	lapsa: Lapsa,
+	slide: HTMLElement,
+	forward: boolean,
+};
+
 export type ResetFunction = (data: ResetFunctionData) => Promise<void>;
 export type BuildFunction = (data: BuildFunctionData) => Promise<void>;
+export type SetupFunction = (data: SetupFunctionData) => void;
 
 export type SlideBuilds = {
 	reset: ResetFunction,
@@ -23,6 +30,8 @@ export type SlideBuilds = {
 type LapsaOptionsFull =
 {
 	builds: {[slideID: string]: SlideBuilds},
+
+	setupBuild: SetupFunction,
 	
 	transitionAnimationTime: number,
 	transitionAnimationDistanceFactor: number,
@@ -36,7 +45,7 @@ type LapsaOptionsFull =
 	shelfAnimateOutEasing: string,
 	tableViewEasing: string,
 	
-	appendHTML: string
+	appendHTML: string,
 	
 	startingSlide: number,
 	tableViewSlidesPerScreen: number,
@@ -49,13 +58,15 @@ type LapsaOptionsFull =
 	resizeOnTableView: boolean,
 	windowHeightAnimationFrames: number,
 	
-	dragDistanceThreshhold: number;
+	dragDistanceThreshhold: number,
 };
 
 export type LapsaOptions = Partial<LapsaOptionsFull>;
 
 const defaultOptions: LapsaOptionsFull = {
 	builds: {},
+
+	setupBuild: (data: SetupFunctionData) => {},
 	
 	transitionAnimationTime: 150,
 	transitionAnimationDistanceFactor: .015,
@@ -90,6 +101,7 @@ const defaultOptions: LapsaOptionsFull = {
 export default class Lapsa
 {
 	callbacks: {[slideID: string]: SlideBuilds};
+	setupBuild: SetupFunction;
 	slideContainer: HTMLElement;
 	slides: NodeListOf<HTMLElement>;
 	currentSlide: number = -1;
@@ -175,6 +187,7 @@ export default class Lapsa
 		};
 
 		this.callbacks = options.builds;
+		this.setupBuild = options.setupBuild;
 		
 		this.transitionAnimationTime = options.transitionAnimationTime;
 		this.transitionAnimationDistanceFactor = options.transitionAnimationDistanceFactor;
@@ -832,6 +845,12 @@ export default class Lapsa
 
 		const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
+		this.setupBuild({
+			lapsa: this,
+			slide: this.slides[this.currentSlide],
+			forward: true,
+		});
+
 		const callback = callbacks?.reset;
 
 		if (callback)
@@ -917,7 +936,6 @@ export default class Lapsa
 		// Reset the slide if necessary.
 		if (this.buildState !== this.#numBuilds[this.currentSlide])
 		{
-			
 			const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
 			const callback = callbacks?.reset;
@@ -945,6 +963,12 @@ export default class Lapsa
 		
 
 		const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+
+		this.setupBuild({
+			lapsa: this,
+			slide: this.slides[this.currentSlide],
+			forward: false,
+		});
 
 		const callback = callbacks?.reset;
 		
@@ -1036,6 +1060,12 @@ export default class Lapsa
 
 		const callbacks = this.callbacks[this.slides[this.currentSlide].id];
 
+		this.setupBuild({
+			lapsa: this,
+			slide: this.slides[this.currentSlide],
+			forward: true,
+		});
+
 		const callback = callbacks?.reset;
 
 		if (callback)
@@ -1110,13 +1140,20 @@ export default class Lapsa
 		
 		// The first and last two slides have different animations since
 		// they can't be in the middle of the screen in the table view.
-		const centerSlide = Math.min(
-			Math.max(
-				(scaledSlidesPerScreen - 1) / 2,
-				this.currentSlide
-			),
-			this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2
-		);
+		const centerSlide = (() =>
+		{
+			if (this.currentSlide < (scaledSlidesPerScreen - 1) / 2)
+			{
+				return (scaledSlidesPerScreen - 1) / 2;
+			}
+
+			if (this.currentSlide > this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2)
+			{
+				return this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2;
+			}
+
+			return this.currentSlide;
+		})();
 		
 		this.slideContainer.style.transformOrigin = `center calc(${this.currentSlide * 100 + 50} * var(--safe-vh))`;
 		
@@ -1372,6 +1409,12 @@ export default class Lapsa
 		// We don't await this one because we want it to run concurrently
 		// with the table view animation.
 		const callbacks = this.callbacks[this.slides[this.currentSlide].id];
+
+		this.setupBuild({
+			lapsa: this,
+			slide: this.slides[this.currentSlide],
+			forward: true,
+		});
 
 		const callback = callbacks?.reset;
 

@@ -1,5 +1,5 @@
 
-import { BuildFunctionData, ResetFunctionData, SlideBuilds } from "../../src/lapsa";
+import { BuildFunctionData, ResetFunctionData, SlideBuilds } from "/lapsa.js";
 
 const rootElement = document.querySelector<HTMLElement>(":root");
 
