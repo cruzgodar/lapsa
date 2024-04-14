@@ -23,19 +23,19 @@ html
 	background-color: rgb(189, 214, 228);
 }
 
-#lapsa-slide-container .slide
+.lapsa-slide
 {
 	background-color: rgb(170, 220, 247);
 }
 
-#lapsa-slide-container .slide h1, #lapsa-slide-container .slide h2
+.lapsa-slide h1, .lapsa-slide h2
 {
 	color: rgb(70, 0, 140);
 	
 	font-family: "Sofia", cursive;
 }
 
-#lapsa-slide-container .slide p
+.lapsa-slide p
 {
 	color: rgb(83, 47, 119);
 	

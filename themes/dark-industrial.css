@@ -5,7 +5,7 @@ html
 	background-color: rgb(0, 0, 0);
 }
 
-#lapsa-slide-container .slide
+.lapsa-slide
 {
 	background-color: rgb(24, 24, 24);
 	
@@ -15,7 +15,7 @@ html
 	box-shadow: 0px 0px 0px 0px rgb(127, 127, 127);
 }
 
-#lapsa-slide-container .slide h1, #lapsa-slide-container .slide h2
+.lapsa-slide h1, .lapsa-slide h2
 {
 	text-align: center;
 	
@@ -24,7 +24,7 @@ html
 	font-family: "Roboto Slab", serif;
 }
 
-#lapsa-slide-container .slide p
+.lapsa-slide p
 {
 	color: rgb(192, 192, 192);
 	
