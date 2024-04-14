@@ -19,11 +19,11 @@ Add `lapsa.css` and either `lapsa.js` or `lapsa.ts`, depending on whether you're
 
 	<body>
 		<div id="lapsa-slide-container">
-			<div class="slide">
+			<div>
 				<!-- HTML for the first slide -->
 			</div>
 			
-			<div class="slide">
+			<div>
 				<!-- HTML for the second slide -->
 			</div>
 			
@@ -54,7 +54,7 @@ Replace the paths with the appropriate path to the icons folder. To use Lapsa wi
 
 ## HTML
 
-Slides are contained in `<div class="slide"></div>`. The standard tags to use in slides are the typical `<h1>`, `<h2>`, and `<p>` for headings, subheadings, and body text. These all have bottom padding to separate them from one another — to apply this padding to other elements, give them the class `.lapsa-bottom-padding`. Other helpful classes are `.lapsa-center-content`, which centers the contents of a container, and `.lapsa-align-bottom`, which positions an element absolutely in the bottom-left of the slide and is useful for footer text.
+Slides are contained in `div` elements inside of the `#lapsa-slide-container` element. The standard tags to use in slides are the typical `<h1>`, `<h2>`, and `<p>` for headings, subheadings, and body text. These all have bottom padding to separate them from one another — to apply this padding to other elements, give them the class `.lapsa-bottom-padding`. Other helpful classes are `.lapsa-center-content`, which centers the contents of a container, and `.lapsa-align-bottom`, which positions an element absolutely in the bottom-left of the slide and is useful for footer text.
 
 Lapsa has many features relating to **builds**, which are ways that slides can change while they're on screen. The simplest kind are HTML builds, which build just by animating in. To make an element build in, give it the `.build` class. This makes elements appear one after another — the first element is build 0, the next is build 1, and so on. To override this behavior and specify a specific build number for an element, set the `data-build` attribute. For example, `<p data-build="2">` will always appear on the third build.
 
@@ -104,7 +104,7 @@ To change Lapsa's behavior, add entries to the `options` object. A complete list
 
 ## Functional Builds
 
-In addition to text and other HTML elements, builds in Lapsa can be JavaScript functions. These functional builds are created as part of the options object and are called by Lapsa as needed. To get started, give a slide an id: for example, `<div class="slide" id="my-slide">`. For the sake of organization, it's recommended to put each slide's builds in their own file. Let's create a folder called `builds` and a file called `mySlide.js` with the following contents:
+In addition to text and other HTML elements, builds in Lapsa can be JavaScript functions. These functional builds are created as part of the options object and are called by Lapsa as needed. To get started, give a slide an id: for example, `<div id="my-slide">`. For the sake of organization, it's recommended to put each slide's builds in their own file. Let's create a folder called `builds` and a file called `mySlide.js` with the following contents:
 
 ```js
 function reset({ lapsa, slide, forward, duration })
@@ -196,7 +196,7 @@ Modifying distances (for example, the border radius) is slightly more complicate
 ```css
 @media (min-aspect-ratio: 152/89)
 {
-	#lapsa-slide-container .slide
+	.lapsa-slide
 	{
 		padding: calc(1.5 * var(--safe-vh) * 152 / 89);
 	}

@@ -272,19 +272,19 @@ export default class Lapsa
 		
 		this.slideContainer = slideContainerElement;
 		this.slideContainer.classList.add("lapsa-hover");
+
+		this.slides = document.body.querySelectorAll("#lapsa-slide-container > *");
 		
 		this.#bottomMarginElement = document.createElement("div");
 		this.#bottomMarginElement.id = "lapsa-bottom-margin";
 		this.slideContainer.appendChild(this.#bottomMarginElement);
 		
-		
-		
-		this.slides = document.body.querySelectorAll<HTMLElement>(".slide");
-		
 		this.#numBuilds = new Array(this.slides.length);
 		
 		this.slides.forEach((element, index) =>
 		{
+			element.classList.add("lapsa-slide");
+
 			const wrapper = document.createElement("div");
 			wrapper.classList.add("lapsa-slide-wrapper");
 			
