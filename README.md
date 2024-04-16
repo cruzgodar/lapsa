@@ -94,8 +94,10 @@ To change Lapsa's behavior, add entries to the `options` object. A complete list
 
 **Easings**
 
-- `slideAnimateInEasing`: easing to animate in slides and builds. Default: `"cubic-bezier(.4, 1.0, .7, 1.0)"`.
-- `slideAnimateOutEasing`: easing to animate out slides and builds. Default: `"cubic-bezier(.1, 0.0, .2, 0.0)"`.
+- `slideAnimateInEasing`: easing to animate in slides. Default: `"cubic-bezier(.4, 1.0, .7, 1.0)"`.
+- `slideAnimateOutEasing`: easing to animate out slides. Default: `"cubic-bezier(.1, 0.0, .2, 0.0)"`.
+- `buildAnimateInEasing`: easing to animate in builds. Default: `"cubic-bezier(.4, 1.0, .7, 1.0)"`.
+- `buildAnimateOutEasing`: easing to animate out builds. Default: `"cubic-bezier(.1, 0.0, .2, 0.0)"`.
 - `shelfAnimateInEasing`: easing to animate in the shelf. Default: `"cubic-bezier(.4, 1.0, .7, 1.0)"`.
 - `shelfAnimateOutEasing`: easing to animate out the shelf. Default: `"cubic-bezier(.4, 0.0, .4, 1.0)"`.
 - `tableViewEasing`: easing to animate in and out of the table view. Default: `"cubic-bezier(.25, 1.0, .5, 1.0)"`.
