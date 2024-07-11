@@ -49,6 +49,7 @@ type LapsaOptionsFull =
 	
 	appendHTML: string,
 	
+	useSearchParams: boolean,
 	startingSlide: number,
 	tableViewSlidesPerScreen: number,
 	
@@ -86,6 +87,7 @@ const defaultOptions: LapsaOptionsFull = {
 	
 	appendHTML: "",
 	
+	useSearchParams: true,
 	startingSlide: 0,
 	tableViewSlidesPerScreen: 4,
 	
@@ -142,6 +144,7 @@ export default class Lapsa
 	
 	#rootSelector: HTMLElement;
 	#bottomMarginElement: HTMLElement;
+	#params: URLSearchParams;
 	
 	#shelfContainer: HTMLElement;
 	#slideShelf: HTMLElement;
@@ -154,6 +157,7 @@ export default class Lapsa
 	
 	#transitionAnimationDistance = 0;
 	
+	#useSearchParams: boolean;
 	#startingSlide = 0;
 	#numBuilds: number[] = [];
 	
@@ -203,8 +207,13 @@ export default class Lapsa
 		
 		this.resizeOnTableView = options.resizeOnTableView;
 		this.windowHeightAnimationFrames = options.windowHeightAnimationFrames;
-		
-		this.#startingSlide = options.startingSlide;
+
+		this.#useSearchParams = options.useSearchParams;
+
+		this.#params = new URLSearchParams(window.location.search);
+		const startingSlide = this.#useSearchParams ? this.#params.get("slide") : null;
+		this.#startingSlide = startingSlide ? parseInt(startingSlide) : options.startingSlide;
+
 		this.tableViewSlidesPerScreen = options.tableViewSlidesPerScreen;
 		
 		this.useShelf = options.useShelf;
@@ -282,6 +291,11 @@ export default class Lapsa
 		this.slideContainer.classList.add("lapsa-hover");
 
 		this.slides = document.body.querySelectorAll("#lapsa-slide-container > *");
+
+		if (Number.isNaN(this.#startingSlide)|| this.#startingSlide < 0 || this.#startingSlide >= this.slides.length)
+		{
+			this.#startingSlide = 0;
+		}
 		
 		this.#bottomMarginElement = document.createElement("div");
 		this.#bottomMarginElement.id = "lapsa-bottom-margin";
@@ -574,6 +588,19 @@ export default class Lapsa
 	}
 	
 	
+
+	#updateSearchParams()
+	{
+		if (!this.#useSearchParams)
+		{
+			return;
+		}
+
+		this.#params.set("slide", this.currentSlide.toString());
+		window.history.replaceState(null, "", `?${this.#params.toString()}`);
+	}
+
+
 	
 	#onResize()
 	{
@@ -846,6 +873,8 @@ export default class Lapsa
 		
 		
 		this.currentSlide++;
+
+		this.#updateSearchParams()
 		
 		this.buildState = 0;
 		
@@ -965,6 +994,8 @@ export default class Lapsa
 		
 		
 		this.currentSlide--;
+
+		this.#updateSearchParams()
 		
 		this.buildState = this.#numBuilds[this.currentSlide];
 		
@@ -1062,6 +1093,7 @@ export default class Lapsa
 		
 		
 		this.currentSlide = index;
+		this.#updateSearchParams()
 		this.buildState = 0;
 		
 		
@@ -1328,6 +1360,7 @@ export default class Lapsa
 		this.#currentlyAnimating = true;
 		
 		this.currentSlide = selection;
+		this.#updateSearchParams()
 		
 		this.slideContainer.classList.remove("lapsa-table-view");
 		
