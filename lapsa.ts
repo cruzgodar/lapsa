@@ -144,7 +144,6 @@ export default class Lapsa
 	
 	#rootSelector: HTMLElement;
 	#bottomMarginElement: HTMLElement;
-	#params: URLSearchParams;
 	
 	#shelfContainer: HTMLElement;
 	#slideShelf: HTMLElement;
@@ -210,8 +209,8 @@ export default class Lapsa
 
 		this.#useSearchParams = options.useSearchParams;
 
-		this.#params = new URLSearchParams(window.location.search);
-		const startingSlide = this.#useSearchParams ? this.#params.get("slide") : null;
+		const params = new URLSearchParams(window.location.search);
+		const startingSlide = this.#useSearchParams ? params.get("slide") : null;
 		this.#startingSlide = startingSlide ? parseInt(startingSlide) : options.startingSlide;
 
 		this.tableViewSlidesPerScreen = options.tableViewSlidesPerScreen;
@@ -596,8 +595,9 @@ export default class Lapsa
 			return;
 		}
 
-		this.#params.set("slide", this.currentSlide.toString());
-		window.history.replaceState(null, "", `?${this.#params.toString()}`);
+		const url = new URL(window.location.href);
+		url.searchParams.set("slide", this.currentSlide.toString());
+		window.history.replaceState(null, "", url.toString());
 	}
 
 
