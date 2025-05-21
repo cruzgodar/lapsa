@@ -11,11 +11,11 @@
 	bottom: 0;
 	right: 0;
 	
-	width: 7.5vw;
-	height: 22.5vw;
+	width: calc(7.5 * var(--vl));
+	height: calc(22.5 * var(--vl));
 	
 	transform-origin: center bottom;
-	transform: rotate(45deg) translate(-4.75vw, 8.5vw);
+	transform: rotate(45deg) translate(calc(-4.75 * var(--vl)), calc(8.5 * var(--vl)));
 }
 
 html

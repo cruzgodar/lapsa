@@ -194,19 +194,14 @@ Lapsa's default appearance of minimalist black-on-white is intended to be a gene
 - Border color and style.
 - Box shadow color on slides and the shelf, and hover behavior in the table view.
 
-Modifying distances (for example, the border radius) is slightly more complicated. By default, distances scale with `vw`, but when the window is wide enough, they switch to scaling with `vh` instead. For example, to shrink the border radius down slightly, first set it to `1.5vw` in the main part of the CSS, and then add the following at the end of the file:
+Modifying distances (for example, the border radius) is slightly more complicated. Slides are either sized by the viewport width or height, depending on aspect ratio, and to make this easier, Lapsa defines a root CSS variable called `--vl`, equal to `1vw` for narrow aspect ratios and the equivalent fraction of `1vh` for wide ones. By default, distances scale with `vw`, but when the window is wide enough, they switch to scaling with `vh` instead. *All* distances should be defined in terms of `--vl`, e.g.
 
 ```css
-@media (min-aspect-ratio: 152/89)
+.lapsa-slide
 {
-	.lapsa-slide
-	{
-		padding: calc(1.5 * var(--safe-vh) * 152 / 89);
-	}
+	border: calc(0.5 * var(--vl));
 }
 ```
-
-The `--safe-vh` variable is calculated by Lapsa to avoid artefacts caused by browsers like iOS Safari that often intentionally report inaccurate viewport heights. The other factor of `152 / 89` is due to the 16:9 ratio of the slides and the surrounding padding and needs to be applied to all styles in this media query.
 
 Some styles cannot be modified: the width, height, and padding of slides are critical to the table view working properly and can't be changed without breaking it.
 

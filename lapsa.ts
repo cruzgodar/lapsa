@@ -309,7 +309,9 @@ export default class Lapsa
 			const wrapper = document.createElement("div");
 			wrapper.classList.add("lapsa-slide-wrapper");
 			
-			wrapper.style.top = window.innerWidth / window.innerHeight >= 152 / 89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
+			wrapper.style.top = window.innerWidth / window.innerHeight >= 152 / 89
+				? `calc(${index * 100 + 2.5} * var(--safe-vh))`
+				: `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 			
 			this.slideContainer.insertBefore(wrapper, element);
 			wrapper.appendChild(element);
@@ -390,8 +392,17 @@ export default class Lapsa
 			? window.innerHeight * this.transitionAnimationDistanceFactor * 159 / 82
 			: window.innerWidth * this.transitionAnimationDistanceFactor;
 		
-		this.#safeVh = window.innerHeight / 100;
-		this.#rootSelector.style.setProperty("--safe-vh", `${this.#safeVh}px`);
+		this.#rootSelector.style.setProperty(
+			"--vl",
+			window.innerWidth / window.innerHeight >= 152 / 89
+				? `${window.innerHeight / 100 * 152 / 89}px`
+				: `${window.innerWidth / 100}px`
+		);
+
+		this.#rootSelector.style.setProperty(
+			"--safe-vh",
+			`${window.innerHeight / 100}px`
+		);
 		
 		
 		
@@ -693,8 +704,17 @@ export default class Lapsa
 		
 		else
 		{
-			this.#safeVh = window.innerHeight / 100;
-			this.#rootSelector.style.setProperty("--safe-vh", `${this.#safeVh}px`);
+			this.#rootSelector.style.setProperty(
+				"--vl",
+				window.innerWidth / window.innerHeight >= 152 / 89
+					? `${window.innerHeight / 100 * 152 / 89}px`
+					: `${window.innerWidth / 100}px`
+			);
+
+			this.#rootSelector.style.setProperty(
+				"--safe-vh",
+				`${window.innerHeight / 100}px`
+			);
 			
 			this.slides.forEach((element, index) =>
 			{
@@ -738,7 +758,17 @@ export default class Lapsa
 		
 		
 		this.#safeVh = newHeight / 100;
-		this.#rootSelector.style.setProperty("--safe-vh", `${this.#safeVh}px`);
+		this.#rootSelector.style.setProperty(
+			"--vl",
+			window.innerWidth / newHeight >= 152 / 89
+				? `${newHeight / 100 * 152 / 89}px`
+				: `${window.innerWidth / 100}px`
+		);
+
+		this.#rootSelector.style.setProperty(
+			"--safe-vh",
+			`${newHeight / 100}px`
+		);
 		
 		if (this.#inTableView)
 		{
@@ -1700,6 +1730,19 @@ export default class Lapsa
 		else if (e.key === "ArrowLeft" || e.key === "ArrowUp")
 		{
 			this.previousSlide();
+		}
+
+		else if (e.key === "Escape")
+		{
+			if (this.#inTableView)
+			{
+				this.closeTableView(this.currentSlide);
+			}
+
+			else
+			{
+				this.openTableView();
+			}
 		}
 	}
 	
