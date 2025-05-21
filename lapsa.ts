@@ -149,7 +149,7 @@ export default class Lapsa
 	#slideShelf: HTMLElement;
 	#shelfMargin = 15;
 	#shelfIsOpen = false;
-	#shelfIsAnimating = false;
+	#shelfAnimationPromise: Promise<void> | undefined;
 	
 	#shelfIndicatorContainer: HTMLElement;
 	#slideShelfIndicator: HTMLElement | undefined;
@@ -465,7 +465,6 @@ export default class Lapsa
 		{
 			this.#shelfContainer.classList.add("permanent-shelf");
 			this.#showSlideShelf(this.#slideShelf);
-			this.#shelfIsAnimating = false;
 			this.#shelfIsOpen = true;
 		}
 		
@@ -494,7 +493,7 @@ export default class Lapsa
 		
 		this.#slideShelf.children[0].addEventListener("click", () =>
 		{
-			if (this.#shelfIsOpen && !this.#shelfIsAnimating)
+			if (this.#shelfIsOpen)
 			{
 				this.previousSlide(true);
 			}
@@ -502,7 +501,7 @@ export default class Lapsa
 		
 		this.#slideShelf.children[1].addEventListener("click", () =>
 		{
-			if (this.#shelfIsOpen && !this.#shelfIsAnimating)
+			if (this.#shelfIsOpen)
 			{
 				this.previousSlide();
 			}
@@ -510,7 +509,7 @@ export default class Lapsa
 		
 		this.#slideShelf.children[2].addEventListener("click", () =>
 		{
-			if (this.#shelfIsOpen && !this.#shelfIsAnimating)
+			if (this.#shelfIsOpen)
 			{
 				if (this.#inTableView)
 				{
@@ -526,7 +525,7 @@ export default class Lapsa
 		
 		this.#slideShelf.children[3].addEventListener("click", () =>
 		{
-			if (this.#shelfIsOpen && !this.#shelfIsAnimating)
+			if (this.#shelfIsOpen)
 			{
 				this.nextSlide();
 			}
@@ -534,7 +533,7 @@ export default class Lapsa
 		
 		this.#slideShelf.children[4].addEventListener("click", () =>
 		{
-			if (this.#shelfIsOpen && !this.#shelfIsAnimating)
+			if (this.#shelfIsOpen)
 			{
 				this.nextSlide(true);
 			}
@@ -1548,7 +1547,12 @@ export default class Lapsa
 	
 	async showShelf()
 	{
-		if (this.permanentShelf || this.#shelfIsAnimating || !this.#slideShelf.parentElement)
+		if (this.#shelfAnimationPromise)
+		{
+			await this.#shelfAnimationPromise;
+		}
+
+		if (this.permanentShelf || !this.#slideShelf.parentElement)
 		{
 			return;
 		}
@@ -1556,7 +1560,8 @@ export default class Lapsa
 		
 		
 		this.#shelfIsOpen = true;
-		this.#shelfIsAnimating = true;
+		let resolve = () => {};
+		this.#shelfAnimationPromise = new Promise(r => resolve = r);
 		
 		this.#slideShelf.style.display = "flex";
 		this.#slideShelf.parentElement.style.paddingRight = "100px";
@@ -1566,13 +1571,18 @@ export default class Lapsa
 			this.#hideSlideShelfIndicator(this.#slideShelfIndicator);
 			await this.#showSlideShelf(this.#slideShelf);
 			
-			this.#shelfIsAnimating = false;
+			resolve();
 		}, 16);
 	}
 	
 	async hideShelf()
 	{
-		if (this.permanentShelf || this.#shelfIsAnimating || !this.#slideShelf.parentElement)
+		if (this.#shelfAnimationPromise)
+		{
+			await this.#shelfAnimationPromise;
+		}
+
+		if (this.permanentShelf || !this.#slideShelf.parentElement)
 		{
 			return;
 		}
@@ -1580,7 +1590,8 @@ export default class Lapsa
 		
 		
 		this.#shelfIsOpen = false;
-		this.#shelfIsAnimating = true;
+		let resolve = () => {};
+		this.#shelfAnimationPromise = new Promise(r => resolve = r);
 		
 		this.#slideShelf.parentElement.style.paddingRight = "0";
 		
@@ -1590,7 +1601,7 @@ export default class Lapsa
 		this.#slideShelf.style.display = "none";
 		this.#slideShelf.parentElement.style.paddingRight = "";
 		
-		this.#shelfIsAnimating = false;
+		resolve();
 	}
 	
 	async #showSlideShelf(element: HTMLElement, duration = this.shelfAnimationTime)
