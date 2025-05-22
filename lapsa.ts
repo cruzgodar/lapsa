@@ -563,9 +563,13 @@ export default class Lapsa
 		this.#onResizeBound = this.#onResize.bind(this);
 		
 		document.documentElement.addEventListener("keydown", this.#handleKeydownEventBound);
-		document.documentElement.addEventListener("touchstart", this.#handleTouchstartEventBound);
-		document.documentElement.addEventListener("touchmove", this.#handleTouchmoveEventBound);
-		document.documentElement.addEventListener("mousemove", this.#handleMousemoveEventBound);
+
+		document.body.addEventListener("touchstart", this.#handleTouchstartEventBound);
+		document.body.addEventListener("touchmove", this.#handleTouchmoveEventBound);
+		document.body.addEventListener("mousemove", this.#handleMousemoveEventBound);
+
+		document.body.style.touchAction = "none";
+
 		window.addEventListener("resize", this.#onResizeBound);
 		
 		setTimeout(() => this.jumpToSlide(this.#startingSlide), 500);
@@ -587,12 +591,13 @@ export default class Lapsa
 		document.body.style.userSelect = "auto";
 		
 		document.documentElement.removeEventListener("keydown", this.#handleKeydownEventBound);
-		document.documentElement.removeEventListener(
-			"touchstart",
-			this.#handleTouchstartEventBound
-		);
-		document.documentElement.removeEventListener("touchmove", this.#handleTouchmoveEventBound);
-		document.documentElement.removeEventListener("mousemove", this.#handleMousemoveEventBound);
+
+		document.body.removeEventListener("touchstart", this.#handleTouchstartEventBound);
+		document.body.removeEventListener("touchmove", this.#handleTouchmoveEventBound);
+		document.body.removeEventListener("mousemove", this.#handleMousemoveEventBound);
+
+		document.body.style.touchAction = "";
+
 		window.removeEventListener("resize", this.#onResizeBound);
 	}
 	
@@ -711,6 +716,7 @@ export default class Lapsa
 					: `${window.innerWidth / 100}px`
 			);
 
+			this.#safeVh = window.innerHeight / 100;
 			this.#rootSelector.style.setProperty(
 				"--safe-vh",
 				`${window.innerHeight / 100}px`
@@ -1189,6 +1195,7 @@ export default class Lapsa
 		
 		document.body.style.overflowY = "visible";
 		document.body.style.position = "relative";
+		document.body.style.touchAction = "";
 		this.slideContainer.style.overflowY = "visible";
 		
 		const bodyRect = document.body.getBoundingClientRect();
@@ -1421,6 +1428,7 @@ export default class Lapsa
 		
 		document.documentElement.style.overflowY = "hidden";
 		document.body.style.overflowY = "hidden";
+		document.body.style.touchAction = "none";
 		
 		this.slideContainer.style.transformOrigin = `center calc(${centerSlide * 100 + 50} * var(--safe-vh))`;
 		
@@ -1717,8 +1725,8 @@ export default class Lapsa
 			}, duration);
 		});
 	}
-	
-	
+
+
 	
 	#handleKeydownEvent(e: KeyboardEvent)
 	{
@@ -1789,8 +1797,6 @@ export default class Lapsa
 		{
 			return;
 		}
-		
-		
 		
 		e.preventDefault();
 		

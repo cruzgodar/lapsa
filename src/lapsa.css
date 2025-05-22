@@ -1,6 +1,7 @@
 :root
 {
 	--safe-vh: 1vh;
+	--vl: 1vw;
 }
 
 html, body
@@ -35,7 +36,7 @@ body
 	position: absolute;
 	
 	width: 100vw;
-	height: 55.625vw;
+	height: calc(55.625 * var(--vl));
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -45,17 +46,17 @@ body
 {
 	position: relative;
 	
-	width: 90vw;
-	height: 50.625vw;
+	width: calc(90 * var(--vl));
+	height: calc(50.625 * var(--vl));;
 	
 	border: 0px solid rgb(127, 127, 127);
-	border-radius: 2.5vw;
+	border-radius: calc(2.5 * var(--vl));
 	
-	padding: 2.5vw;
+	padding: calc(2.5 * var(--vl));
 	
-	box-shadow: 0px 0px 1vw 0px rgb(127, 127, 127);
+	box-shadow: 0px 0px calc(1 * var(--vl)) 0px rgb(127, 127, 127);
 	
-	font-size: 3vw;
+	font-size: calc(3 * var(--vl));
 	
 	line-height: 1.25;
 	
@@ -64,7 +65,7 @@ body
 
 #lapsa-slide-container.lapsa-hover.lapsa-table-view .lapsa-slide:hover
 {
-	box-shadow: 0px 0px 4vw 0px rgb(127, 127, 127);
+	box-shadow: 0px 0px calc(4 * var(--vl)) 0px rgb(127, 127, 127);
 	cursor: pointer;
 }
 
@@ -77,7 +78,7 @@ body
 	text-align: left;
 	
 	margin: 0;
-	padding-bottom: 2vw;
+	padding-bottom: calc(2 * var(--vl));
 	
 	line-height: 1.25;
 }
@@ -86,7 +87,7 @@ body
 {
 	font-size: 200%;
 	
-	margin-top: -1vw;
+	margin-top: calc(-1 * var(--vl));
 }
 
 .lapsa-slide h2
@@ -195,76 +196,18 @@ body
 	display: flex;
 	justify-content: center;
 	
-	width: 90vw;
+	width: calc(90 * var(--vl));
 }
 
 .lapsa-align-bottom
 {
 	position: absolute;
 	padding-bottom: 0 !important;
-	bottom: 2.25vw;
-	left: 2.5vw;
+	bottom: calc(2.25 * var(--vl));
+	left: calc(2.5 * var(--vl));
 }
 
 .lapsa-padding-bottom
 {
-	padding-bottom: 2vw;
-}
-
-
-
-/* By default, the slide is 95vw wide due to the padding, and the height is 55.625vw. This aspect ratio is 152:89, so when we're larger than that, we switch to measuring in terms of vh instead. At the switching point, 1vw = 1vh * 152/89, which we use for our calculations. */
-@media (min-aspect-ratio: 152/89)
-{
-	.lapsa-slide-wrapper
-	{
-		height: calc(55.625 * var(--safe-vh) * 152 / 89);
-	}
-
-	.lapsa-slide
-	{
-		height: calc(50.625 * var(--safe-vh) * 152 / 89);
-		width: calc(90 * var(--safe-vh) * 152 / 89);
-		
-		border-radius: calc(2.5 * var(--safe-vh) * 152 / 89);
-		
-		box-shadow: 0px 0px calc(var(--safe-vh) * 152 / 89) 0px rgb(127, 127, 127);
-		
-		padding: calc(2.5 * var(--safe-vh) * 152 / 89);
-		
-		font-size: calc(3 * var(--safe-vh) * 152 / 89);	
-	}
-	
-	#lapsa-slide-container.lapsa-hover.lapsa-table-view .lapsa.slide:hover
-	{
-		box-shadow: 0px 0px calc(4 * var(--safe-vh) * 152 / 89) 0px rgb(127, 127, 127);
-	}
-	
-	.lapsa-slide h1, .lapsa-slide h2, .lapsa-slide p
-	{
-		padding-bottom: calc(2 * var(--safe-vh) * 152 / 89);
-	}
-
-	.lapsa-slide h1
-	{
-		margin-top: calc(-1 * var(--safe-vh) * 152 / 89);
-	}
-	
-	
-	
-	.lapsa-center-content
-	{
-		width: calc(90 * var(--safe-vh) * 152 / 89);
-	}
-	
-	.lapsa-align-bottom
-	{
-		bottom: calc(2.25 * var(--safe-vh) * 152 / 89);
-		left: calc(2.5 * var(--safe-vh) * 152 / 89);
-	}
-	
-	.lapsa-padding-bottom
-	{
-		padding-bottom: calc(2 * var(--safe-vh) * 152 / 89);
-	}
+	padding-bottom: calc(2 * var(--vl));
 }
