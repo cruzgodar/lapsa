@@ -494,9 +494,9 @@ export default class Lapsa
 			}
 		});
 		
-		this.#shelfContainer.addEventListener("mouseleave", () =>
+		this.#shelfContainer.addEventListener("mouseleave", (e) =>
 		{
-			if (this.#shelfIsOpen && !this.permanentShelf && this.useShelf)
+			if (e.relatedTarget && this.#shelfIsOpen && !this.permanentShelf && this.useShelf)
 			{
 				this.hideShelf();
 			}

@@ -247,8 +247,8 @@ class Lapsa {
                 this.showShelf();
             }
         });
-        __classPrivateFieldGet(this, _Lapsa_shelfContainer, "f").addEventListener("mouseleave", () => {
-            if (__classPrivateFieldGet(this, _Lapsa_shelfIsOpen, "f") && !this.permanentShelf && this.useShelf) {
+        __classPrivateFieldGet(this, _Lapsa_shelfContainer, "f").addEventListener("mouseleave", (e) => {
+            if (e.relatedTarget && __classPrivateFieldGet(this, _Lapsa_shelfIsOpen, "f") && !this.permanentShelf && this.useShelf) {
                 this.hideShelf();
             }
         });
