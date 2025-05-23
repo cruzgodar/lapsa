@@ -178,6 +178,16 @@ export default class Lapsa
 	#windowHeightAnimationLastTimestamp = -1;
 	#resizeAnimationBound;
 	#missedResizeAnimation = false;
+
+	#safeAreaInsets = {
+		top: 0,
+		bottom: 0,
+		left: 0,
+		right: 0,
+	};
+
+	#safeWindowHeight = window.innerHeight;
+	#safeWindowWidth = window.innerWidth;
 	
 	#currentlyDragging = false;
 	#dragDistanceX = 0;
@@ -289,6 +299,41 @@ export default class Lapsa
 		this.slideContainer = slideContainerElement;
 		this.slideContainer.classList.add("lapsa-hover");
 
+
+
+		this.#safeAreaInsets = {
+			top: parseFloat(
+				window.getComputedStyle(document.documentElement)
+					.getPropertyValue("--safe-area-inset-top")
+					.slice(0, -2)
+			),
+
+			bottom: parseFloat(
+				window.getComputedStyle(document.documentElement)
+					.getPropertyValue("--safe-area-inset-bottom")
+					.slice(0, -2)
+			),
+
+			left: parseFloat(
+				window.getComputedStyle(document.documentElement)
+					.getPropertyValue("--safe-area-inset-left")
+					.slice(0, -2)
+			),
+
+			right: parseFloat(
+				window.getComputedStyle(document.documentElement)
+					.getPropertyValue("--safe-area-inset-right")
+					.slice(0, -2)
+			),
+		};
+
+		console.log(window.getComputedStyle(document.documentElement));
+
+		this.#safeWindowHeight = window.innerHeight - this.#safeAreaInsets.top - this.#safeAreaInsets.bottom;
+		this.#safeWindowWidth = window.innerWidth - this.#safeAreaInsets.left - this.#safeAreaInsets.right;
+
+
+
 		this.slides = document.body.querySelectorAll("#lapsa-slide-container > *");
 
 		if (Number.isNaN(this.#startingSlide)|| this.#startingSlide < 0 || this.#startingSlide >= this.slides.length)
@@ -309,7 +354,7 @@ export default class Lapsa
 			const wrapper = document.createElement("div");
 			wrapper.classList.add("lapsa-slide-wrapper");
 			
-			wrapper.style.top = window.innerWidth / window.innerHeight >= 152 / 89
+			wrapper.style.top = this.#safeWindowWidth / this.#safeWindowHeight >= 152 / 89
 				? `calc(${index * 100 + 2.5} * var(--safe-vh))`
 				: `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 			
@@ -388,20 +433,20 @@ export default class Lapsa
 			this.#numBuilds[index] = Math.max(this.#numBuilds[index], maxFunctionalBuild);
 		});
 		
-		this.#transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152 / 89
-			? window.innerHeight * this.transitionAnimationDistanceFactor * 159 / 82
-			: window.innerWidth * this.transitionAnimationDistanceFactor;
+		this.#transitionAnimationDistance = this.#safeWindowWidth / this.#safeWindowHeight >= 152 / 89
+			? this.#safeWindowHeight * this.transitionAnimationDistanceFactor * 159 / 82
+			: this.#safeWindowWidth * this.transitionAnimationDistanceFactor;
 		
 		this.#rootSelector.style.setProperty(
 			"--vl",
-			window.innerWidth / window.innerHeight >= 152 / 89
-				? `${window.innerHeight / 100 * 152 / 89}px`
-				: `${window.innerWidth / 100}px`
+			this.#safeWindowWidth / this.#safeWindowHeight >= 152 / 89
+				? `${this.#safeWindowHeight / 100 * 152 / 89}px`
+				: `${this.#safeWindowWidth / 100}px`
 		);
 
 		this.#rootSelector.style.setProperty(
 			"--safe-vh",
-			`${window.innerHeight / 100}px`
+			`${this.#safeWindowHeight / 100}px`
 		);
 		
 		
@@ -494,9 +539,9 @@ export default class Lapsa
 			}
 		});
 		
-		this.#shelfContainer.addEventListener("mouseleave", () =>
+		this.#shelfContainer.addEventListener("mouseleave", (e) =>
 		{
-			if (this.#shelfIsOpen && !this.permanentShelf && this.useShelf)
+			if (e.relatedTarget && this.#shelfIsOpen && !this.permanentShelf && this.useShelf)
 			{
 				this.hideShelf();
 			}
@@ -623,10 +668,40 @@ export default class Lapsa
 		{
 			return;
 		}
+
+		this.#safeAreaInsets = {
+			top: parseFloat(
+				window.getComputedStyle(document.documentElement)
+					.getPropertyValue("--safe-area-inset-top")
+					.slice(0, -2)
+			),
+
+			bottom: parseFloat(
+				window.getComputedStyle(document.documentElement)
+					.getPropertyValue("--safe-area-inset-bottom")
+					.slice(0, -2)
+			),
+
+			left: parseFloat(
+				window.getComputedStyle(document.documentElement)
+					.getPropertyValue("--safe-area-inset-left")
+					.slice(0, -2)
+			),
+
+			right: parseFloat(
+				window.getComputedStyle(document.documentElement)
+					.getPropertyValue("--safe-area-inset-right")
+					.slice(0, -2)
+			),
+		};
+
+		this.#safeWindowHeight = window.innerHeight - this.#safeAreaInsets.top - this.#safeAreaInsets.bottom;
+		this.#safeWindowWidth = window.innerWidth - this.#safeAreaInsets.left - this.#safeAreaInsets.right;
+
 		
-		this.#transitionAnimationDistance = window.innerWidth / window.innerHeight >= 152 / 89
-			? window.innerHeight * this.transitionAnimationDistanceFactor * 159 / 82
-			: window.innerWidth * this.transitionAnimationDistanceFactor;
+		this.#transitionAnimationDistance = this.#safeWindowWidth / this.#safeWindowHeight >= 152 / 89
+			? this.#safeWindowHeight * this.transitionAnimationDistanceFactor * 159 / 82
+			: this.#safeWindowWidth * this.transitionAnimationDistanceFactor;
 		
 		
 		
@@ -654,7 +729,7 @@ export default class Lapsa
 			
 			const translation = bodyRect.width / bodyRect.height >= 152 / 89
 				? (58.125 * 152 / 89 * centerSlide - 100 * centerSlide) * scale * this.#safeVh
-				: (58.125 * centerSlide) * scale * window.innerWidth / 100
+				: (58.125 * centerSlide) * scale * this.#safeWindowWidth / 100
 					- 100 * centerSlide * scale * this.#safeVh;
 			
 			
@@ -666,7 +741,7 @@ export default class Lapsa
 					return;
 				}
 
-				if (window.innerWidth / window.innerHeight >= 152 / 89)
+				if (this.#safeWindowWidth / this.#safeWindowHeight >= 152 / 89)
 				{
 					element.parentElement.style.top = `calc(${5 + 58.125 * 152 / 89 * (index - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
 				}
@@ -677,7 +752,7 @@ export default class Lapsa
 				}
 			});
 			
-			if (window.innerWidth / window.innerHeight >= 152 / 89)
+			if (this.#safeWindowWidth / this.#safeWindowHeight >= 152 / 89)
 			{
 				this.#bottomMarginElement.style.top = `calc(${5 + 58.125 * 152 / 89 * (this.slides.length - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
 			}
@@ -711,15 +786,15 @@ export default class Lapsa
 		{
 			this.#rootSelector.style.setProperty(
 				"--vl",
-				window.innerWidth / window.innerHeight >= 152 / 89
-					? `${window.innerHeight / 100 * 152 / 89}px`
-					: `${window.innerWidth / 100}px`
+				this.#safeWindowWidth / this.#safeWindowHeight >= 152 / 89
+					? `${this.#safeWindowHeight / 100 * 152 / 89}px`
+					: `${this.#safeWindowWidth / 100}px`
 			);
 
-			this.#safeVh = window.innerHeight / 100;
+			this.#safeVh = this.#safeWindowHeight / 100;
 			this.#rootSelector.style.setProperty(
 				"--safe-vh",
-				`${window.innerHeight / 100}px`
+				`${this.#safeWindowHeight / 100}px`
 			);
 			
 			this.slides.forEach((element, index) =>
@@ -729,7 +804,7 @@ export default class Lapsa
 					return;
 				}
 
-				element.parentElement.style.top = window.innerWidth / window.innerHeight >= 152 / 89
+				element.parentElement.style.top = this.#safeWindowWidth / this.#safeWindowHeight >= 152 / 89
 					? `calc(${index * 100 + 2.5} * var(--safe-vh))`
 					: `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 			});
@@ -757,7 +832,7 @@ export default class Lapsa
 			)
 		);
 		
-		const newHeight = this.#startWindowHeight * (1 - t) + window.innerHeight * t;
+		const newHeight = this.#startWindowHeight * (1 - t) + this.#safeWindowHeight * t;
 		
 		this.#lastWindowHeight = newHeight;
 		
@@ -766,9 +841,9 @@ export default class Lapsa
 		this.#safeVh = newHeight / 100;
 		this.#rootSelector.style.setProperty(
 			"--vl",
-			window.innerWidth / newHeight >= 152 / 89
+			this.#safeWindowWidth / newHeight >= 152 / 89
 				? `${newHeight / 100 * 152 / 89}px`
-				: `${window.innerWidth / 100}px`
+				: `${this.#safeWindowWidth / 100}px`
 		);
 
 		this.#rootSelector.style.setProperty(
@@ -778,9 +853,9 @@ export default class Lapsa
 		
 		if (this.#inTableView)
 		{
-			const slidesPerScreen = window.innerWidth / newHeight >= 152 / 89
+			const slidesPerScreen = this.#safeWindowWidth / newHeight >= 152 / 89
 				? 1
-				: newHeight / (window.innerWidth * 89 / 152);
+				: newHeight / (this.#safeWindowWidth * 89 / 152);
 			
 			const scale = Math.min(slidesPerScreen / this.tableViewSlidesPerScreen, 1);
 			
@@ -794,9 +869,9 @@ export default class Lapsa
 				this.slides.length - 1 - (scaledSlidesPerScreen - 1) / 2
 			);
 			
-			const translation = window.innerWidth / newHeight >= 152 / 89
+			const translation = this.#safeWindowWidth / newHeight >= 152 / 89
 				? (58.125 * 152 / 89 * centerSlide - 100 * centerSlide) * scale * this.#safeVh
-				: (58.125 * centerSlide) * scale * window.innerWidth / 100
+				: (58.125 * centerSlide) * scale * this.#safeWindowWidth / 100
 					- 100 * centerSlide * scale * this.#safeVh;
 			
 			this.slideContainer.style.transform = `matrix(${scale}, 0, 0, ${scale}, 0, ${translation})`;
@@ -1235,14 +1310,14 @@ export default class Lapsa
 		
 		const translation = bodyRect.width / bodyRect.height >= 152 / 89
 			? (58.125 * 152 / 89 * centerSlide - 100 * centerSlide) * scale * this.#safeVh
-			: (58.125 * centerSlide) * scale * window.innerWidth / 100
+			: (58.125 * centerSlide) * scale * this.#safeWindowWidth / 100
 				- 100 * centerSlide * scale * this.#safeVh;
 		
 		this.slideContainer.style.transition = `transform ${duration}ms ${this.tableViewEasing}`;
 		
 		this.slideContainer.style.transform = bodyRect.width / bodyRect.height >= 152 / 89
 			? `matrix(${scale}, 0, 0, ${scale}, 0, ${((this.currentSlide - centerSlide) * 58.125 * 152 / 89 * scale - 100 * this.currentSlide) * this.#safeVh})`
-			: `matrix(${scale}, 0, 0, ${scale}, 0, ${(this.currentSlide - centerSlide) * 58.125 * scale * window.innerWidth / 100 - 100 * this.currentSlide * this.#safeVh})`;
+			: `matrix(${scale}, 0, 0, ${scale}, 0, ${(this.currentSlide - centerSlide) * 58.125 * scale * this.#safeWindowWidth / 100 - 100 * this.currentSlide * this.#safeVh})`;
 
 		this.slides.forEach((element, index) =>
 		{
@@ -1347,7 +1422,7 @@ export default class Lapsa
 					}
 				});
 				
-				if (window.innerWidth / window.innerHeight >= 152 / 89)
+				if (this.#safeWindowWidth / this.#safeWindowHeight >= 152 / 89)
 				{
 					this.#bottomMarginElement.style.top = `calc(${5 + 58.125 * 152 / 89 * (this.slides.length - centerSlide) + 100 * centerSlide} * var(--safe-vh))`;
 				}
@@ -1540,7 +1615,7 @@ export default class Lapsa
 
 					element.parentElement.style.transition = `top ${duration}ms ${this.tableViewEasing}`;
 					
-					element.parentElement.style.top = window.innerWidth / window.innerHeight >= 152 / 89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
+					element.parentElement.style.top = this.#safeWindowWidth / this.#safeWindowHeight >= 152 / 89 ? `calc(${index * 100 + 2.5} * var(--safe-vh))` : `calc(${index * 100} * var(--safe-vh) + (100 * var(--safe-vh) - 55.625vw) / 2)`;
 				});
 				
 				setTimeout(() =>

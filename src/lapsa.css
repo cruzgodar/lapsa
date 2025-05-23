@@ -2,6 +2,11 @@
 {
 	--safe-vh: 1vh;
 	--vl: 1vw;
+
+	--safe-area-inset-top: env(safe-area-inset-top);
+	--safe-area-inset-bottom: env(safe-area-inset-bottom);
+	--safe-area-inset-left: env(safe-area-inset-left);
+	--safe-area-inset-right: env(safe-area-inset-right);
 }
 
 html, body
@@ -24,7 +29,7 @@ body
 {
 	position: relative;
 	
-	width: 100vw;
+	width: calc(100vw - var(--safe-area-inset-left) - var(--safe-area-inset-right));
 	margin: 0 auto;
 	opacity: 0;
 	
@@ -35,7 +40,8 @@ body
 {
 	position: absolute;
 	
-	width: 100vw;
+	width: calc(100vw - var(--safe-area-inset-left) - var(--safe-area-inset-right));
+	margin-left: var(--safe-area-inset-left);
 	height: calc(55.625 * var(--vl));
 	display: flex;
 	justify-content: center;
@@ -110,7 +116,7 @@ body
 	height: calc(100 * var(--safe-vh));
 	
 	bottom: 0;
-	left: 0;
+	left: var(--safe-area-inset-left);
 	
 	padding-right: 0;
 	
@@ -145,7 +151,7 @@ body
 #lapsa-slide-shelf
 {
 	width: 50px;
-	margin-left: 25px;
+	margin-left: calc(25px + var(--safe-area-inset-left));
 	background-color: rgb(255, 255, 255);
 	
 	display: none;
